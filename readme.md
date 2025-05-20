@@ -1,0 +1,14 @@
+# IIS-FTP-SimpleAuthProvider
+This is a simple authentication provider for IIS FTP.
+
+## Features
+- Simple authentication (not bind with Active Directory or Windows Account)
+- use only user name(or ID) and password
+- Easy to use
+- provide folder permission with this authprovider's user list
+
+## Requirement
+- IIS 10.0 or later
+- .NET Framework 4.8 or later
+### for Build
+- Visual Studio 2019 or later | else Visual Studio Code with C# extension

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>IIS.Ftp.SimpleAuth.Provider</RootNamespace>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+  <!-- Reference IIS FTP extensibility assembly (present on machines with IIS). -->
+  <ItemGroup>
+    <Reference Include="Microsoft.Web.FtpServer">
+      <HintPath>$(ProgramFiles)\Reference Assemblies\Microsoft\IIS\Microsoft.Web.FtpServer.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+</Project> 
