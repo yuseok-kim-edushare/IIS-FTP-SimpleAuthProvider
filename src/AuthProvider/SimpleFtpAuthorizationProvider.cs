@@ -21,32 +21,26 @@ namespace IIS.Ftp.SimpleAuth.Provider
             _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
         }
 
-        public bool GetUserAccessPermission(
-            string sessionId,
-            string siteName,
-            string virtualPath,
-            string physicalPath,
-            string userName,
-            string userPassword,
-            System.Security.Principal.SecurityIdentifier userSid,
-            FTP_ACCESS requestedAccess,
-            out FTP_ACCESS allowedAccess)
+        public FtpAccess GetUserAccessPermission(
+            string pszSessionId,
+            string pszSiteName,
+            string pszVirtualPath,
+            string pszUserName)
         {
-            allowedAccess = 0;
-            var permissions = _userStore.GetPermissionsAsync(userName).ConfigureAwait(false).GetAwaiter().GetResult();
+            FtpAccess allowedAccess = FtpAccess.None;
+            var permissions = _userStore.GetPermissionsAsync(pszUserName).ConfigureAwait(false).GetAwaiter().GetResult();
             foreach (Permission entry in permissions)
             {
-                if (!virtualPath.StartsWith(entry.Path, StringComparison.OrdinalIgnoreCase))
+                if (!pszVirtualPath.StartsWith(entry.Path, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 if (entry.CanRead)
-                    allowedAccess |= FTP_ACCESS.FTP_ACCESS_READ;
+                    allowedAccess |= FtpAccess.Read;
                 if (entry.CanWrite)
-                    allowedAccess |= FTP_ACCESS.FTP_ACCESS_WRITE;
+                    allowedAccess |= FtpAccess.Write;
             }
 
-            // Allow if we satisfied all requested bits.
-            return (requestedAccess & allowedAccess) == requestedAccess;
+            return allowedAccess;
         }
     }
 } 
