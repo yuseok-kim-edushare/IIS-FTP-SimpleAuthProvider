@@ -16,5 +16,6 @@
       <HintPath>$(ProgramFiles)\Reference Assemblies\Microsoft\IIS\Microsoft.Web.FtpServer.dll</HintPath>
       <Private>false</Private>
     </Reference>
+    <Reference Include="System.Configuration" />
   </ItemGroup>
 </Project> 
