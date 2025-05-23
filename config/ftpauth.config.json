@@ -1,0 +1,19 @@
+{
+  "UserStore": {
+    "Type": "Json",
+    "Path": "C:\\inetpub\\ftpusers\\users.enc",
+    "EncryptionKeyEnv": "FTP_USERS_KEY",
+    "EnableHotReload": true
+  },
+  "Hashing": {
+    "Algorithm": "PBKDF2",
+    "Iterations": 100000,
+    "SaltSize": 16
+  },
+  "Logging": {
+    "EnableEventLog": true,
+    "EventLogSource": "IIS-FTP-SimpleAuth",
+    "LogFailures": true,
+    "LogSuccesses": false
+  }
+} 

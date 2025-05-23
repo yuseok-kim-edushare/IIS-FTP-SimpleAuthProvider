@@ -1,0 +1,35 @@
+[
+  {
+    "UserId": "ftpuser1",
+    "DisplayName": "FTP User 1",
+    "Salt": "RandomBase64Salt==",
+    "PasswordHash": "PBKDF2HashedPasswordBase64==",
+    "HomeDirectory": "/ftpuser1",
+    "Permissions": [
+      {
+        "Path": "/",
+        "CanRead": true,
+        "CanWrite": false
+      },
+      {
+        "Path": "/upload",
+        "CanRead": true,
+        "CanWrite": true
+      }
+    ]
+  },
+  {
+    "UserId": "admin",
+    "DisplayName": "FTP Administrator",
+    "Salt": "AnotherRandomBase64Salt==",
+    "PasswordHash": "AnotherPBKDF2HashedPasswordBase64==",
+    "HomeDirectory": "/",
+    "Permissions": [
+      {
+        "Path": "/",
+        "CanRead": true,
+        "CanWrite": true
+      }
+    ]
+  }
+] 
