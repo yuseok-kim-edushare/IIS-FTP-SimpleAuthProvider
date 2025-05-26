@@ -6,10 +6,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
 {
     public interface IUserStore
     {
-        Task<User?> FindAsync(string userId);
+        User? Find(string userId);
 
-        Task<bool> ValidateAsync(string userId, string password);
+        bool Validate(string userId, string password);
 
-        Task<IEnumerable<Permission>> GetPermissionsAsync(string userId);
+        IEnumerable<Permission> GetPermissions(string userId);
     }
 } 
