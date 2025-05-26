@@ -1,5 +1,6 @@
 using System;
 using IIS.Ftp.SimpleAuth.Core.Domain;
+using IIS.Ftp.SimpleAuth.Core.Logging;
 using IIS.Ftp.SimpleAuth.Core.Stores;
 using Microsoft.Web.FtpServer;
 
@@ -11,14 +12,16 @@ namespace IIS.Ftp.SimpleAuth.Provider
     public sealed class SimpleFtpAuthorizationProvider : IFtpAuthorizationProvider
     {
         private readonly IUserStore _userStore;
+        private readonly AuditLogger _auditLogger;
 
-        public SimpleFtpAuthorizationProvider() : this(UserStoreFactory.Create())
+        public SimpleFtpAuthorizationProvider() : this(UserStoreFactory.Create(), UserStoreFactory.GetAuditLogger())
         {
         }
 
-        internal SimpleFtpAuthorizationProvider(IUserStore userStore)
+        internal SimpleFtpAuthorizationProvider(IUserStore userStore, AuditLogger auditLogger)
         {
             _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
+            _auditLogger = auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
         }
 
         public FtpAccess GetUserAccessPermission(
@@ -27,20 +30,50 @@ namespace IIS.Ftp.SimpleAuth.Provider
             string pszVirtualPath,
             string pszUserName)
         {
-            FtpAccess allowedAccess = FtpAccess.None;
-            var permissions = _userStore.GetPermissionsAsync(pszUserName).ConfigureAwait(false).GetAwaiter().GetResult();
-            foreach (Permission entry in permissions)
+            try
             {
-                if (!pszVirtualPath.StartsWith(entry.Path, StringComparison.OrdinalIgnoreCase))
-                    continue;
+                FtpAccess allowedAccess = FtpAccess.None;
+                var permissions = _userStore.GetPermissions(pszUserName);
+                
+                foreach (Permission entry in permissions)
+                {
+                    // Normalize paths for better matching
+                    var normalizedVirtualPath = NormalizePath(pszVirtualPath);
+                    var normalizedEntryPath = NormalizePath(entry.Path);
+                    
+                    if (!normalizedVirtualPath.StartsWith(normalizedEntryPath, StringComparison.OrdinalIgnoreCase))
+                        continue;
 
-                if (entry.CanRead)
-                    allowedAccess |= FtpAccess.Read;
-                if (entry.CanWrite)
-                    allowedAccess |= FtpAccess.Write;
+                    if (entry.CanRead)
+                        allowedAccess |= FtpAccess.Read;
+                    if (entry.CanWrite)
+                        allowedAccess |= FtpAccess.Write;
+                }
+
+                return allowedAccess;
             }
+            catch (Exception ex)
+            {
+                _auditLogger.LogUserStoreError("GetUserAccessPermission", 
+                    $"Error getting permissions for user '{pszUserName}': {ex.Message}");
+                return FtpAccess.None;
+            }
+        }
 
-            return allowedAccess;
+        private static string NormalizePath(string path)
+        {
+            if (string.IsNullOrEmpty(path)) return "/";
+            
+            // Ensure path starts with /
+            if (!path.StartsWith("/")) path = "/" + path;
+            
+            // Ensure path ends with / for directory matching
+            if (!path.EndsWith("/")) path += "/";
+            
+            // Handle root path special case
+            if (path == "//") path = "/";
+            
+            return path;
         }
     }
 } 
