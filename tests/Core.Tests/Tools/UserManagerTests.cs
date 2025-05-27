@@ -88,7 +88,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         {
             // Act & Assert
             var action = () => UserManager.CreateUser(_tempFilePath, "", "password", "displayName");
-            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.EqualTo("User ID cannot be empty*"));
+            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("User ID cannot be empty"));
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         {
             // Act & Assert
             var action = () => UserManager.CreateUser(_tempFilePath, null!, "password", "displayName");
-            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.EqualTo("User ID cannot be empty*"));
+            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("User ID cannot be empty"));
         }
 
         [Test]
@@ -104,7 +104,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         {
             // Act & Assert
             var action = () => UserManager.CreateUser(_tempFilePath, "userid", "", "displayName");
-            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.EqualTo("Password cannot be empty*"));
+            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("Password cannot be empty"));
         }
 
         [Test]
@@ -112,7 +112,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         {
             // Act & Assert
             var action = () => UserManager.CreateUser(_tempFilePath, "userid", null!, "displayName");
-            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.EqualTo("Password cannot be empty*"));
+            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("Password cannot be empty"));
         }
 
         [Test]
@@ -194,7 +194,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         {
             // Act & Assert
             var action = () => UserManager.ChangePassword(_tempFilePath, "", "newpassword");
-            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.EqualTo("User ID cannot be empty*"));
+            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("User ID cannot be empty"));
         }
 
         [Test]
@@ -202,7 +202,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         {
             // Act & Assert
             var action = () => UserManager.ChangePassword(_tempFilePath, "userid", "");
-            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.EqualTo("Password cannot be empty*"));
+            Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("Password cannot be empty"));
         }
 
         [Test]
@@ -285,7 +285,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             
             // Should be valid base64
             var keyBytes = Convert.FromBase64String(key);
-            Assert.That(keyBytes, Has.Count.EqualTo(32)); // 256 bits = 32 bytes
+            Assert.That(keyBytes, Has.Length.EqualTo(32)); // 256 bits = 32 bytes
         }
 
         [Test]
@@ -334,7 +334,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
 
             // Act & Assert
             var action = () => UserManager.CreateUser(_tempFilePath, "testuser", "password", "Test User");
-            Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo($"Failed to load users from {_tempFilePath}*"));
+            Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.StartsWith($"Failed to load users from {_tempFilePath}"));
         }
 
         [Test]

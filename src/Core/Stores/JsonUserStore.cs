@@ -33,14 +33,18 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
 
             if (enableHotReload)
             {
-                _watcher = new FileSystemWatcher(Path.GetDirectoryName(_filePath)!, Path.GetFileName(_filePath))
+                var directory = Path.GetDirectoryName(_filePath);
+                if (!string.IsNullOrEmpty(directory) && Directory.Exists(directory))
                 {
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime | NotifyFilters.FileName
-                };
-                _watcher.Changed += (s, e) => DebouncedReload();
-                _watcher.Created += (s, e) => DebouncedReload();
-                _watcher.Renamed += (s, e) => DebouncedReload();
-                _watcher.EnableRaisingEvents = true;
+                    _watcher = new FileSystemWatcher(directory, Path.GetFileName(_filePath))
+                    {
+                        NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.Size | NotifyFilters.CreationTime | NotifyFilters.FileName
+                    };
+                    _watcher.Changed += (s, e) => DebouncedReload();
+                    _watcher.Created += (s, e) => DebouncedReload();
+                    _watcher.Renamed += (s, e) => DebouncedReload();
+                    _watcher.EnableRaisingEvents = true;
+                }
             }
         }
 

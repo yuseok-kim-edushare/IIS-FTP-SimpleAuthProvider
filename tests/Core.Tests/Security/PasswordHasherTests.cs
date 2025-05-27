@@ -18,7 +18,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             
             // Should be valid base64
             var saltBytes = Convert.FromBase64String(salt);
-            Assert.That(saltBytes, Has.Count.EqualTo(16)); // Default size is 16 bytes
+            Assert.That(saltBytes, Has.Length.EqualTo(16)); // Default size is 16 bytes
         }
 
         [Test]
@@ -35,7 +35,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Assert.That(salt, Is.Not.Null.And.Not.Empty);
             
             var saltBytes = Convert.FromBase64String(salt);
-            Assert.That(saltBytes, Has.Count.EqualTo(sizeBytes));
+            Assert.That(saltBytes, Has.Length.EqualTo(sizeBytes));
         }
 
         [Test]
@@ -67,7 +67,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             
             // Should be valid base64
             var hashBytes = Convert.FromBase64String(hash);
-            Assert.That(hashBytes, Has.Count.EqualTo(32)); // 256 bits = 32 bytes
+            Assert.That(hashBytes, Has.Length.EqualTo(32)); // 256 bits = 32 bytes
         }
 
         [Test]

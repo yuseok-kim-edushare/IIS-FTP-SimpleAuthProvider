@@ -9,6 +9,7 @@ namespace IIS.Ftp.SimpleAuth.Provider
 {
     internal static class UserStoreFactory
     {
+        private static readonly object _lock = new object();
         private static AuthProviderConfig? _config;
         private static AuditLogger? _auditLogger;
 
@@ -25,34 +26,48 @@ namespace IIS.Ftp.SimpleAuth.Provider
         public static AuditLogger GetAuditLogger()
         {
             LoadConfiguration();
-            return _auditLogger ??= new AuditLogger(_config?.Logging ?? new LoggingConfig());
+            
+            if (_auditLogger == null)
+            {
+                lock (_lock)
+                {
+                    _auditLogger ??= new AuditLogger(_config?.Logging ?? new LoggingConfig());
+                }
+            }
+            
+            return _auditLogger;
         }
 
         private static void LoadConfiguration()
         {
             if (_config != null) return;
 
-            try
+            lock (_lock)
             {
-                // Try to load from configuration file
-                var configPath = ConfigurationManager.AppSettings["ConfigPath"] 
-                                ?? Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ftpauth.config.json");
-                
-                if (File.Exists(configPath))
-                {
-                    var json = File.ReadAllText(configPath);
-                    _config = JsonSerializer.Deserialize<AuthProviderConfig>(json, new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
-                }
-            }
-            catch
-            {
-                // Fall back to defaults if config loading fails
-            }
+                if (_config != null) return;
 
-            _config ??= new AuthProviderConfig();
+                try
+                {
+                    // Try to load from configuration file
+                    var configPath = ConfigurationManager.AppSettings["ConfigPath"] 
+                                    ?? Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "ftpauth.config.json");
+                    
+                    if (File.Exists(configPath))
+                    {
+                        var json = File.ReadAllText(configPath);
+                        _config = JsonSerializer.Deserialize<AuthProviderConfig>(json, new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+                    }
+                }
+                catch
+                {
+                    // Fall back to defaults if config loading fails
+                }
+
+                _config ??= new AuthProviderConfig();
+            }
         }
 
         private static string GetLegacyPath()

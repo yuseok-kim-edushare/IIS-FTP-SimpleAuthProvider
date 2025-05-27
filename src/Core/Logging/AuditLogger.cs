@@ -34,7 +34,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
             }
         }
 
-        public void LogAuthenticationSuccess(string sessionId, string siteName, string userName, string clientIp = "unknown")
+        public virtual void LogAuthenticationSuccess(string sessionId, string siteName, string userName, string clientIp = "unknown")
         {
             if (!_config.LogSuccesses) return;
 
@@ -42,7 +42,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
             LogEvent(EventLogEntryType.SuccessAudit, 1001, message);
         }
 
-        public void LogAuthenticationFailure(string sessionId, string siteName, string userName, string reason = "Invalid credentials", string clientIp = "unknown")
+        public virtual void LogAuthenticationFailure(string sessionId, string siteName, string userName, string reason = "Invalid credentials", string clientIp = "unknown")
         {
             if (!_config.LogFailures) return;
 
@@ -50,7 +50,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
             LogEvent(EventLogEntryType.FailureAudit, 1002, message);
         }
 
-        public void LogUserStoreError(string operation, string error)
+        public virtual void LogUserStoreError(string operation, string error)
         {
             var message = $"FTP UserStore ERROR - Operation: {operation}, Error: {error}";
             LogEvent(EventLogEntryType.Error, 1003, message);
