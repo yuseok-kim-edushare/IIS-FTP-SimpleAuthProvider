@@ -3,4 +3,8 @@
     <Project Path="src/AuthProvider/AuthProvider.csproj" />
     <Project Path="src/Core/Core.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" />
+    <Project Path="tests/Core.Tests/Core.Tests.csproj" />
+  </Folder>
 </Solution>

@@ -2,9 +2,17 @@
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <RootNamespace>IIS.Ftp.SimpleAuth.Provider</RootNamespace>
+    <AssemblyName>IIS.Ftp.SimpleAuth.Provider</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <!-- Allows the specified assembly (the test project) to access internal types and members of this assembly. -->
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>IIS.Ftp.SimpleAuth.AuthProvider.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
