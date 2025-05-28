@@ -7,6 +7,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
 {
@@ -66,14 +67,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var virtualPath = "/home/user";
             var userName = "testuser";
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(new List<Permission>());
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).Returns(Task.FromResult<IEnumerable<Permission>>(new List<Permission>()));
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.None));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -90,14 +91,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.Read));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -114,14 +115,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = false, CanWrite = true }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.Write));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -138,14 +139,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = true, CanWrite = true }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.Read | FtpAccess.Write));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -163,14 +164,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = false, CanWrite = true }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.Read | FtpAccess.Write));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -187,14 +188,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.Read));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -211,14 +212,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = true, CanWrite = true }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.None));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -238,7 +239,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = permissionPath, CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -263,7 +264,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = permissionPath, CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -286,7 +287,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -309,7 +310,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -332,7 +333,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -355,7 +356,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = true, CanWrite = true }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -379,7 +380,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user/restricted", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -398,14 +399,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "testuser";
             var exception = new InvalidOperationException("Database connection failed");
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Throws(exception);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).Throws(exception);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.None));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
             _mockAuditLogger.Verify(x => x.LogUserStoreError("GetUserAccessPermission", 
                 $"Error getting permissions for user '{userName}': {exception.Message}"), Times.Once);
         }
@@ -420,14 +421,14 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var siteName = "TestSite";
             var virtualPath = "/home/user";
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(new List<Permission>());
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(new List<Permission>());
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
 
             // Assert
             Assert.That(result, Is.EqualTo(FtpAccess.None));
-            _mockUserStore.Verify(x => x.GetPermissions(userName), Times.Once);
+            _mockUserStore.Verify(x => x.GetPermissionsAsync(userName), Times.Once);
         }
 
         [Test]
@@ -444,7 +445,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/user", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -467,7 +468,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "", CanRead = true, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);
@@ -494,7 +495,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
                 new Permission { Path = "/home/other", CanRead = false, CanWrite = false }
             };
 
-            _mockUserStore.Setup(x => x.GetPermissions(userName)).Returns(permissions);
+            _mockUserStore.Setup(x => x.GetPermissionsAsync(userName)).ReturnsAsync(permissions);
 
             // Act
             var result = _provider.GetUserAccessPermission(sessionId, siteName, virtualPath, userName);

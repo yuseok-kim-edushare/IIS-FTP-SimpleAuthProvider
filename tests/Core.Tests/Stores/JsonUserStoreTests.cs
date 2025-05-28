@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
 {
@@ -34,20 +35,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
         }
 
         [Test]
-        public void Constructor_NonExistentFile_ShouldCreateEmptyStore()
+        public async Task Constructor_NonExistentFile_ShouldCreateEmptyStore()
         {
             // Arrange
-            var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + ".json");
+            var nonExistentPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".json");
 
             // Act
             _store = new JsonUserStore(nonExistentPath, enableHotReload: false);
+            User? foundUser = await _store.FindAsync("anyuser");
 
             // Assert
-            Assert.That(_store.Find("anyuser"), Is.Null);
+            Assert.That(foundUser, Is.Null);
         }
 
         [Test]
-        public void Constructor_ValidJsonFile_ShouldLoadUsers()
+        public async Task Constructor_ValidJsonFile_ShouldLoadUsers()
         {
             // Arrange
             var users = new List<User>
@@ -70,16 +72,16 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
 
             // Act
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
+            var foundUser = await _store.FindAsync("testuser");
 
             // Assert
-            var foundUser = _store.Find("testuser");
             Assert.That(foundUser, Is.Not.Null);
             Assert.That(foundUser!.UserId, Is.EqualTo("testuser"));
             Assert.That(foundUser.DisplayName, Is.EqualTo("Test User"));
         }
 
         [Test]
-        public void Find_ExistingUser_ShouldReturnUser()
+        public async Task Find_ExistingUser_ShouldReturnUser()
         {
             // Arrange
             var user = CreateTestUser("testuser", "Test User");
@@ -87,7 +89,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var foundUser = _store.Find("testuser");
+            var foundUser = await _store.FindAsync("testuser");
 
             // Assert
             Assert.That(foundUser, Is.Not.Null);
@@ -96,21 +98,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
         }
 
         [Test]
-        public void Find_NonExistentUser_ShouldReturnNull()
+        public async Task Find_NonExistentUser_ShouldReturnNull()
         {
             // Arrange
             CreateTestJsonFile(new List<User>());
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var foundUser = _store.Find("nonexistent");
+            var foundUser = await _store.FindAsync("nonexistent");
 
             // Assert
             Assert.That(foundUser, Is.Null);
         }
 
         [Test]
-        public void Find_CaseInsensitive_ShouldReturnUser()
+        public async Task Find_CaseInsensitive_ShouldReturnUser()
         {
             // Arrange
             var user = CreateTestUser("TestUser", "Test User");
@@ -118,9 +120,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var foundUser1 = _store.Find("testuser");
-            var foundUser2 = _store.Find("TESTUSER");
-            var foundUser3 = _store.Find("TestUser");
+            var foundUser1 = await _store.FindAsync("testuser");
+            var foundUser2 = await _store.FindAsync("TESTUSER");
+            var foundUser3 = await _store.FindAsync("TestUser");
 
             // Assert
             Assert.That(foundUser1, Is.Not.Null);
@@ -133,7 +135,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
         }
 
         [Test]
-        public void Validate_CorrectPassword_ShouldReturnTrue()
+        public async Task Validate_CorrectPassword_ShouldReturnTrue()
         {
             // Arrange
             var password = "TestPassword123!";
@@ -151,14 +153,14 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var isValid = _store.Validate("testuser", password);
+            var isValid = await _store.ValidateAsync("testuser", password);
 
             // Assert
             Assert.That(isValid, Is.True);
         }
 
         [Test]
-        public void Validate_IncorrectPassword_ShouldReturnFalse()
+        public async Task Validate_IncorrectPassword_ShouldReturnFalse()
         {
             // Arrange
             var password = "TestPassword123!";
@@ -177,28 +179,28 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var isValid = _store.Validate("testuser", wrongPassword);
+            var isValid = await _store.ValidateAsync("testuser", wrongPassword);
 
             // Assert
             Assert.That(isValid, Is.False);
         }
 
         [Test]
-        public void Validate_NonExistentUser_ShouldReturnFalse()
+        public async Task Validate_NonExistentUser_ShouldReturnFalse()
         {
             // Arrange
             CreateTestJsonFile(new List<User>());
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var isValid = _store.Validate("nonexistent", "anypassword");
+            var isValid = await _store.ValidateAsync("nonexistent", "anypassword");
 
             // Assert
             Assert.That(isValid, Is.False);
         }
 
         [Test]
-        public void GetPermissions_ExistingUser_ShouldReturnPermissions()
+        public async Task GetPermissions_ExistingUser_ShouldReturnPermissions()
         {
             // Arrange
             var permissions = new List<Permission>
@@ -214,7 +216,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var userPermissions = _store.GetPermissions("testuser").ToList();
+            var userPermissions = (await _store.GetPermissionsAsync("testuser")).ToList();
 
             // Assert
             Assert.That(userPermissions, Has.Count.EqualTo(2));
@@ -222,21 +224,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
         }
 
         [Test]
-        public void GetPermissions_NonExistentUser_ShouldReturnEmpty()
+        public async Task GetPermissions_NonExistentUser_ShouldReturnEmpty()
         {
             // Arrange
             CreateTestJsonFile(new List<User>());
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var permissions = _store.GetPermissions("nonexistent").ToList();
+            var permissions = (await _store.GetPermissionsAsync("nonexistent")).ToList();
 
             // Assert
             Assert.That(permissions, Is.Empty);
         }
 
         [Test]
-        public void GetPermissions_UserWithNoPermissions_ShouldReturnEmpty()
+        public async Task GetPermissions_UserWithNoPermissions_ShouldReturnEmpty()
         {
             // Arrange
             var user = CreateTestUser("testuser", "Test User");
@@ -246,14 +248,14 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var permissions = _store.GetPermissions("testuser").ToList();
+            var permissions = (await _store.GetPermissionsAsync("testuser")).ToList();
 
             // Assert
             Assert.That(permissions, Is.Empty);
         }
 
         [Test]
-        public void Constructor_InvalidJsonFile_ShouldCreateEmptyStore()
+        public async Task Constructor_InvalidJsonFile_ShouldCreateEmptyStore()
         {
             // Arrange
             File.WriteAllText(_tempFilePath, "invalid json content");
@@ -262,11 +264,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Assert
-            Assert.That(_store.Find("anyuser"), Is.Null);
+            var foundUser = await _store.FindAsync("anyuser");
+            Assert.That(foundUser, Is.Null);
         }
 
         [Test]
-        public void Find_MultipleUsers_ShouldReturnCorrectUser()
+        public async Task Find_MultipleUsers_ShouldReturnCorrectUser()
         {
             // Arrange
             var users = new List<User>
@@ -280,9 +283,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: false);
 
             // Act
-            var user1 = _store.Find("user1");
-            var user2 = _store.Find("user2");
-            var user3 = _store.Find("user3");
+            var user1 = await _store.FindAsync("user1");
+            var user2 = await _store.FindAsync("user2");
+            var user3 = await _store.FindAsync("user3");
 
             // Assert
             Assert.That(user1, Is.Not.Null);
@@ -296,7 +299,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
         }
 
         [Test]
-        public void HotReload_FileModification_ShouldReloadUsers()
+        public async Task HotReload_FileModification_ShouldReloadUsers()
         {
             // Arrange
             var initialUsers = new List<User> { CreateTestUser("user1", "User One") };
@@ -304,8 +307,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             _store = new JsonUserStore(_tempFilePath, enableHotReload: true);
 
             // Verify initial state
-            Assert.That(_store.Find("user1"), Is.Not.Null);
-            Assert.That(_store.Find("user2"), Is.Null);
+            var user1Initial = await _store.FindAsync("user1");
+            Assert.That(user1Initial, Is.Not.Null);
+            var user2Initial = await _store.FindAsync("user2");
+            Assert.That(user2Initial, Is.Null);
 
             // Act - Modify file
             var updatedUsers = new List<User>
@@ -319,11 +324,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             Thread.Sleep(1000);
 
             // Assert
-            var user1 = _store.Find("user1");
+            var user1 = await _store.FindAsync("user1");
             Assert.That(user1, Is.Not.Null);
             Assert.That(user1!.DisplayName, Is.EqualTo("User One Updated"));
             
-            Assert.That(_store.Find("user2"), Is.Not.Null);
+            Assert.That(await _store.FindAsync("user2"), Is.Not.Null);
         }
 
         [Test]

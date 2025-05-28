@@ -1,16 +1,21 @@
 using System;
 using System.Diagnostics;
 using IIS.Ftp.SimpleAuth.Core.Configuration;
+using System.IO;
+using System.Threading.Tasks;
 
 namespace IIS.Ftp.SimpleAuth.Core.Logging
 {
     /// <summary>
     /// Provides audit logging for authentication events to Windows Event Log.
     /// </summary>
-    public class AuditLogger
+    public class AuditLogger : IDisposable
     {
         private readonly LoggingConfig _config;
         private readonly EventLog? _eventLog;
+        private readonly string? _logFilePath;
+        private readonly StreamWriter? _fileWriter;
+        private readonly object _fileLock = new object();
 
         public AuditLogger(LoggingConfig config)
         {
@@ -30,6 +35,29 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
                 {
                     // Fallback if EventLog is not available (non-admin scenarios)
                     Debug.WriteLine($"Failed to initialize EventLog: {ex.Message}");
+                }
+            }
+
+            if (_config.EnableFileLog && !string.IsNullOrEmpty(_config.FileLogPath))
+            {
+                _logFilePath = _config.FileLogPath;
+                try
+                {
+                    // Ensure directory exists
+                    var logDirectory = Path.GetDirectoryName(_logFilePath);
+                    if (!string.IsNullOrEmpty(logDirectory) && !Directory.Exists(logDirectory))
+                    {
+                        Directory.CreateDirectory(logDirectory);
+                    }
+
+                    // Open file in append mode
+                    _fileWriter = new StreamWriter(new FileStream(_logFilePath, FileMode.Append, FileAccess.Write, FileShare.ReadWrite)) { AutoFlush = true };
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Failed to initialize FileLog at {_logFilePath}: {ex.Message}");
+                    _fileWriter?.Dispose();
+                    _fileWriter = null;
                 }
             }
         }
@@ -74,11 +102,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
                 Debug.WriteLine($"EventLog write failed: {ex.Message}");
                 Debug.WriteLine($"Event: {message}");
             }
+
+            if (_fileWriter != null)
+            {
+                var logEntry = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ssZ} [{(entryType == EventLogEntryType.SuccessAudit ? "INFO" : entryType == EventLogEntryType.FailureAudit ? "WARN" : "ERROR")}] {message}";
+                lock (_fileLock)
+                {
+                    _fileWriter.WriteLine(logEntry);
+                }
+            }
         }
 
         public void Dispose()
         {
             _eventLog?.Dispose();
+            _fileWriter?.Dispose();
         }
     }
 } 

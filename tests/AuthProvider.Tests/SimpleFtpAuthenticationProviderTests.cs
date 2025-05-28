@@ -63,7 +63,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "testuser";
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(true);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(true);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -72,7 +72,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.True);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationSuccess(sessionId, siteName, userName, It.IsAny<string>()), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationFailure(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
@@ -86,7 +86,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "testuser";
             var userPassword = "wrongpassword";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(false);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(false);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -95,7 +95,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.False);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationFailure(sessionId, siteName, userName, "Invalid credentials", It.IsAny<string>()), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationSuccess(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
@@ -110,7 +110,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userPassword = "password123";
             var exception = new InvalidOperationException("Database connection failed");
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Throws(exception);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).Throws(exception);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -119,7 +119,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.False);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationFailure(sessionId, siteName, userName, $"Authentication error: {exception.Message}", It.IsAny<string>()), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationSuccess(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.Never);
         }
@@ -134,7 +134,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var siteName = "TestSite";
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(false);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(false);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -143,7 +143,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.False);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
         }
 
         [Test]
@@ -156,7 +156,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var siteName = "TestSite";
             var userName = "testuser";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(false);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(false);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -165,7 +165,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.False);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
         }
 
         [Test]
@@ -177,7 +177,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "testuser";
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(true);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(true);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -198,7 +198,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "testuser";
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(true);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(true);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -219,7 +219,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "test@domain.com";
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(true);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(true);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -228,7 +228,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.True);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
             _mockAuditLogger.Verify(x => x.LogAuthenticationSuccess(sessionId, siteName, userName, It.IsAny<string>()), Times.Once);
         }
 
@@ -241,7 +241,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = new string('a', 256); // Very long username
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(true);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(true);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -250,7 +250,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(result, Is.True);
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
         }
 
         [Test]
@@ -262,7 +262,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             var userName = "TestUser";
             var userPassword = "password123";
             
-            _mockUserStore.Setup(x => x.Validate(userName, userPassword)).Returns(true);
+            _mockUserStore.Setup(x => x.ValidateAsync(userName, userPassword)).ReturnsAsync(true);
 
             // Act
             var result = _provider.AuthenticateUser(sessionId, siteName, userName, userPassword, out var canonicalUserName);
@@ -272,7 +272,7 @@ namespace IIS.Ftp.SimpleAuth.AuthProvider.Tests
             Assert.That(canonicalUserName, Is.EqualTo(userName));
             
             // Verify exact case is passed to user store
-            _mockUserStore.Verify(x => x.Validate(userName, userPassword), Times.Once);
+            _mockUserStore.Verify(x => x.ValidateAsync(userName, userPassword), Times.Once);
         }
     }
 } 

@@ -80,6 +80,102 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
+        public async Task SaveUserAsync(User user)
+        {
+            var operation = "SaveUserAsync";
+            var success = true;
+            try
+            {
+                await _inner.SaveUserAsync(user);
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                _metrics.RecordUserStoreOperation(operation, success);
+            }
+        }
+
+        public async Task DeleteUserAsync(string userId)
+        {
+            var operation = "DeleteUserAsync";
+            var success = true;
+            try
+            {
+                await _inner.DeleteUserAsync(userId);
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                _metrics.RecordUserStoreOperation(operation, success);
+            }
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            var operation = "GetAllUsersAsync";
+            var success = true;
+            try
+            {
+                var result = await _inner.GetAllUsersAsync();
+                return result;
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                _metrics.RecordUserStoreOperation(operation, success);
+            }
+        }
+
+        public async Task AddPermissionAsync(string userId, Permission permission)
+        {
+            var operation = "AddPermissionAsync";
+            var success = true;
+            try
+            {
+                await _inner.AddPermissionAsync(userId, permission);
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                _metrics.RecordUserStoreOperation(operation, success);
+            }
+        }
+
+        public async Task DeletePermissionAsync(string userId, Permission permission)
+        {
+            var operation = "DeletePermissionAsync";
+            var success = true;
+            try
+            {
+                await _inner.DeletePermissionAsync(userId, permission);
+            }
+            catch (Exception)
+            {
+                success = false;
+                throw;
+            }
+            finally
+            {
+                _metrics.RecordUserStoreOperation(operation, success);
+            }
+        }
+
         public void Dispose()
         {
             if (_inner is IDisposable disposable)

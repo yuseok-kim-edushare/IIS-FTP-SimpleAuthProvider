@@ -85,7 +85,7 @@ Hot-reload pattern for JSON:
 /docs
     design.md          ← this file
 /readme.md
-/azure-pipelines.yml  | .github/workflows/ci.yml
+.github/workflows/ci.yml
 ```
 
 ## 8 Testing Strategy

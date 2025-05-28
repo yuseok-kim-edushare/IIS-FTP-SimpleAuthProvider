@@ -243,6 +243,93 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             });
         }
 
+        public async Task AddPermissionAsync(string userId, Permission permission)
+        {
+            if (string.IsNullOrEmpty(userId) || permission == null) return;
+
+            var user = await FindAsync(userId);
+            if (user == null)
+            {
+                _auditLogger?.LogUserStoreError("AddPermissionAsync", $"User {userId} not found when trying to add permission");
+                return;
+            }
+
+            try
+            {
+                // Create a mutable copy of permissions
+                var permissions = user.Permissions?.ToList() ?? new List<Permission>();
+
+                // Check if permission for this path already exists
+                var existingPermIndex = permissions.FindIndex(p => string.Equals(p.Path, permission.Path, StringComparison.OrdinalIgnoreCase));
+
+                if (existingPermIndex != -1)
+                {
+                    // Update existing permission
+                    permissions[existingPermIndex] = permission; // Replace with the new permission object (might have different read/write flags)
+                    _auditLogger?.LogConfigurationChange("SqliteUserStore", $"Updated permission for path '{permission.Path}' for user '{userId}'");
+                }
+                else
+                {
+                    // Add new permission
+                    permissions.Add(permission);
+                    _auditLogger?.LogConfigurationChange("SqliteUserStore", $"Added permission for path '{permission.Path}' for user '{userId}'");
+                }
+
+                // Update the user object with the modified permissions
+                user.Permissions = permissions; // Since User is a class, we modify the list in place
+
+                // Save the updated user back to the database
+                await SaveUserAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _auditLogger?.LogUserStoreError("AddPermissionAsync", $"Error adding permission for user {userId}: {ex.Message}");
+                throw; // Re-throw the exception
+            }
+        }
+
+        public async Task DeletePermissionAsync(string userId, Permission permission)
+        {
+            if (string.IsNullOrEmpty(userId) || permission == null) return;
+
+            var user = await FindAsync(userId);
+            if (user == null)
+            {
+                _auditLogger?.LogUserStoreError("DeletePermissionAsync", $"User {userId} not found when trying to delete permission");
+                return;
+            }
+
+            try
+            {
+                // Create a mutable copy of permissions
+                var permissions = user.Permissions?.ToList() ?? new List<Permission>();
+
+                // Find and remove the permission by path (case-insensitive)
+                var initialCount = permissions.Count;
+                permissions.RemoveAll(p => string.Equals(p.Path, permission.Path, StringComparison.OrdinalIgnoreCase));
+
+                if (permissions.Count < initialCount)
+                {
+                    _auditLogger?.LogConfigurationChange("SqliteUserStore", $"Deleted permission for path '{permission.Path}' for user '{userId}'");
+
+                    // Update the user object with the modified permissions
+                    user.Permissions = permissions; // Since User is a class, we modify the list in place
+
+                    // Save the updated user back to the database
+                    await SaveUserAsync(user);
+                }
+                else
+                {
+                     _auditLogger?.LogUserStoreError("DeletePermissionAsync", $"Permission for path '{permission.Path}' not found for user '{userId}'");
+                }
+            }
+            catch (Exception ex)
+            {
+                _auditLogger?.LogUserStoreError("DeletePermissionAsync", $"Error deleting permission for user {userId}: {ex.Message}");
+                throw; // Re-throw the exception
+            }
+        }
+
         private string SerializePermissions(List<Permission> permissions)
         {
             return JsonSerializer.Serialize(permissions, _jsonOptions);
