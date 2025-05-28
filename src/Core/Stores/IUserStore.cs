@@ -11,5 +11,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
         Task<bool> ValidateAsync(string userId, string password);
 
         Task<IEnumerable<Permission>> GetPermissionsAsync(string userId);
+
+        Task SaveUserAsync(User user);
+
+        Task DeleteUserAsync(string userId);
+
+        Task<IEnumerable<User>> GetAllUsersAsync();
+
+        Task AddPermissionAsync(string userId, Permission permission);
+
+        Task DeletePermissionAsync(string userId, Permission permission);
     }
 } 
