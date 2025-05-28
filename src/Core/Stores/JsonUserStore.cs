@@ -171,5 +171,155 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
         {
             _watcher?.Dispose();
         }
+
+        public async Task SaveUserAsync(User user)
+        {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+
+            await Task.Run(() =>
+            {
+                // Update cache (atomic replacement)
+                var newCache = _cache.SetItem(user.UserId, user);
+                Interlocked.Exchange(ref _cache, newCache);
+
+                // Save to file
+                Save();
+
+                _auditLogger?.LogConfigurationChange("JsonUserStore", $"User {user.UserId} saved");
+            });
+        }
+
+        public async Task DeleteUserAsync(string userId)
+        {
+            if (string.IsNullOrEmpty(userId))
+                return;
+
+            await Task.Run(() =>
+            {
+                if (_cache.ContainsKey(userId))
+                {
+                    // Update cache (atomic replacement)
+                    var newCache = _cache.Remove(userId);
+                    Interlocked.Exchange(ref _cache, newCache);
+
+                    // Save to file
+                    Save();
+
+                    _auditLogger?.LogConfigurationChange("JsonUserStore", $"User {userId} deleted");
+                }
+            });
+        }
+
+        public Task<IEnumerable<User>> GetAllUsersAsync()
+        {
+            return Task.FromResult<IEnumerable<User>>(_cache.Values.ToList());
+        }
+
+        public async Task AddPermissionAsync(string userId, Permission permission)
+        {
+            if (string.IsNullOrEmpty(userId) || permission == null) return;
+
+            await Task.Run(() =>
+            {
+                if (_cache.TryGetValue(userId, out var user))
+                {
+                    // Create a mutable copy of permissions
+                    var permissions = user.Permissions?.ToList() ?? new List<Permission>();
+                    
+                    // Check if permission for this path already exists
+                    var existingPermIndex = permissions.FindIndex(p => string.Equals(p.Path, permission.Path, StringComparison.OrdinalIgnoreCase));
+
+                    if (existingPermIndex != -1)
+                    {
+                        // Update existing permission
+                        permissions[existingPermIndex] = permission; // Replace with the new permission object (might have different read/write flags)
+                        _auditLogger?.LogConfigurationChange("JsonUserStore", $"Updated permission for path '{permission.Path}' for user '{userId}'");
+                    }
+                    else
+                    {
+                        // Add new permission
+                        permissions.Add(permission);
+                        _auditLogger?.LogConfigurationChange("JsonUserStore", $"Added permission for path '{permission.Path}' for user '{userId}'");
+                    }
+
+                    // Create a new User object with updated permissions (Immutable pattern)
+                    var updatedUser = new User
+                    {
+                        UserId = user.UserId,
+                        DisplayName = user.DisplayName,
+                        Salt = user.Salt,
+                        PasswordHash = user.PasswordHash,
+                        HomeDirectory = user.HomeDirectory,
+                        Permissions = permissions
+                    };
+
+                    // Update cache with the new user object
+                    var newCache = _cache.SetItem(userId, updatedUser);
+                    Interlocked.Exchange(ref _cache, newCache);
+
+                    // Save to file
+                    Save();
+                }
+                 else
+                 {
+                     _auditLogger?.LogUserStoreError("AddPermissionAsync", $"User {userId} not found when trying to add permission");
+                 }
+            });
+        }
+
+        public async Task DeletePermissionAsync(string userId, Permission permission)
+        {
+             if (string.IsNullOrEmpty(userId) || permission == null) return;
+
+            await Task.Run(() =>
+            {
+                if (_cache.TryGetValue(userId, out var user))
+                {
+                    // Create a mutable copy of permissions
+                    var permissions = user.Permissions?.ToList() ?? new List<Permission>();
+                    
+                    // Find and remove the permission by path (case-insensitive)
+                    var initialCount = permissions.Count;
+                    permissions.RemoveAll(p => string.Equals(p.Path, permission.Path, StringComparison.OrdinalIgnoreCase));
+
+                    if (permissions.Count < initialCount)
+                    {
+                        _auditLogger?.LogConfigurationChange("JsonUserStore", $"Deleted permission for path '{permission.Path}' for user '{userId}'");
+
+                        // Create a new User object with updated permissions (Immutable pattern)
+                        var updatedUser = new User
+                        {
+                            UserId = user.UserId,
+                            DisplayName = user.DisplayName,
+                            Salt = user.Salt,
+                            PasswordHash = user.PasswordHash,
+                            HomeDirectory = user.HomeDirectory,
+                            Permissions = permissions
+                        };
+
+                        // Update cache with the new user object
+                        var newCache = _cache.SetItem(userId, updatedUser);
+                        Interlocked.Exchange(ref _cache, newCache);
+
+                        // Save to file
+                        Save();
+                    }
+                    else
+                    {
+                         _auditLogger?.LogUserStoreError("DeletePermissionAsync", $"Permission for path '{permission.Path}' not found for user '{userId}'");
+                    }
+                }
+                else
+                {
+                    _auditLogger?.LogUserStoreError("DeletePermissionAsync", $"User {userId} not found when trying to delete permission");
+                }
+            });
+        }
+
+        private void Save()
+        {
+            var json = JsonSerializer.Serialize(_cache.Values.ToList(), _jsonOptions);
+            File.WriteAllText(_filePath, json, Encoding.UTF8);
+        }
     }
 } 
