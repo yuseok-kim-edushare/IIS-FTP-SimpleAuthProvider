@@ -48,7 +48,7 @@ public interface IUserStore
 Back-ends (pluggable):
 * JSON file (MVP)
 * SQLite
-* Encrypted Azure Table
+* SQL Server
 
 Hot-reload pattern for JSON:
 * `FileSystemWatcher` → debounce 1-2 s → reload into immutable in-memory cache → `Interlocked.Exchange`.
@@ -110,4 +110,4 @@ Hot-reload pattern for JSON:
 
 ---
 
-*Last updated: 2025-05-19* 
+*Last updated: 2025-05-28* 
