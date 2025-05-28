@@ -38,7 +38,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
         public async Task Constructor_NonExistentFile_ShouldCreateEmptyStore()
         {
             // Arrange
-            var nonExistentPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString() + Guid.NewGuid().ToString() + ".json");
+            var nonExistentPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".json");
 
             // Act
             _store = new JsonUserStore(nonExistentPath, enableHotReload: false);
