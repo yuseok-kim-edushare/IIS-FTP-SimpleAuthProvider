@@ -22,15 +22,20 @@ Based on the provided files and the `design.md` document, here's an analysis:
 
 **Remaining Design Goals / Future Work (based on `design.md`):**
 
-*   **Optional `Group` entity:** The data model section mentions the optional introduction of a `Group` entity for permissions, which is not currently implemented.
-*   **Pluggable Back-ends for `IUserStore`:** The design lists SQLite and Encrypted Azure Table as potential back-ends. Only `JsonUserStore` is implemented.
-*   **CLI Management Tool:** `UserManager.cs` provides the core logic, but a separate executable project (`ManagementCli` mentioned in design section 7) would be needed to expose this functionality as a command-line tool.
-*   **Key Rotation:** The operational concerns mention a CLI command for key rotation, which would involve decrypting, re-encrypting with a new key, and saving the user store. This is not yet implemented in `UserManager.cs`.
-*   **Audit trail:** `AuditLogger.cs` is present and logs to the Windows Event Log, aligning with the design's audit trail goal.
-*   **Metrics:** The design mentions Prometheus metrics, which are not implemented.
-*   **Rate-limiting:** The design mentions leveraging IIS built-in throttling; this is documentation/configuration work rather than code implementation in the provider itself.
-*   **Testing Strategy:** The design outlines unit, integration, and security testing. The provided files are implementation, not tests, so this aspect is not visible but is a remaining goal.
-*   **README To-Do List:** This is documentation work.
+*   **Optional `Group` entity for permissions:** The data model section mentions the optional introduction of a `Group` entity for permissions, which is not currently implemented.
+*   **Encrypted Azure Table back-end for `IUserStore`:** The design lists SQLite and Encrypted Azure Table as potential back-ends. Only `JsonUserStore` is implemented.
+*   **Rate-limiting documentation (IIS FTP throttling):** The design mentions leveraging IIS built-in throttling; this is documentation/configuration work rather than code implementation in the provider itself.
+*   **Comprehensive Testing Strategy (unit, integration, security):** The design outlines unit, integration, and security testing. The provided files are implementation, not tests, so this aspect is not visible but is a remaining goal.
+
+**Documentation Status:**
+*   README now includes:
+    - Shields (build status, license, NuGet)
+    - Quick Start
+    - Configuration examples
+    - Security notes (hashing algorithm, key rotation)
+    - CLI usage examples
+    - Contributing guide
+    - License
 
 **Code Quality Improvement Suggestions:**
 

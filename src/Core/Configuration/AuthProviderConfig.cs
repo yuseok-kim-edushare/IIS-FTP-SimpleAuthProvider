@@ -10,6 +10,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Configuration
         public UserStoreConfig UserStore { get; set; } = new();
         public HashingConfig Hashing { get; set; } = new();
         public LoggingConfig Logging { get; set; } = new();
+        public MetricsConfig Metrics { get; set; } = new();
     }
 
     public class UserStoreConfig
@@ -75,5 +76,23 @@ namespace IIS.Ftp.SimpleAuth.Core.Configuration
         /// Log authentication successes.
         /// </summary>
         public bool LogSuccesses { get; set; } = false;
+    }
+
+    public class MetricsConfig
+    {
+        /// <summary>
+        /// Enable metrics collection.
+        /// </summary>
+        public bool Enabled { get; set; } = true;
+
+        /// <summary>
+        /// Path to the metrics file for Prometheus textfile collector.
+        /// </summary>
+        public string MetricsFilePath { get; set; } = "C:\\inetpub\\ftpmetrics\\ftp_metrics.prom";
+
+        /// <summary>
+        /// Export interval in seconds.
+        /// </summary>
+        public int ExportIntervalSeconds { get; set; } = 60;
     }
 } 

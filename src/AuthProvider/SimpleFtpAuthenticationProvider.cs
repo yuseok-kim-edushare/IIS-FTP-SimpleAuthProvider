@@ -1,5 +1,6 @@
 using System;
 using IIS.Ftp.SimpleAuth.Core.Logging;
+using IIS.Ftp.SimpleAuth.Core.Monitoring;
 using IIS.Ftp.SimpleAuth.Core.Stores;
 using Microsoft.Web.FtpServer;
 
@@ -12,16 +13,18 @@ namespace IIS.Ftp.SimpleAuth.Provider
     {
         private readonly IUserStore _userStore;
         private readonly AuditLogger _auditLogger;
+        private readonly MetricsCollector? _metricsCollector;
 
         // IIS loads providers via the parameterless constructor.
-        public SimpleFtpAuthenticationProvider() : this(UserStoreFactory.Create(), UserStoreFactory.GetAuditLogger())
+        public SimpleFtpAuthenticationProvider() : this(UserStoreFactory.Create(), UserStoreFactory.GetAuditLogger(), UserStoreFactory.GetMetricsCollector())
         {
         }
 
-        internal SimpleFtpAuthenticationProvider(IUserStore userStore, AuditLogger auditLogger)
+        internal SimpleFtpAuthenticationProvider(IUserStore userStore, AuditLogger auditLogger, MetricsCollector? metricsCollector = null)
         {
             _userStore = userStore ?? throw new ArgumentNullException(nameof(userStore));
             _auditLogger = auditLogger ?? throw new ArgumentNullException(nameof(auditLogger));
+            _metricsCollector = metricsCollector;
         }
 
         public bool AuthenticateUser(string sessionId,
@@ -34,15 +37,19 @@ namespace IIS.Ftp.SimpleAuth.Provider
             
             try
             {
-                var valid = _userStore.Validate(userName, userPassword);
+                // Since IIS FTP interface is synchronous, we need to block on the async call
+                // This is acceptable in this specific scenario as IIS manages the thread pool
+                var valid = _userStore.ValidateAsync(userName, userPassword).GetAwaiter().GetResult();
                 
                 if (valid)
                 {
                     _auditLogger.LogAuthenticationSuccess(sessionId, siteName, userName);
+                    _metricsCollector?.RecordAuthSuccess(userName);
                 }
                 else
                 {
                     _auditLogger.LogAuthenticationFailure(sessionId, siteName, userName, "Invalid credentials");
+                    _metricsCollector?.RecordAuthFailure(userName, "invalid_credentials");
                 }
                 
                 return valid;
@@ -50,6 +57,7 @@ namespace IIS.Ftp.SimpleAuth.Provider
             catch (Exception ex)
             {
                 _auditLogger.LogAuthenticationFailure(sessionId, siteName, userName, $"Authentication error: {ex.Message}");
+                _metricsCollector?.RecordAuthFailure(userName, "exception");
                 return false;
             }
         }

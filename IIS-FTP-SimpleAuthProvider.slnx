@@ -2,6 +2,7 @@
   <Folder Name="/src/">
     <Project Path="src/AuthProvider/AuthProvider.csproj" />
     <Project Path="src/Core/Core.csproj" />
+    <Project Path="src/ManagementCli/ManagementCli.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" />

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
+    <RootNamespace>IIS.Ftp.SimpleAuth.ManagementCli</RootNamespace>
+    <AssemblyName>ftpauth</AssemblyName>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <AssemblyTitle>IIS FTP Simple Auth Management CLI</AssemblyTitle>
+    <Product>IIS FTP Simple Authentication Provider</Product>
+    <Company>IIS FTP Simple Auth</Company>
+    <Description>Command-line tool for managing IIS FTP Simple Authentication Provider users</Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.9.1" />
+  </ItemGroup>
+</Project> 

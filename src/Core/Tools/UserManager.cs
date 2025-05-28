@@ -174,6 +174,51 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
             Console.WriteLine($"File decrypted: {encryptedFilePath} -> {plainFilePath}");
         }
 
+        /// <summary>
+        /// Rotates the encryption key for an encrypted user file.
+        /// </summary>
+        public static void RotateEncryptionKey(string encryptedFilePath, string? oldKeyEnvVar = null, string? newKeyEnvVar = null)
+        {
+            if (!File.Exists(encryptedFilePath))
+            {
+                throw new FileNotFoundException($"Source file not found: {encryptedFilePath}");
+            }
+
+            // Create backup
+            var backupPath = encryptedFilePath + ".backup-" + DateTime.UtcNow.ToString("yyyyMMddHHmmss");
+            File.Copy(encryptedFilePath, backupPath);
+            Console.WriteLine($"Created backup: {backupPath}");
+
+            try
+            {
+                // Decrypt with old key
+                var decryptedContent = FileEncryption.DecryptFile(encryptedFilePath, oldKeyEnvVar);
+                
+                // Create temporary file
+                var tempPath = encryptedFilePath + ".tmp";
+                File.WriteAllText(tempPath, decryptedContent);
+                
+                // Re-encrypt with new key
+                FileEncryption.EncryptFile(tempPath, encryptedFilePath, newKeyEnvVar);
+                
+                // Clean up temp file
+                File.Delete(tempPath);
+                
+                Console.WriteLine($"Key rotation completed successfully for: {encryptedFilePath}");
+                Console.WriteLine($"Backup retained at: {backupPath}");
+            }
+            catch (Exception ex)
+            {
+                // Restore from backup on failure
+                if (File.Exists(backupPath))
+                {
+                    File.Copy(backupPath, encryptedFilePath, overwrite: true);
+                    Console.WriteLine($"Key rotation failed, restored from backup: {ex.Message}");
+                }
+                throw;
+            }
+        }
+
         private static List<User> LoadUsers(string filePath)
         {
             if (!File.Exists(filePath))
