@@ -1,0 +1,49 @@
+# Contributing to IIS FTP Simple Authentication Provider
+
+We welcome contributions to the IIS FTP Simple Authentication Provider project! Your help is valuable in making this project better.
+
+## How to Contribute
+
+The process for contributing is as follows:
+
+1.  **Fork the repository:** Start by forking the main repository to your personal GitHub account.
+
+2.  **Create a feature branch:** Create a new branch in your forked repository for your contribution. Use a descriptive name for your branch, like `feature/your-feature-name` or `bugfix/issue-description`.
+
+    ```bash
+    git checkout -b feature/your-feature-name
+    ```
+
+3.  **Commit your changes:** Make your code changes, following the project's coding style and conventions. Write clear and concise commit messages explaining your changes.
+
+    ```bash
+    git commit -m 'feat: Add a new amazing feature'
+    ```
+
+4.  **Push to the branch:** Push your local branch with your commits to your forked repository on GitHub.
+
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+
+5.  **Open a Pull Request:** Go to the original repository on GitHub and open a Pull Request from your feature branch. Provide a clear description of your changes and reference any related issues.
+
+## Reporting Bugs
+
+If you find a bug, please open an issue on GitHub. Provide a clear description of the bug, steps to reproduce it, and the expected behavior.
+
+## Suggesting Features
+
+If you have an idea for a new feature, please open an issue on GitHub to discuss it. This helps prevent duplicate work and ensures that the feature aligns with the project's goals.
+
+## Development Setup
+
+To set up your development environment, follow the "Building from Source" instructions in the `README.md` file. This typically involves cloning the repository, restoring dependencies, and building the solution.
+
+## Code of Conduct
+
+This project follows the [Contributor Covenant Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/). By participating, you are expected to uphold this code.
+
+## License
+
+
