@@ -76,6 +76,16 @@ namespace IIS.Ftp.SimpleAuth.Core.Configuration
         /// Log authentication successes.
         /// </summary>
         public bool LogSuccesses { get; set; } = false;
+
+        /// <summary>
+        /// Enable file logging.
+        /// </summary>
+        public bool EnableFileLog { get; set; } = false;
+
+        /// <summary>
+        /// Path to the file log.
+        /// </summary>
+        public string? FileLogPath { get; set; } = "C:\\inetpub\\ftpauth\\auth.log";
     }
 
     public class MetricsConfig
