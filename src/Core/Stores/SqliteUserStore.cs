@@ -15,20 +15,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
     /// <summary>
     /// SQLite-based user store implementation.
     /// </summary>
-    public sealed class SqliteUserStore : IUserStore, IDisposable
+    public sealed class SqliteUserStore : SqlUserStoreBase, IDisposable
     {
-        private readonly string _connectionString;
-        private readonly AuditLogger? _auditLogger;
         private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true
         };
 
-        public SqliteUserStore(string databasePath, AuditLogger? auditLogger = null)
+        public SqliteUserStore(string databasePath, AuditLogger? auditLogger = null) : base($"Data Source={databasePath};Version=3;", auditLogger)
         {
-            _connectionString = $"Data Source={databasePath};Version=3;";
-            _auditLogger = auditLogger;
-            
             InitializeDatabase();
         }
 
@@ -56,55 +51,42 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        public async Task<User?> FindAsync(string userId)
+        protected override async Task<IDbConnection> GetOpenConnectionAsync()
         {
-            if (string.IsNullOrEmpty(userId))
-                return null;
-
-            return await Task.Run(() =>
-            {
-                try
-                {
-                    using (var connection = new SQLiteConnection(_connectionString))
-                    {
-                        connection.Open();
-                        
-                        using (var cmd = new SQLiteCommand(
-                            "SELECT UserId, DisplayName, Salt, PasswordHash, HomeDirectory, Permissions " +
-                            "FROM Users WHERE UserId = @userId COLLATE NOCASE", connection))
-                        {
-                            cmd.Parameters.AddWithValue("@userId", userId);
-                            
-                            using (var reader = cmd.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    return new User
-                                    {
-                                        UserId = reader.GetString(0),
-                                        DisplayName = reader.GetString(1),
-                                        Salt = reader.GetString(2),
-                                        PasswordHash = reader.GetString(3),
-                                        HomeDirectory = reader.GetString(4),
-                                        Permissions = DeserializePermissions(reader.GetString(5))
-                                    };
-                                }
-                            }
-                        }
-                    }
-                    
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    _auditLogger?.LogUserStoreError("FindAsync", 
-                        $"Error finding user {userId}: {ex.Message}");
-                    return null;
-                }
-            });
+            var connection = new SQLiteConnection(_connectionString);
+            await connection.OpenAsync();
+            return connection;
         }
 
-        public async Task<bool> ValidateAsync(string userId, string password)
+        protected override IDbCommand CreateCommand(string commandText, IDbConnection connection)
+        {
+            return new SQLiteCommand(commandText, (SQLiteConnection)connection);
+        }
+
+        protected override string GetFindUserQuery()
+        {
+            return "SELECT UserId, DisplayName, Salt, PasswordHash, HomeDirectory, Permissions FROM Users WHERE UserId = @userId COLLATE NOCASE";
+        }
+
+        protected override void AddUserIdParameter(IDbCommand command, string userId)
+        {
+            ((SQLiteCommand)command).Parameters.AddWithValue("@userId", userId);
+        }
+
+        protected override User ReadUserFromReader(IDataReader reader)
+        {
+            return new User
+            {
+                UserId = reader.GetString(0),
+                DisplayName = reader.GetString(1),
+                Salt = reader.GetString(2),
+                PasswordHash = reader.GetString(3),
+                HomeDirectory = reader.GetString(4),
+                Permissions = DeserializePermissions(reader.GetString(5))
+            };
+        }
+
+        public override async Task<bool> ValidateAsync(string userId, string password)
         {
             if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(password))
                 return false;
@@ -125,7 +107,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        public async Task<IEnumerable<Permission>> GetPermissionsAsync(string userId)
+        public override async Task<IEnumerable<Permission>> GetPermissionsAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId))
                 return Enumerable.Empty<Permission>();
@@ -137,7 +119,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
         /// <summary>
         /// Adds or updates a user in the database.
         /// </summary>
-        public async Task SaveUserAsync(User user)
+        public override async Task SaveUserAsync(User user)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
 
@@ -171,7 +153,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
         /// <summary>
         /// Deletes a user from the database.
         /// </summary>
-        public async Task DeleteUserAsync(string userId)
+        public override async Task DeleteUserAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId))
                 return;
@@ -199,7 +181,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
         /// <summary>
         /// Gets all users from the database.
         /// </summary>
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public override async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             return await Task.Run(() =>
             {
@@ -243,7 +225,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             });
         }
 
-        public async Task AddPermissionAsync(string userId, Permission permission)
+        public override async Task AddPermissionAsync(string userId, Permission permission)
         {
             if (string.IsNullOrEmpty(userId) || permission == null) return;
 
@@ -288,7 +270,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        public async Task DeletePermissionAsync(string userId, Permission permission)
+        public override async Task DeletePermissionAsync(string userId, Permission permission)
         {
             if (string.IsNullOrEmpty(userId) || permission == null) return;
 
@@ -330,12 +312,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        private string SerializePermissions(List<Permission> permissions)
+        protected string SerializePermissions(List<Permission> permissions)
         {
             return JsonSerializer.Serialize(permissions, _jsonOptions);
         }
 
-        private List<Permission> DeserializePermissions(string json)
+        protected List<Permission> DeserializePermissions(string json)
         {
             try
             {
