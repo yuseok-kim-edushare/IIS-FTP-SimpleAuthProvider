@@ -15,9 +15,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
     /// <summary>
     /// SQLite-based user store implementation.
     /// </summary>
-    public sealed class SqliteUserStore : SqlUserStoreBase, IDisposable
+    public sealed class SqliteUserStore : SqlUserStoreBase
     {
-        private readonly JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+        private readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true
         };
@@ -312,12 +312,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        protected string SerializePermissions(List<Permission> permissions)
+        protected override string SerializePermissions(List<Permission> permissions)
         {
             return JsonSerializer.Serialize(permissions, _jsonOptions);
         }
 
-        protected List<Permission> DeserializePermissions(string json)
+        protected override List<Permission> DeserializePermissions(string json)
         {
             try
             {
@@ -327,11 +327,6 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             {
                 return new List<Permission>();
             }
-        }
-
-        public void Dispose()
-        {
-            // SQLite connections are managed per-operation, nothing to dispose
         }
     }
 } 

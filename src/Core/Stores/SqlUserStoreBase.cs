@@ -55,7 +55,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
                     {
                         // Permissions are fetched separately and assigned here
                         // The concrete classes will implement GetPermissionsAsync
-                         user.Permissions = (System.Collections.Generic.List<Permission>)(await GetPermissionsAsync(userId));
+                         user.Permissions = (List<Permission>)(await GetPermissionsAsync(userId));
                     }
                 }
             }
@@ -75,10 +75,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
 
         // Abstract methods for the rest of IUserStore methods
         public abstract Task<bool> ValidateAsync(string userId, string password);
-        public abstract Task<System.Collections.Generic.IEnumerable<Permission>> GetPermissionsAsync(string userId);
+        public abstract Task<IEnumerable<Permission>> GetPermissionsAsync(string userId);
         public abstract Task SaveUserAsync(User user);
         public abstract Task DeleteUserAsync(string userId);
-        public abstract Task<System.Collections.Generic.IEnumerable<User>> GetAllUsersAsync();
+        public abstract Task<IEnumerable<User>> GetAllUsersAsync();
         public abstract Task AddPermissionAsync(string userId, Permission permission);
         public abstract Task DeletePermissionAsync(string userId, Permission permission);
 
