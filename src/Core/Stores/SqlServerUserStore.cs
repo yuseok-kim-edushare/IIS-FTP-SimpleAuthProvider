@@ -21,94 +21,22 @@ using System.Data.SqlClient; // Assuming System.Data.SqlClient for .NET Framewor
 using System; // Added for Exception and Console
 using IIS.Ftp.SimpleAuth.Core.Security; // Added for PasswordHasher
 using IIS.Ftp.SimpleAuth.Core.Logging; // Added for AuditLogger
+using System.Data;
+using System.Data.Common;
 
 namespace IIS.Ftp.SimpleAuth.Core.Stores
 {
-    public class SqlServerUserStore : IUserStore
+    public class SqlServerUserStore : SqlUserStoreBase
     {
-        private readonly string _connectionString;
-        private readonly AuditLogger? _auditLogger;
-
-        public SqlServerUserStore(string connectionString)
+        public SqlServerUserStore(string connectionString) : base(connectionString)
         {
-            _connectionString = connectionString;
         }
 
-        public SqlServerUserStore(string connectionString, AuditLogger? auditLogger = null)
+        public SqlServerUserStore(string connectionString, AuditLogger? auditLogger = null) : base(connectionString, auditLogger)
         {
-            _connectionString = connectionString;
-            _auditLogger = auditLogger;
         }
 
-        public async Task<User?> FindAsync(string userId)
-        {
-            User? user = null;
-
-            try
-            {
-                using (var connection = new SqlConnection(_connectionString))
-                {
-                    await connection.OpenAsync();
-
-                    var userQuery = "SELECT UserId, DisplayName, Salt, PasswordHash, HomeDirectory FROM Users WHERE UserId = @UserId";
-                    using (var command = new SqlCommand(userQuery, connection))
-                    {
-                        command.Parameters.AddWithValue("@UserId", userId);
-
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            if (await reader.ReadAsync())
-                            {
-                                user = new User
-                                {
-                                    UserId = reader["UserId"].ToString()!,
-                                    DisplayName = reader["DisplayName"].ToString()!,
-                                    Salt = Convert.ToBase64String((byte[])reader["Salt"]),
-                                    PasswordHash = Convert.ToBase64String((byte[])reader["PasswordHash"]),
-                                    HomeDirectory = reader["HomeDirectory"].ToString()!,
-                                    Permissions = new List<Permission>() // Permissions will be fetched separately
-                                };
-                            }
-                        }
-                    }
-
-                    if (user != null)
-                    {
-                        // Implement permission fetching logic here
-                        // Example: SELECT Path, CanRead, CanWrite FROM Permissions WHERE UserId = @UserId
-                        // Add permissions to user.Permissions list
-
-                        var permissionsQuery = "SELECT Path, CanRead, CanWrite FROM Permissions WHERE UserId = @UserId";
-                        using (var permissionsCommand = new SqlCommand(permissionsQuery, connection))
-                        {
-                            permissionsCommand.Parameters.AddWithValue("@UserId", userId);
-
-                            using (var permissionsReader = await permissionsCommand.ExecuteReaderAsync())
-                            {
-                                while (await permissionsReader.ReadAsync())
-                                {
-                                    user.Permissions.Add(new Permission
-                                    {
-                                        Path = permissionsReader["Path"].ToString()!,
-                                        CanRead = (bool)permissionsReader["CanRead"],
-                                        CanWrite = (bool)permissionsReader["CanWrite"]
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _auditLogger?.LogUserStoreError("FindAsync", $"Error in FindAsync for user {userId}: {ex.Message}");
-                throw; // Re-throw the exception for now
-            }
-
-            return user;
-        }
-
-        public async Task<IEnumerable<Permission>> GetPermissionsAsync(string userId)
+        public override async Task<IEnumerable<Permission>> GetPermissionsAsync(string userId)
         {
             var permissions = new List<Permission>();
 
@@ -147,7 +75,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             return permissions;
         }
 
-        public async Task<bool> ValidateAsync(string userId, string password)
+        public override async Task<bool> ValidateAsync(string userId, string password)
         {
             byte[]? salt = null;
             byte[]? passwordHash = null;
@@ -188,7 +116,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             return false; // User not found or data incomplete
         }
 
-        public async Task SaveUserAsync(User user)
+        public override async Task SaveUserAsync(User user)
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
 
@@ -262,7 +190,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        public async Task DeleteUserAsync(string userId)
+        public override async Task DeleteUserAsync(string userId)
         {
             if (string.IsNullOrEmpty(userId))
                 return;
@@ -314,7 +242,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public override async Task<IEnumerable<User>> GetAllUsersAsync()
         {
             var users = new List<User>();
 
@@ -377,7 +305,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             return users;
         }
 
-        public async Task AddPermissionAsync(string userId, Permission permission)
+        public override async Task AddPermissionAsync(string userId, Permission permission)
         {
             if (string.IsNullOrEmpty(userId) || permission == null) return;
 
@@ -455,7 +383,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             }
         }
 
-        public async Task DeletePermissionAsync(string userId, Permission permission)
+        public override async Task DeletePermissionAsync(string userId, Permission permission)
         {
             if (string.IsNullOrEmpty(userId) || permission == null) return;
 
@@ -511,6 +439,42 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
                 _auditLogger?.LogUserStoreError("DeletePermissionAsync", $"Error in DeletePermissionAsync for user {userId}: {ex.Message}");
                 throw; // Re-throw the exception
             }
+        }
+
+        // Implement abstract methods from SqlUserStoreBase
+        protected override async Task<IDbConnection> GetOpenConnectionAsync()
+        {
+            var connection = new SqlConnection(_connectionString);
+            await connection.OpenAsync();
+            return connection;
+        }
+
+        protected override IDbCommand CreateCommand(string commandText, IDbConnection connection)
+        {
+            return new SqlCommand(commandText, (SqlConnection)connection);
+        }
+
+        protected override string GetFindUserQuery()
+        {
+            return "SELECT UserId, DisplayName, Salt, PasswordHash, HomeDirectory FROM Users WHERE UserId = @UserId";
+        }
+
+        protected override void AddUserIdParameter(IDbCommand command, string userId)
+        {
+            ((SqlCommand)command).Parameters.AddWithValue("@UserId", userId);
+        }
+
+        protected override User ReadUserFromReader(IDataReader reader)
+        {
+            return new User
+            {
+                UserId = reader["UserId"].ToString()!,
+                DisplayName = reader["DisplayName"].ToString()!,
+                Salt = Convert.ToBase64String((byte[])reader["Salt"]),
+                PasswordHash = Convert.ToBase64String((byte[])reader["PasswordHash"]),
+                HomeDirectory = reader["HomeDirectory"].ToString()!,
+                Permissions = new List<Permission>() // Permissions will be fetched separately
+            };
         }
     }
 } 

@@ -11,7 +11,7 @@ namespace IIS.Ftp.SimpleAuth.Provider
 {
     internal static class UserStoreFactory
     {
-        private static readonly object _lock = new object();
+        private static readonly object _lock = new();
         private static AuthProviderConfig? _config;
         private static AuditLogger? _auditLogger;
         private static MetricsCollector? _metricsCollector;
@@ -56,7 +56,7 @@ namespace IIS.Ftp.SimpleAuth.Provider
             {
                 lock (_lock)
                 {
-                    _auditLogger ??= new AuditLogger(_config?.Logging ?? new LoggingConfig());
+                    _auditLogger ??= new(_config?.Logging ?? new());
                 }
             }
             
@@ -76,7 +76,7 @@ namespace IIS.Ftp.SimpleAuth.Provider
                         try
                         {
                             var exportInterval = TimeSpan.FromSeconds(_config.Metrics.ExportIntervalSeconds);
-                            _metricsCollector = new MetricsCollector(_config.Metrics.MetricsFilePath, exportInterval);
+                            _metricsCollector = new(_config.Metrics.MetricsFilePath, exportInterval);
                             _auditLogger?.LogConfigurationChange("MetricsCollector", 
                                 $"Metrics collection enabled. Export path: {_config.Metrics.MetricsFilePath}");
                         }
@@ -136,7 +136,7 @@ namespace IIS.Ftp.SimpleAuth.Provider
                     System.Diagnostics.Debug.WriteLine($"Unexpected error loading config: {ex.GetType().Name} - {ex.Message}");
                 }
 
-                _config ??= new AuthProviderConfig();
+                _config ??= new();
             }
         }
 
