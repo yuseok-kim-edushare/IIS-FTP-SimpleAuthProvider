@@ -1,0 +1,170 @@
+@model IIS.FTP.ManagementWeb.Models.DashboardViewModel
+@{
+    ViewBag.Title = "Dashboard";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
+        <hr />
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Total Users</h5>
+                        <h2 class="mb-0">@Model.TotalUsers</h2>
+                    </div>
+                    <div>
+                        <i class="bi bi-people display-4"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card-footer">
+                <a href="@Url.Action("Index", "Users")" class="text-white text-decoration-none">
+                    View details <i class="bi bi-arrow-right-circle"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Successful Logins</h5>
+                        <h2 class="mb-0">@Model.SystemHealth.AuthSuccessCount</h2>
+                    </div>
+                    <div>
+                        <i class="bi bi-check-circle display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white bg-danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">Failed Logins</h5>
+                        <h2 class="mb-0">@Model.SystemHealth.AuthFailureCount</h2>
+                    </div>
+                    <div>
+                        <i class="bi bi-x-circle display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card text-white @(Model.SystemHealth.IsHealthy ? "bg-info" : "bg-warning")">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h5 class="card-title">System Status</h5>
+                        <h4 class="mb-0">@(Model.SystemHealth.IsHealthy ? "Healthy" : "Warning")</h4>
+                    </div>
+                    <div>
+                        <i class="bi @(Model.SystemHealth.IsHealthy ? "bi-heart-pulse" : "bi-exclamation-triangle") display-4"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-activity"></i> Recent Activity</h5>
+            </div>
+            <div class="card-body">
+                @if (Model.RecentActivities.Any())
+                {
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Time</th>
+                                    <th>User</th>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var activity in Model.RecentActivities)
+                                {
+                                    <tr>
+                                        <td>@activity.Timestamp.ToString("g")</td>
+                                        <td>@activity.UserId</td>
+                                        <td>@activity.Action</td>
+                                        <td>@activity.Details</td>
+                                        <td>
+                                            @if (activity.Success)
+                                            {
+                                                <span class="badge bg-success">Success</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-danger">Failed</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No recent activity to display.</p>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-6">User Store Type:</dt>
+                    <dd class="col-sm-6">@Model.SystemHealth.UserStoreType</dd>
+                    
+                    <dt class="col-sm-6">Store Status:</dt>
+                    <dd class="col-sm-6">
+                        @if (Model.SystemHealth.UserStoreConnected)
+                        {
+                            <span class="text-success"><i class="bi bi-check-circle"></i> Connected</span>
+                        }
+                        else
+                        {
+                            <span class="text-danger"><i class="bi bi-x-circle"></i> Disconnected</span>
+                        }
+                    </dd>
+                    
+                    <dt class="col-sm-6">Last Check:</dt>
+                    <dd class="col-sm-6">@Model.SystemHealth.LastChecked.ToString("g")</dd>
+                </dl>
+                
+                <div class="mt-3">
+                    <a href="@Url.Action("Create", "Users")" class="btn btn-primary w-100">
+                        <i class="bi bi-person-plus"></i> Add New User
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

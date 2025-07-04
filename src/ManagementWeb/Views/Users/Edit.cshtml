@@ -1,0 +1,168 @@
+@model IIS.FTP.ManagementWeb.Models.UserViewModel
+@{
+    ViewBag.Title = "Edit User";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1><i class="bi bi-pencil"></i> Edit User</h1>
+        <hr />
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        @using (Html.BeginForm("Edit", "Users", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate" }))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(m => m.UserId)
+            
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">User Information</h5>
+                </div>
+                <div class="card-body">
+                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                @Html.TextBoxFor(m => m.UserId, new { @class = "form-control", placeholder = "User ID", @readonly = "readonly", disabled = "disabled" })
+                                @Html.LabelFor(m => m.UserId)
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-floating">
+                                @Html.TextBoxFor(m => m.DisplayName, new { @class = "form-control", placeholder = "Display Name", required = "required" })
+                                @Html.LabelFor(m => m.DisplayName)
+                                @Html.ValidationMessageFor(m => m.DisplayName, "", new { @class = "invalid-feedback" })
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-floating">
+                            @Html.TextBoxFor(m => m.HomeDirectory, new { @class = "form-control", placeholder = "Home Directory", required = "required" })
+                            @Html.LabelFor(m => m.HomeDirectory)
+                            @Html.ValidationMessageFor(m => m.HomeDirectory, "", new { @class = "invalid-feedback" })
+                            <div class="form-text">Example: C:\inetpub\ftproot\users\{username}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i> To change the password, use the <a href="@Url.Action("ChangePassword", "Users", new { id = Model.UserId })">Change Password</a> option.
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Permissions</h5>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="addPermission">
+                        <i class="bi bi-plus-circle"></i> Add Permission
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="permissions-container">
+                        @if (Model.Permissions.Count == 0)
+                        {
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> No permissions defined. Click "Add Permission" to grant access to specific directories.
+                            </div>
+                        }
+                        else
+                        {
+                            for (int i = 0; i < Model.Permissions.Count; i++)
+                            {
+                                <div class="permission-row mb-2">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            @Html.TextBoxFor(m => m.Permissions[i].Path, new { @class = "form-control", placeholder = "Path (e.g., /uploads)" })
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check form-check-inline">
+                                                @Html.CheckBoxFor(m => m.Permissions[i].Read, new { @class = "form-check-input" })
+                                                @Html.LabelFor(m => m.Permissions[i].Read, "Read", new { @class = "form-check-label" })
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                @Html.CheckBoxFor(m => m.Permissions[i].Write, new { @class = "form-check-input" })
+                                                @Html.LabelFor(m => m.Permissions[i].Write, "Write", new { @class = "form-check-label" })
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-sm btn-danger remove-permission">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-check-circle"></i> Save Changes
+                </button>
+                <a href="@Url.Action("ChangePassword", "Users", new { id = Model.UserId })" class="btn btn-warning">
+                    <i class="bi bi-key"></i> Change Password
+                </a>
+                <a href="@Url.Action("Index", "Users")" class="btn btn-secondary">
+                    <i class="bi bi-arrow-left"></i> Back to List
+                </a>
+            </div>
+        }
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-info-circle"></i> User Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="@Url.Action("ChangePassword", "Users", new { id = Model.UserId })" class="btn btn-outline-warning">
+                        <i class="bi bi-key"></i> Change Password
+                    </a>
+                    <a href="@Url.Action("Delete", "Users", new { id = Model.UserId })" class="btn btn-outline-danger">
+                        <i class="bi bi-trash"></i> Delete User
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="bi bi-lightbulb"></i> Tips</h5>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Changes to permissions take effect immediately</li>
+                    <li>Home directory changes may require the user to reconnect</li>
+                    <li>Permissions are relative to the user's home directory unless they start with /</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(function() {
+            var permissionIndex = @Model.Permissions.Count;
+            
+            $('#addPermission').click(function() {
+                $.post('@Url.Action("AddPermissionRow", "Users")', { index: permissionIndex }, function(html) {
+                    $('#permissions-container').append(html);
+                    permissionIndex++;
+                });
+            });
+            
+            $(document).on('click', '.remove-permission', function() {
+                $(this).closest('.permission-row').remove();
+            });
+        });
+    </script>
+} 

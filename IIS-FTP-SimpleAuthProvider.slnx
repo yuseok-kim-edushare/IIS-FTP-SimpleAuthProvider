@@ -3,6 +3,7 @@
     <Project Path="src/AuthProvider/AuthProvider.csproj" />
     <Project Path="src/Core/Core.csproj" />
     <Project Path="src/ManagementCli/ManagementCli.csproj" />
+    <Project Path="src/ManagementWeb/ManagementWeb.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" />

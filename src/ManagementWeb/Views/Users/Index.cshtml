@@ -1,0 +1,138 @@
+@model IIS.FTP.ManagementWeb.Models.UserListViewModel
+@{
+    ViewBag.Title = "Users";
+}
+
+<div class="row">
+    <div class="col-12">
+        <h1><i class="bi bi-people"></i> Users</h1>
+        <hr />
+    </div>
+</div>
+
+<div class="row mb-3">
+    <div class="col-md-6">
+        @using (Html.BeginForm("Index", "Users", FormMethod.Get, new { @class = "d-flex" }))
+        {
+            <div class="input-group">
+                @Html.TextBox("search", Model.SearchTerm, new { @class = "form-control", placeholder = "Search users..." })
+                <button class="btn btn-outline-secondary" type="submit">
+                    <i class="bi bi-search"></i> Search
+                </button>
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                {
+                    <a href="@Url.Action("Index", "Users")" class="btn btn-outline-secondary">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                }
+            </div>
+        }
+    </div>
+    <div class="col-md-6 text-end">
+        <a href="@Url.Action("Create", "Users")" class="btn btn-primary">
+            <i class="bi bi-person-plus"></i> Add New User
+        </a>
+    </div>
+</div>
+
+@if (Model.Users.Any())
+{
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Display Name</th>
+                            <th>Home Directory</th>
+                            <th>Permissions</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.Users)
+                        {
+                            <tr>
+                                <td>
+                                    <i class="bi bi-person"></i> @user.UserId
+                                </td>
+                                <td>@user.DisplayName</td>
+                                <td>
+                                    <code>@user.HomeDirectory</code>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">@user.PermissionCount permissions</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="@Url.Action("Edit", "Users", new { id = user.UserId })" 
+                                           class="btn btn-outline-primary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="@Url.Action("ChangePassword", "Users", new { id = user.UserId })" 
+                                           class="btn btn-outline-warning" title="Change Password">
+                                            <i class="bi bi-key"></i>
+                                        </a>
+                                        <a href="@Url.Action("Delete", "Users", new { id = user.UserId })" 
+                                           class="btn btn-outline-danger" title="Delete">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.TotalCount > Model.PageSize)
+    {
+        <nav aria-label="User pagination" class="mt-3">
+            <ul class="pagination justify-content-center">
+                @{
+                    var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
+                    var currentPage = Model.CurrentPage;
+                    var searchParam = !string.IsNullOrWhiteSpace(Model.SearchTerm) ? new { search = Model.SearchTerm } : null;
+                }
+                
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    @Html.ActionLink("Previous", "Index", "Users", 
+                        new { page = currentPage - 1, search = Model.SearchTerm }, 
+                        new { @class = "page-link" })
+                </li>
+                
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        @Html.ActionLink(i.ToString(), "Index", "Users", 
+                            new { page = i, search = Model.SearchTerm }, 
+                            new { @class = "page-link" })
+                    </li>
+                }
+                
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    @Html.ActionLink("Next", "Index", "Users", 
+                        new { page = currentPage + 1, search = Model.SearchTerm }, 
+                        new { @class = "page-link" })
+                </li>
+            </ul>
+        </nav>
+    }
+}
+else
+{
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle"></i> 
+        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+        {
+            <text>No users found matching your search criteria.</text>
+        }
+        else
+        {
+            <text>No users have been created yet. <a href="@Url.Action("Create", "Users")">Create the first user</a>.</text>
+        }
+    </div>
+} 
