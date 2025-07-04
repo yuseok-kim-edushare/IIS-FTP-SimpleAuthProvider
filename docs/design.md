@@ -5,7 +5,7 @@
 * Zero dependency on Windows/Active Directory accounts.
 * Security first – salted & hashed passwords, encrypted at rest.
 * Hot-reload of the user store with zero downtime.
-* Simple DevOps story (CLI + CI build).
+* Simple DevOps story (Management Web UI + CI build).
 
 ## 2 High-Level Architecture
 `IIS FTP` loads two custom classes that implement the extensibility interfaces:
@@ -80,7 +80,7 @@ Hot-reload pattern for JSON:
 / src
     /AuthProvider      ← IIS-facing classes
     /Core              ← Domain, crypto, user store
-    /ManagementCli     ← dotnet-tool for add-user, change-pwd (future)
+    /ManagementWeb     ← ASP.NET Web app for user management
 /tests
 /docs
     design.md          ← this file
@@ -94,7 +94,7 @@ Hot-reload pattern for JSON:
 * **Security** – ZAP or similar for brute-force / credential-stuffing simulation.
 
 ## 9 Operational Concerns
-* Key rotation ⇒ CLI command to re-encrypt user store.
+* Key rotation ⇒ Web UI action or CLI command to re-encrypt user store.
 * Audit trail – append-only `auth.log` (JSON lines).
 * Metrics – Prometheus textfile exporter (`auth_success_total`, `auth_failure_total`).
 * Rate-limit by source IP (IIS FTP has built-in throttling; document how to enable).
@@ -104,10 +104,10 @@ Hot-reload pattern for JSON:
 2. Quick Start (5 lines to get running).
 3. Configuration section (link to example above).
 4. Security notes (hashing algorithm, key rotation).
-5. CLI usage examples.
+5. Web UI usage examples.
 6. Contributing guide.
 7. License.
 
 ---
 
-*Last updated: 2025-05-28* 
+*Last updated: 2025-07-04* 
