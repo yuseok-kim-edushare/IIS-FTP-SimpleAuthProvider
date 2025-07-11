@@ -17,7 +17,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
         /// Creates a new user with hashed password and saves to JSON file.
         /// </summary>
         public static void CreateUser(string filePath, string userId, string password, string displayName, 
-            string homeDirectory = "/", List<Permission>? permissions = null, int iterations = 100_000)
+            string homeDirectory = "/", List<Permission>? permissions = null, string algorithm = "BCrypt", int iterations = 100_000)
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("User ID cannot be empty", nameof(userId));
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
@@ -31,9 +31,22 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
                 throw new InvalidOperationException($"User '{userId}' already exists");
             }
 
-            // Generate salt and hash password
-            string salt = PasswordHasher.GenerateSalt();
-            string passwordHash = PasswordHasher.HashPassword(password, salt, iterations);
+            // Generate salt and hash password based on algorithm
+            string salt = "";
+            string passwordHash = "";
+            
+            if (algorithm.ToUpperInvariant() == "BCRYPT")
+            {
+                // BCrypt generates its own salt internally
+                salt = ""; // Empty for BCrypt
+                passwordHash = PasswordHasher.HashPasswordBCrypt(password);
+            }
+            else
+            {
+                // PBKDF2 requires separate salt
+                salt = PasswordHasher.GenerateSalt();
+                passwordHash = PasswordHasher.HashPasswordPBKDF2(password, salt, iterations);
+            }
 
             // Create user object
             var newUser = new User
@@ -55,13 +68,13 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
             // Save back to file
             SaveUsers(filePath, users);
 
-            Console.WriteLine($"User '{userId}' created successfully");
+            Console.WriteLine($"User '{userId}' created successfully using {algorithm} hashing");
         }
 
         /// <summary>
         /// Updates a user's password.
         /// </summary>
-        public static void ChangePassword(string filePath, string userId, string newPassword, int iterations = 100_000)
+        public static void ChangePassword(string filePath, string userId, string newPassword, string algorithm = "BCrypt", int iterations = 100_000)
         {
             if (string.IsNullOrWhiteSpace(userId)) throw new ArgumentException("User ID cannot be empty", nameof(userId));
             if (string.IsNullOrWhiteSpace(newPassword)) throw new ArgumentException("Password cannot be empty", nameof(newPassword));
@@ -74,12 +87,22 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
                 throw new InvalidOperationException($"User '{userId}' not found");
             }
 
-            // Generate new salt and hash
-            user.Salt = PasswordHasher.GenerateSalt();
-            user.PasswordHash = PasswordHasher.HashPassword(newPassword, user.Salt, iterations);
+            // Update password using specified algorithm
+            if (algorithm.ToUpperInvariant() == "BCRYPT")
+            {
+                // BCrypt generates its own salt internally
+                user.Salt = ""; // Empty for BCrypt
+                user.PasswordHash = PasswordHasher.HashPasswordBCrypt(newPassword);
+            }
+            else
+            {
+                // PBKDF2 requires separate salt
+                user.Salt = PasswordHasher.GenerateSalt();
+                user.PasswordHash = PasswordHasher.HashPasswordPBKDF2(newPassword, user.Salt, iterations);
+            }
 
             SaveUsers(filePath, users);
-            Console.WriteLine($"Password for user '{userId}' updated successfully");
+            Console.WriteLine($"Password for user '{userId}' updated successfully using {algorithm} hashing");
         }
 
         /// <summary>

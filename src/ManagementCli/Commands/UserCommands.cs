@@ -31,6 +31,7 @@ namespace IIS.Ftp.SimpleAuth.ManagementCli.Commands
                     options.DisplayName,
                     options.HomeDirectory,
                     permissions,
+                    "BCrypt", // Default to BCrypt
                     options.Iterations);
 
                 Console.WriteLine($"✓ User '{options.UserId}' created successfully");
@@ -51,6 +52,7 @@ namespace IIS.Ftp.SimpleAuth.ManagementCli.Commands
                     options.FilePath,
                     options.UserId,
                     options.NewPassword,
+                    "BCrypt", // Default to BCrypt
                     options.Iterations);
 
                 Console.WriteLine($"✓ Password changed successfully for user '{options.UserId}'");

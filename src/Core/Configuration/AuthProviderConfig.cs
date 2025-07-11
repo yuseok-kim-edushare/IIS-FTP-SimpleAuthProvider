@@ -42,7 +42,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Configuration
         /// <summary>
         /// Password hashing algorithm: "PBKDF2", "BCrypt", "Argon2".
         /// </summary>
-        public string Algorithm { get; set; } = "PBKDF2";
+        public string Algorithm { get; set; } = "BCrypt";
 
         /// <summary>
         /// Number of iterations for PBKDF2.
