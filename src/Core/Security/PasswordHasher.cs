@@ -95,13 +95,14 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
 
         /// <summary>
         /// Detects the algorithm used for a given hash.
+        /// If the hash is null or empty, the default algorithm specified in <see cref="DefaultAlgorithm"/> is used.
         /// BCrypt hashes start with $2a$, $2b$, $2x$, or $2y$.
         /// Everything else is assumed to be PBKDF2.
         /// </summary>
         public static string DetectAlgorithm(string hash)
         {
             if (string.IsNullOrEmpty(hash))
-                return "BCrypt"; // Default to BCrypt for new hashes
+                return DefaultAlgorithm; // Use the configurable default algorithm
 
             // BCrypt hashes start with $2a$, $2b$, $2x$, or $2y$
             if (hash.StartsWith("$2a$") || hash.StartsWith("$2b$") || 
