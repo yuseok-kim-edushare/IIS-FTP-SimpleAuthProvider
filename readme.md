@@ -10,7 +10,7 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 
 - ✅ **Zero dependency on Windows/AD accounts** - Manage FTP users independently
 - ✅ **Native IIS integration** - Works seamlessly with IIS FTP Server
-- ✅ **Security first** - PBKDF2 password hashing, encryption at rest, audit logging
+- ✅ **Security first** - BCrypt password hashing, encryption at rest, audit logging
 - ✅ **Hot-reload support** - Update users without restarting IIS
 - ✅ **Flexible permissions** - Per-path read/write access control
 - ✅ **CLI management tool** - Easy user and encryption key management
@@ -68,7 +68,7 @@ Create `ftpauth.config.json` in your IIS directory:
     "EnableHotReload": true
   },
   "Hashing": {
-    "Algorithm": "PBKDF2",
+    "Algorithm": "BCrypt",
     "Iterations": 100000,
     "SaltSize": 16
   },
@@ -88,6 +88,7 @@ Create `ftpauth.config.json` in your IIS directory:
 | `UserStore.Path` | Path to the users JSON file | `C:\inetpub\ftpusers\users.json` |
 | `UserStore.EncryptionKeyEnv` | Environment variable with encryption key | `null` (uses DPAPI) |
 | `UserStore.EnableHotReload` | Auto-reload users when file changes | `true` |
+| `Hashing.Algorithm` | Password hashing algorithm (BCrypt, PBKDF2) | `BCrypt` |
 | `Hashing.Iterations` | PBKDF2 iterations for password hashing | `100000` |
 | `Logging.EnableEventLog` | Write to Windows Event Log | `true` |
 
@@ -138,8 +139,9 @@ ftpauth rotate-key -f users.enc -o OLD_KEY -n NEW_KEY
 ## Security Notes
 
 ### Password Hashing
-- Uses PBKDF2-SHA256 with 100,000 iterations by default
-- Each user has a unique salt
+- Uses BCrypt with work factor 12 by default for battle-tested security
+- Auto-detects algorithm for backward compatibility with existing PBKDF2 hashes
+- Legacy PBKDF2-SHA256 support maintained for existing users
 - Constant-time comparison prevents timing attacks
 
 ### Encryption at Rest
