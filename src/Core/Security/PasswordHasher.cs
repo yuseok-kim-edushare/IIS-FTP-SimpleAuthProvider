@@ -10,6 +10,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
     {
         private const int HashSizeBytes = 32; // 256 bit
         private const int DefaultBCryptWorkFactor = 12; // BCrypt work factor (cost)
+        public const string DefaultAlgorithm = "BCrypt"; // Default algorithm for new passwords
 
         /// <summary>
         /// Generates a salt for PBKDF2. Not needed for BCrypt as it generates its own salt.

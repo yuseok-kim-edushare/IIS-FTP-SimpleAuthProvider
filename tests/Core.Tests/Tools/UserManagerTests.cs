@@ -363,7 +363,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             var iterations = 75000;
 
             // Act
-            UserManager.ChangePassword(_tempFilePath, "testuser", "newpassword", iterations);
+            UserManager.ChangePassword(_tempFilePath, "testuser", "newpassword", "PBKDF2", iterations);
 
             // Assert
             var users = LoadUsersFromFile();
