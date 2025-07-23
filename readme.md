@@ -81,10 +81,31 @@ Create `ftpauth.config.json` in your IIS directory:
 }
 ```
 
+### User Store Types
+
+This provider supports multiple user store backends:
+
+- **Json** (default): Simple file-based JSON storage with optional encryption
+- **SQLite**: Embedded SQLite database for better performance
+- **Esent**: Windows native ESENT database (no external dependencies)
+
+To use ESENT storage, update your configuration:
+
+```json
+{
+  "UserStore": {
+    "Type": "Esent",
+    "Path": "C:\\inetpub\\ftpusers\\database",
+    "EnableHotReload": false
+  }
+}
+```
+
 ### Configuration Options
 
 | Setting | Description | Default |
 |---------|-------------|---------|
+| `UserStore.Type` | Type of user store (Json, SQLite, Esent) | `Json` |
 | `UserStore.Path` | Path to the users JSON file | `C:\inetpub\ftpusers\users.json` |
 | `UserStore.EncryptionKeyEnv` | Environment variable with encryption key | `null` (uses DPAPI) |
 | `UserStore.EnableHotReload` | Auto-reload users when file changes | `true` |
@@ -230,8 +251,22 @@ See [CONTRIBUTING](CONTRIBUTING) for detailed guidelines.
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
+## Third-Party Components
+
+### WelsonJS.Esent
+
+This project includes the WelsonJS.Esent library for ESENT database support:
+
+- **Project**: [WelsonJS.Esent](https://github.com/gnh1201/welsonjs/tree/master/WelsonJS.Toolkit/WelsonJS.Esent)
+- **License**: MIT License
+- **Copyright**: 2025 Namhyeon Go, Catswords OSS and WelsonJS Contributors
+- **Description**: Enable ESENT database engine functionality
+
+The WelsonJS.Esent library is included as a git submodule and is used to provide native Windows ESENT database support without requiring external database dependencies.
+
 ## Acknowledgments
 
 - Built for IIS FTP Server extensibility model
 - Uses BCrypt P/Invoke for AES-GCM on .NET Framework
+- ESENT database support provided by WelsonJS.Esent (MIT License)
 - Inspired by the need for simple, secure FTP authentication without AD

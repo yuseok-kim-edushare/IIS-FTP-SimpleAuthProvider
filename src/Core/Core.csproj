@@ -15,4 +15,9 @@
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\WelsonJS\WelsonJS.Toolkit\WelsonJS.Esent\WelsonJS.Esent.csproj" />
+    <ProjectReference Include="..\..\WelsonJS\WelsonJS.Toolkit\EsentInterop\EsentInterop.csproj" />
+  </ItemGroup>
 </Project> 
