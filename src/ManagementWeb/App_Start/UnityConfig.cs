@@ -1,6 +1,6 @@
-using IIS.FTP.Core.Configuration;
-using IIS.FTP.Core.Stores;
-using IIS.FTP.Core.Security;
+using IIS.Ftp.SimpleAuth.Core.Configuration;
+using IIS.Ftp.SimpleAuth.Core.Stores;
+using IIS.Ftp.SimpleAuth.Core.Security;
 using IIS.FTP.Core.Logging;
 using IIS.FTP.Core.Monitoring;
 using IIS.FTP.ManagementWeb.Services;

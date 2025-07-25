@@ -1,4 +1,4 @@
-using IIS.FTP.Core.Domain;
+using IIS.Ftp.SimpleAuth.Core.Domain;
 using IIS.FTP.ManagementWeb.Models;
 using IIS.FTP.ManagementWeb.Services;
 using System;

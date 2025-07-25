@@ -1,4 +1,4 @@
-using IIS.FTP.Core.Domain;
+using IIS.Ftp.SimpleAuth.Core.Domain;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
