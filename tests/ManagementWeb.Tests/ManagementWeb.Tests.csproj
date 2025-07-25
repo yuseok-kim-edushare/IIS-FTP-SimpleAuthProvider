@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>IIS.FTP.ManagementWeb.Tests</RootNamespace>
+    <AssemblyName>IIS.FTP.ManagementWeb.Tests</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.0.4" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.0.4" />
+    <PackageReference Include="Moq" Version="4.20.69" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\ManagementWeb\Services\ApplicationServices.cs" Link="Services\ApplicationServices.cs" />
+    <Compile Include="..\..\src\ManagementWeb\Services\SystemHealth.cs" Link="Services\SystemHealth.cs" />
+    <Compile Include="..\..\src\ManagementWeb\Models\UserViewModel.cs" Link="Models\UserViewModel.cs" />
+    <Compile Include="..\..\src\ManagementWeb\Models\DashboardViewModel.cs" Link="Models\DashboardViewModel.cs" />
+  </ItemGroup>
+
+</Project>

@@ -1,21 +1,25 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
 using IIS.Ftp.SimpleAuth.Core.Configuration;
 using System.IO;
-using System.Threading.Tasks;
+using IIS.FTP.Core.Logging;
 
 namespace IIS.Ftp.SimpleAuth.Core.Logging
 {
     /// <summary>
     /// Provides audit logging for authentication events to Windows Event Log.
     /// </summary>
-    public class AuditLogger : IDisposable
+    public class AuditLogger : IAuditLogger, IDisposable
     {
         private readonly LoggingConfig _config;
         private readonly EventLog? _eventLog;
         private readonly string? _logFilePath;
         private readonly StreamWriter? _fileWriter;
         private readonly object _fileLock = new object();
+        private readonly ConcurrentQueue<AuditEntry> _recentEntries = new ConcurrentQueue<AuditEntry>();
 
         public AuditLogger(LoggingConfig config)
         {
@@ -117,6 +121,95 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
         {
             _eventLog?.Dispose();
             _fileWriter?.Dispose();
+        }
+
+        // Interface implementations
+        public async Task LogAuthenticationAsync(string userId, bool success, string details)
+        {
+            await Task.Run(() =>
+            {
+                if (success)
+                {
+                    LogAuthenticationSuccess("web-session", "web-ui", userId);
+                }
+                else
+                {
+                    LogAuthenticationFailure("web-session", "web-ui", userId, details);
+                }
+
+                AddToRecentEntries(new AuditEntry
+                {
+                    Timestamp = DateTime.UtcNow,
+                    UserId = userId,
+                    Action = success ? "Login Success" : "Login Failed",
+                    Details = details,
+                    Success = success
+                });
+            });
+        }
+
+        public async Task LogUserManagementAsync(string adminUser, string action)
+        {
+            await Task.Run(() =>
+            {
+                LogConfigurationChange("UserManagement", $"{adminUser}: {action}");
+                
+                AddToRecentEntries(new AuditEntry
+                {
+                    Timestamp = DateTime.UtcNow,
+                    UserId = adminUser,
+                    Action = "User Management",
+                    Details = action,
+                    Success = true
+                });
+            });
+        }
+
+        public async Task LogErrorAsync(string message)
+        {
+            await Task.Run(() =>
+            {
+                LogUserStoreError("WebUI", message);
+                
+                AddToRecentEntries(new AuditEntry
+                {
+                    Timestamp = DateTime.UtcNow,
+                    UserId = "System",
+                    Action = "Error",
+                    Details = message,
+                    Success = false
+                });
+            });
+        }
+
+        public async Task<IEnumerable<AuditEntry>> GetRecentEntriesAsync(int count)
+        {
+            return await Task.FromResult(GetRecentEntries(count));
+        }
+
+        private void AddToRecentEntries(AuditEntry entry)
+        {
+            lock (_entriesLock)
+            {
+                _recentEntries.Add(entry);
+                
+                // Keep only the last 100 entries
+                if (_recentEntries.Count > 100)
+                {
+                    _recentEntries.RemoveRange(0, _recentEntries.Count - 100);
+                }
+            }
+        }
+
+        private IEnumerable<AuditEntry> GetRecentEntries(int count)
+        {
+            lock (_entriesLock)
+            {
+                return _recentEntries
+                    .OrderByDescending(e => e.Timestamp)
+                    .Take(count)
+                    .ToList();
+            }
         }
     }
 } 

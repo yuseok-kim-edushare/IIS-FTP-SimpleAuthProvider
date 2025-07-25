@@ -1,15 +1,18 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Linq;
+using IIS.FTP.Core.Monitoring;
 
 namespace IIS.Ftp.SimpleAuth.Core.Monitoring
 {
     /// <summary>
     /// Collects and exports metrics in Prometheus textfile format.
     /// </summary>
-    public class MetricsCollector
+    public class MetricsCollector : IMetricsCollector, IDisposable
     {
         private readonly ConcurrentDictionary<string, long> _counters = new ConcurrentDictionary<string, long>();
         private readonly string _metricsFilePath;
@@ -140,6 +143,22 @@ namespace IIS.Ftp.SimpleAuth.Core.Monitoring
         {
             _exportTimer?.Dispose();
             ExportMetrics(); // Final export
+        }
+
+        // Interface implementations
+        public void IncrementAuthSuccess()
+        {
+            IncrementCounter("ftp_auth_success_total");
+        }
+
+        public void IncrementAuthFailure()
+        {
+            IncrementCounter("ftp_auth_failure_total");
+        }
+
+        public Dictionary<string, long> GetMetrics()
+        {
+            return _counters.ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
         }
     }
 } 

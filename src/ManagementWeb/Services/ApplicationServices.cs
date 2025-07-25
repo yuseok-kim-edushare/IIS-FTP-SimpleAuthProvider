@@ -1,10 +1,10 @@
-using IIS.FTP.Core.Configuration;
-using IIS.FTP.Core.Domain;
+using IIS.Ftp.SimpleAuth.Core.Configuration;
+using IIS.Ftp.SimpleAuth.Core.Domain;
 using IIS.FTP.Core.Logging;
 using IIS.FTP.Core.Monitoring;
-using IIS.FTP.Core.Security;
-using IIS.FTP.Core.Stores;
-using IIS.FTP.Core.Tools;
+using IIS.Ftp.SimpleAuth.Core.Security;
+using IIS.Ftp.SimpleAuth.Core.Stores;
+using IIS.Ftp.SimpleAuth.Core.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace IIS.FTP.ManagementWeb.Services
         Task<bool> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(string userId);
         Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
-        Task<IEnumerable<AuditEntry>> GetRecentAuditEntriesAsync(int count = 10);
+        Task<IEnumerable<IIS.FTP.Core.Logging.AuditEntry>> GetRecentAuditEntriesAsync(int count = 10);
         Task<SystemHealth> GetSystemHealthAsync();
     }
 
@@ -32,7 +32,7 @@ namespace IIS.FTP.ManagementWeb.Services
         private readonly IAuditLogger _auditLogger;
         private readonly IMetricsCollector _metricsCollector;
         private readonly AuthProviderConfig _config;
-        private readonly UserManager _userManager;
+        private readonly UserManagerService _userManager;
 
         public ApplicationServices(
             IUserStore userStore,
@@ -47,7 +47,7 @@ namespace IIS.FTP.ManagementWeb.Services
             _metricsCollector = metricsCollector ?? throw new ArgumentNullException(nameof(metricsCollector));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             
-            _userManager = new UserManager(userStore, passwordHasher);
+            _userManager = new UserManagerService(userStore, passwordHasher);
         }
 
         public async Task<bool> ValidateUserAsync(string userId, string password)
@@ -84,7 +84,7 @@ namespace IIS.FTP.ManagementWeb.Services
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
-            return await _userStore.GetAllAsync();
+            return await _userStore.GetAllUsersAsync();
         }
 
         public async Task<bool> CreateUserAsync(User user, string password)
@@ -116,14 +116,9 @@ namespace IIS.FTP.ManagementWeb.Services
         {
             try
             {
-                var success = await _userStore.UpdateAsync(user);
-
-                if (success)
-                {
-                    await _auditLogger.LogUserManagementAsync("Admin", $"Updated user: {user.UserId}");
-                }
-
-                return success;
+                await _userStore.SaveUserAsync(user);
+                await _auditLogger.LogUserManagementAsync("Admin", $"Updated user: {user.UserId}");
+                return true;
             }
             catch (Exception ex)
             {
@@ -136,14 +131,9 @@ namespace IIS.FTP.ManagementWeb.Services
         {
             try
             {
-                var success = await _userStore.DeleteAsync(userId);
-
-                if (success)
-                {
-                    await _auditLogger.LogUserManagementAsync("Admin", $"Deleted user: {userId}");
-                }
-
-                return success;
+                await _userStore.DeleteUserAsync(userId);
+                await _auditLogger.LogUserManagementAsync("Admin", $"Deleted user: {userId}");
+                return true;
             }
             catch (Exception ex)
             {
@@ -181,7 +171,7 @@ namespace IIS.FTP.ManagementWeb.Services
             }
         }
 
-        public async Task<IEnumerable<AuditEntry>> GetRecentAuditEntriesAsync(int count = 10)
+        public async Task<IEnumerable<IIS.FTP.Core.Logging.AuditEntry>> GetRecentAuditEntriesAsync(int count = 10)
         {
             return await _auditLogger.GetRecentEntriesAsync(count);
         }
@@ -200,24 +190,5 @@ namespace IIS.FTP.ManagementWeb.Services
                 LastChecked = DateTime.UtcNow
             };
         }
-    }
-
-    public class AuditEntry
-    {
-        public DateTime Timestamp { get; set; }
-        public string UserId { get; set; }
-        public string Action { get; set; }
-        public string Details { get; set; }
-        public bool Success { get; set; }
-    }
-
-    public class SystemHealth
-    {
-        public bool IsHealthy { get; set; }
-        public string UserStoreType { get; set; }
-        public bool UserStoreConnected { get; set; }
-        public long AuthSuccessCount { get; set; }
-        public long AuthFailureCount { get; set; }
-        public DateTime LastChecked { get; set; }
     }
 } 
