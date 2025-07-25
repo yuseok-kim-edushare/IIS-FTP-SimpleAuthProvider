@@ -190,27 +190,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
 
         private void AddToRecentEntries(AuditEntry entry)
         {
-            lock (_entriesLock)
+            _recentEntries.Enqueue(entry);
+            
+            // Keep only the last 100 entries
+            while (_recentEntries.Count > 100)
             {
-                _recentEntries.Add(entry);
-                
-                // Keep only the last 100 entries
-                if (_recentEntries.Count > 100)
-                {
-                    _recentEntries.RemoveRange(0, _recentEntries.Count - 100);
-                }
+                _recentEntries.TryDequeue(out _);
             }
         }
 
         private IEnumerable<AuditEntry> GetRecentEntries(int count)
         {
-            lock (_entriesLock)
-            {
-                return _recentEntries
-                    .OrderByDescending(e => e.Timestamp)
-                    .Take(count)
-                    .ToList();
-            }
+            return _recentEntries
+                .OrderByDescending(e => e.Timestamp)
+                .Take(count)
+                .ToList();
         }
     }
 } 
