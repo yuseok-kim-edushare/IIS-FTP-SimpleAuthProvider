@@ -31,6 +31,11 @@ namespace IIS.Ftp.SimpleAuth.Provider
                     store = new SqliteUserStore(path, auditLogger);
                     break;
 
+                case "ESENT":
+                    auditLogger.LogConfigurationChange("UserStoreFactory", $"Creating ESENT user store at: {path}");
+                    store = new EsentUserStore(path, auditLogger);
+                    break;
+
                 case "JSON":
                 default:
                     var enableHotReload = _config?.UserStore?.EnableHotReload ?? true;
