@@ -264,6 +264,17 @@ This project includes the WelsonJS.Esent library for ESENT database support:
 
 The WelsonJS.Esent library is included as a git submodule and is used to provide native Windows ESENT database support without requiring external database dependencies.
 
+### Bcrypt.NET
+
+This project includes the Bcrypt.NET library for BCrypt password hashing:
+
+- **Project**: [Bcrypt.NET](https://github.com/BcryptNet/Bcrypt.NET)
+- **License**: MIT License
+- **Copyright**: 2021 Chris McKee and Bcrypt.NET Contributors
+- **Description**: Provides BCrypt password hashing functionality
+
+The Bcrypt.NET library is included by PackageReference in the project.
+
 ## Acknowledgments
 
 - Built for IIS FTP Server extensibility model
