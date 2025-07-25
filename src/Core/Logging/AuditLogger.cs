@@ -19,8 +19,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Logging
         private readonly string? _logFilePath;
         private readonly StreamWriter? _fileWriter;
         private readonly object _fileLock = new object();
-        private readonly List<AuditEntry> _recentEntries = new List<AuditEntry>();
-        private readonly object _entriesLock = new object();
+        private readonly ConcurrentQueue<AuditEntry> _recentEntries = new ConcurrentQueue<AuditEntry>();
 
         public AuditLogger(LoggingConfig config)
         {
