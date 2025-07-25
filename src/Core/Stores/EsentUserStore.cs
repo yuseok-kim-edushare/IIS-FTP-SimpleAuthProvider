@@ -13,7 +13,8 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
 {
     /// <summary>
     /// ESENT database-backed user store using WelsonJS.Esent.
-    /// Provides embedded database functionality without external dependencies.
+    /// This implementation is Windows-only and requires the availability of the ESENT database engine.
+    /// Use this store when you need an embedded database solution on Windows without external dependencies.
     /// </summary>
     public sealed class EsentUserStore : IUserStore, IDisposable
     {
