@@ -180,7 +180,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
             if (key == null)
             {
                 // Fallback to unprotected operation if ProtectedMemory is not supported
-                return DecryptWithAesGcm(encryptedData, protectedKey);
+                // Ensure the key is exactly 32 bytes
+                var key32 = protectedKey.Length >= 32 ? protectedKey.AsSpan(0, 32).ToArray() : throw new ArgumentException("protectedKey must be at least 32 bytes for AES-GCM decryption fallback");
+                return DecryptWithAesGcm(encryptedData, key32);
             }
 
             try
