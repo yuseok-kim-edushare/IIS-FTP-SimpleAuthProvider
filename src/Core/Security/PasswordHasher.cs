@@ -18,11 +18,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
         public static string GenerateSalt(int sizeBytes = 16)
         {
             var salt = new byte[sizeBytes];
-            using (var rng = new RNGCryptoServiceProvider())
+            try
             {
-                rng.GetBytes(salt);
+                using (var rng = new RNGCryptoServiceProvider())
+                {
+                    rng.GetBytes(salt);
+                }
+                
+                var result = Convert.ToBase64String(salt);
+                return result;
             }
-            return Convert.ToBase64String(salt);
+            finally
+            {
+                // Clear the salt from memory
+                SecureMemoryHelper.ClearMemory(salt);
+            }
         }
 
         /// <summary>
@@ -39,12 +49,26 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
         public static string HashPasswordPBKDF2(string password, string saltBase64, int iterations = 100_000)
         {
             var salt = Convert.FromBase64String(saltBase64);
-            byte[] hash;
-            using (var deriveBytes = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
+            byte[] hash = null!;
+            try
             {
-                hash = deriveBytes.GetBytes(HashSizeBytes);
+                using (var deriveBytes = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
+                {
+                    hash = deriveBytes.GetBytes(HashSizeBytes);
+                }
+                
+                var result = Convert.ToBase64String(hash);
+                return result;
             }
-            return Convert.ToBase64String(hash);
+            finally
+            {
+                // Clear sensitive data from memory
+                SecureMemoryHelper.ClearMemory(salt);
+                if (hash != null)
+                {
+                    SecureMemoryHelper.ClearMemory(hash);
+                }
+            }
         }
 
         /// <summary>
@@ -76,18 +100,27 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
                     var expected = Convert.FromBase64String(expectedHash);
                     var actual = Convert.FromBase64String(actualHash);
 
-#if NET5_0_OR_GREATER
-                    return CryptographicOperations.FixedTimeEquals(actual, expected);
-#else
-                    // Manual constant-time compare for .NET Framework
-                    if (actual.Length != expected.Length) return false;
-                    var diff = 0;
-                    for (int i = 0; i < actual.Length; i++)
+                    try
                     {
-                        diff |= actual[i] ^ expected[i];
-                    }
-                    return diff == 0;
+#if NET5_0_OR_GREATER
+                        return CryptographicOperations.FixedTimeEquals(actual, expected);
+#else
+                        // Manual constant-time compare for .NET Framework
+                        if (actual.Length != expected.Length) return false;
+                        var diff = 0;
+                        for (int i = 0; i < actual.Length; i++)
+                        {
+                            diff |= actual[i] ^ expected[i];
+                        }
+                        return diff == 0;
 #endif
+                    }
+                    finally
+                    {
+                        // Clear sensitive hash data from memory
+                        SecureMemoryHelper.ClearMemory(expected);
+                        SecureMemoryHelper.ClearMemory(actual);
+                    }
 
                 default:
                     throw new ArgumentException($"Unsupported hashing algorithm: {algorithm}");

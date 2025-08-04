@@ -23,8 +23,20 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
                 if (string.IsNullOrEmpty(keyBase64))
                     throw new InvalidOperationException($"Encryption key environment variable '{keyEnvVar}' not found");
                 
-                var encryptedBytes = EncryptWithAesGcm(plainBytes, Convert.FromBase64String(keyBase64));
-                File.WriteAllBytes(encryptedPath, encryptedBytes);
+                var keyBytes = Convert.FromBase64String(keyBase64);
+                try
+                {
+                    // Protect encryption key in memory
+                    var protectedKey = SecureMemoryHelper.CreateProtectedCopy(keyBytes);
+                    
+                    var encryptedBytes = EncryptWithAesGcm(plainBytes, protectedKey, keyBytes.Length);
+                    File.WriteAllBytes(encryptedPath, encryptedBytes);
+                }
+                finally
+                {
+                    // Clear the original key from memory
+                    SecureMemoryHelper.ClearMemory(keyBytes);
+                }
             }
             else
             {
@@ -46,7 +58,19 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
                 if (string.IsNullOrEmpty(keyBase64))
                     throw new InvalidOperationException($"Encryption key environment variable '{keyEnvVar}' not found");
                 
-                plainBytes = DecryptWithAesGcm(encryptedBytes, Convert.FromBase64String(keyBase64));
+                var keyBytes = Convert.FromBase64String(keyBase64);
+                try
+                {
+                    // Protect decryption key in memory
+                    var protectedKey = SecureMemoryHelper.CreateProtectedCopy(keyBytes);
+                    
+                    plainBytes = DecryptWithAesGcm(encryptedBytes, protectedKey, keyBytes.Length);
+                }
+                finally
+                {
+                    // Clear the original key from memory
+                    SecureMemoryHelper.ClearMemory(keyBytes);
+                }
             }
             else
             {
@@ -66,7 +90,45 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
             {
                 aes.KeySize = 256;
                 aes.GenerateKey();
-                return Convert.ToBase64String(aes.Key);
+                
+                // Create a copy of the key and protect it in memory temporarily
+                var keyBytes = new byte[aes.Key.Length];
+                Array.Copy(aes.Key, keyBytes, aes.Key.Length);
+                
+                try
+                {
+                    // Clear the AES key from memory immediately
+                    SecureMemoryHelper.ClearMemory(aes.Key);
+                    
+                    var result = Convert.ToBase64String(keyBytes);
+                    return result;
+                }
+                finally
+                {
+                    // Clear our copy of the key
+                    SecureMemoryHelper.ClearMemory(keyBytes);
+                }
+            }
+        }
+
+        private static byte[] EncryptWithAesGcm(byte[] plainText, byte[] protectedKey, int originalKeyLength)
+        {
+            // Extract the key safely from protected memory
+            var key = SecureMemoryHelper.ExtractProtectedData(protectedKey, originalKeyLength);
+            if (key == null)
+            {
+                // Fallback to unprotected operation if ProtectedMemory is not supported
+                return EncryptWithAesGcm(plainText, protectedKey);
+            }
+
+            try
+            {
+                return EncryptWithAesGcm(plainText, key);
+            }
+            finally
+            {
+                // Clear the unprotected key immediately
+                SecureMemoryHelper.ClearMemory(key);
             }
         }
 
@@ -100,6 +162,27 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
             encryptedData.CopyTo(result, 4 + nonce.Length);
             
             return result;
+        }
+
+        private static byte[] DecryptWithAesGcm(byte[] encryptedData, byte[] protectedKey, int originalKeyLength)
+        {
+            // Extract the key safely from protected memory
+            var key = SecureMemoryHelper.ExtractProtectedData(protectedKey, originalKeyLength);
+            if (key == null)
+            {
+                // Fallback to unprotected operation if ProtectedMemory is not supported
+                return DecryptWithAesGcm(encryptedData, protectedKey);
+            }
+
+            try
+            {
+                return DecryptWithAesGcm(encryptedData, key);
+            }
+            finally
+            {
+                // Clear the unprotected key immediately
+                SecureMemoryHelper.ClearMemory(key);
+            }
         }
 
         private static byte[] DecryptWithAesGcm(byte[] encryptedData, byte[] key)
