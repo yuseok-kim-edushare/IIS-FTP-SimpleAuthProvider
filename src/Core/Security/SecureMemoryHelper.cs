@@ -95,11 +95,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
         /// </summary>
         /// <param name="protectedData">The protected data array.</param>
         /// <param name="originalLength">The original length of the data before padding.</param>
-        /// <returns>The unprotected data with original length, or null if unprotection failed.</returns>
-        public static byte[]? ExtractProtectedData(byte[] protectedData, int originalLength)
+        /// <returns>The unprotected data with original length, or an empty array if unprotection failed.</returns>
+        public static byte[] ExtractProtectedData(byte[] protectedData, int originalLength)
         {
             if (!IsSupported || protectedData == null)
-                return protectedData;
+                return Array.Empty<byte>();
 
             // Create a copy to avoid modifying the original protected data
             byte[] workingCopy = new byte[protectedData.Length];
