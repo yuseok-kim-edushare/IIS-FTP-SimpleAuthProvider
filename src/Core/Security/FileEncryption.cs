@@ -118,7 +118,16 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
             if (key == null)
             {
                 // Fallback to unprotected operation if ProtectedMemory is not supported
-                return EncryptWithAesGcm(plainText, protectedKey);
+                var unprotectedKey = new byte[originalKeyLength];
+                Array.Copy(protectedKey, unprotectedKey, originalKeyLength);
+                try
+                {
+                    return EncryptWithAesGcm(plainText, unprotectedKey);
+                }
+                finally
+                {
+                    SecureMemoryHelper.ClearMemory(unprotectedKey);
+                }
             }
 
             try
