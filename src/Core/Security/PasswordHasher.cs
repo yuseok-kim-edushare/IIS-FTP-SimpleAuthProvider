@@ -49,7 +49,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Security
         public static string HashPasswordPBKDF2(string password, string saltBase64, int iterations = 100_000)
         {
             var salt = Convert.FromBase64String(saltBase64);
-            byte[] hash = null!;
+            byte[] hash = null;
             try
             {
                 using (var deriveBytes = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
