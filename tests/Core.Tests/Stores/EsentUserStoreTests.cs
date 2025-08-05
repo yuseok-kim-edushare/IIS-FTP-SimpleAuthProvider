@@ -1,7 +1,7 @@
 using IIS.Ftp.SimpleAuth.Core.Domain;
 using IIS.Ftp.SimpleAuth.Core.Security;
 using IIS.Ftp.SimpleAuth.Core.Stores;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,20 +10,20 @@ using System.Threading.Tasks;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
 {
-    [TestFixture]
+    [TestClass]
     public class EsentUserStoreTests
     {
         private string _tempDataDirectory = null!;
         private EsentUserStore _store = null!;
 
-        [SetUp]
+        [TestInitialize]
         public void SetUp()
         {
             _tempDataDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             Directory.CreateDirectory(_tempDataDirectory);
         }
 
-        [TearDown]
+        [TestCleanup]
         public void TearDown()
         {
             _store?.Dispose();
@@ -40,7 +40,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             }
         }
 
-        [Test]
+        [TestMethod]
         public async Task Constructor_ShouldCreateStore()
         {
             // Act
@@ -48,11 +48,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             var users = await _store.GetAllUsersAsync();
 
             // Assert
-            Assert.That(users, Is.Not.Null);
-            Assert.That(users.Count(), Is.EqualTo(0));
+            Assert.IsNotNull(users);
+            Assert.AreEqual(0, users.Count());
         }
 
-        [Test]
+        [TestMethod]
         public async Task SaveUserAsync_ShouldPersistUser()
         {
             // Arrange
@@ -75,15 +75,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             var foundUser = await _store.FindAsync("testuser");
 
             // Assert
-            Assert.That(foundUser, Is.Not.Null);
-            Assert.That(foundUser!.UserId, Is.EqualTo("testuser"));
-            Assert.That(foundUser.DisplayName, Is.EqualTo("Test User"));
-            Assert.That(foundUser.HomeDirectory, Is.EqualTo("/home/testuser"));
-            Assert.That(foundUser.Permissions.Count, Is.EqualTo(1));
-            Assert.That(foundUser.Permissions.First().Path, Is.EqualTo("/home/testuser"));
+            Assert.IsNotNull(foundUser);
+            Assert.AreEqual("testuser", foundUser!.UserId);
+            Assert.AreEqual("Test User", foundUser.DisplayName);
+            Assert.AreEqual("/home/testuser", foundUser.HomeDirectory);
+            Assert.AreEqual(1, foundUser.Permissions.Count);
+            Assert.AreEqual("/home/testuser", foundUser.Permissions.First().Path);
         }
 
-        [Test]
+        [TestMethod]
         public async Task ValidateAsync_WithValidCredentials_ShouldReturnTrue()
         {
             // Arrange
@@ -101,10 +101,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             bool isValid = await _store.ValidateAsync("testuser", password);
 
             // Assert
-            Assert.That(isValid, Is.True);
+            Assert.IsTrue(isValid);
         }
 
-        [Test]
+        [TestMethod]
         public async Task ValidateAsync_WithInvalidCredentials_ShouldReturnFalse()
         {
             // Arrange
@@ -121,10 +121,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             bool isValid = await _store.ValidateAsync("testuser", "wrongpassword");
 
             // Assert
-            Assert.That(isValid, Is.False);
+            Assert.IsFalse(isValid);
         }
 
-        [Test]
+        [TestMethod]
         public async Task DeleteUserAsync_ShouldRemoveUser()
         {
             // Arrange
@@ -141,10 +141,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             var foundUser = await _store.FindAsync("testuser");
 
             // Assert
-            Assert.That(foundUser, Is.Null);
+            Assert.IsNull(foundUser);
         }
 
-        [Test]
+        [TestMethod]
         public async Task GetAllUsersAsync_ShouldReturnAllUsers()
         {
             // Arrange
@@ -159,12 +159,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             var users = await _store.GetAllUsersAsync();
 
             // Assert
-            Assert.That(users.Count(), Is.EqualTo(2));
-            Assert.That(users.Any(u => u.UserId == "user1"), Is.True);
-            Assert.That(users.Any(u => u.UserId == "user2"), Is.True);
+            Assert.AreEqual(2, users.Count());
+            Assert.IsTrue(users.Any(u => u.UserId == "user1"));
+            Assert.IsTrue(users.Any(u => u.UserId == "user2"));
         }
 
-        [Test]
+        [TestMethod]
         public async Task AddPermissionAsync_ShouldAddPermission()
         {
             // Arrange
@@ -178,11 +178,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Stores
             var permissions = await _store.GetPermissionsAsync("testuser");
 
             // Assert
-            Assert.That(permissions.Count(), Is.EqualTo(1));
+            Assert.AreEqual(1, permissions.Count());
             var addedPermission = permissions.First();
-            Assert.That(addedPermission.Path, Is.EqualTo("/shared"));
-            Assert.That(addedPermission.CanRead, Is.True);
-            Assert.That(addedPermission.CanWrite, Is.False);
+            Assert.AreEqual("/shared", addedPermission.Path);
+            Assert.IsTrue(addedPermission.CanRead);
+            Assert.IsFalse(addedPermission.CanWrite);
         }
     }
 }

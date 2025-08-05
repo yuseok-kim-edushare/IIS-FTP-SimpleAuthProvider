@@ -1,29 +1,29 @@
 using IIS.Ftp.SimpleAuth.Core.Domain;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Collections.Generic;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Domain
 {
-    [TestFixture]
+    [TestClass]
     public class UserTests
     {
-        [Test]
+        [TestMethod]
         public void User_DefaultConstructor_ShouldInitializePropertiesWithDefaultValues()
         {
             // Act
             var user = new User();
 
             // Assert
-            Assert.That(user.UserId, Is.EqualTo(string.Empty));
-            Assert.That(user.DisplayName, Is.EqualTo(string.Empty));
-            Assert.That(user.Salt, Is.EqualTo(string.Empty));
-            Assert.That(user.PasswordHash, Is.EqualTo(string.Empty));
-            Assert.That(user.HomeDirectory, Is.EqualTo(string.Empty));
-            Assert.That(user.Permissions, Is.Not.Null);
+            Assert.AreEqual(string.Empty, user.UserId);
+            Assert.AreEqual(string.Empty, user.DisplayName);
+            Assert.AreEqual(string.Empty, user.Salt);
+            Assert.AreEqual(string.Empty, user.PasswordHash);
+            Assert.AreEqual(string.Empty, user.HomeDirectory);
+            Assert.IsNotNull(user.Permissions);
             Assert.That(user.Permissions, Is.Empty);
         }
 
-        [Test]
+        [TestMethod]
         public void User_Properties_ShouldBeSettable()
         {
             // Arrange
@@ -49,15 +49,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Domain
             };
 
             // Assert
-            Assert.That(user.UserId, Is.EqualTo(expectedUserId));
-            Assert.That(user.DisplayName, Is.EqualTo(expectedDisplayName));
-            Assert.That(user.Salt, Is.EqualTo(expectedSalt));
-            Assert.That(user.PasswordHash, Is.EqualTo(expectedPasswordHash));
-            Assert.That(user.HomeDirectory, Is.EqualTo(expectedHomeDirectory));
+            Assert.AreEqual(expectedUserId, user.UserId);
+            Assert.AreEqual(expectedDisplayName, user.DisplayName);
+            Assert.AreEqual(expectedSalt, user.Salt);
+            Assert.AreEqual(expectedPasswordHash, user.PasswordHash);
+            Assert.AreEqual(expectedHomeDirectory, user.HomeDirectory);
             Assert.That(user.Permissions, Is.EquivalentTo(expectedPermissions));
         }
 
-        [Test]
+        [TestMethod]
         public void User_Permissions_ShouldBeModifiable()
         {
             // Arrange

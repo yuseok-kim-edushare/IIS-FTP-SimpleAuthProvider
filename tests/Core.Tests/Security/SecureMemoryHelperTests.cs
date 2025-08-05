@@ -1,32 +1,28 @@
 using System;
-using NUnit.Framework;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using IIS.Ftp.SimpleAuth.Core.Security;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
 {
-    [TestFixture]
+    [TestClass]
     public class SecureMemoryHelperTests
     {
-        [Test]
-        public void IsSupported_ReturnsExpectedValue()
+        [TestMethod]
+        public void IsSupported_ReturnsTrue()
         {
-            // Test should pass regardless of platform
-            // On Windows, should return true; on other platforms, should return false
+            // On Windows .NET Framework, ProtectedMemory should be supported
             var isSupported = SecureMemoryHelper.IsSupported;
-            
-            // We can't assert a specific value since it depends on the platform
-            // Just ensure it doesn't throw
-            Assert.DoesNotThrow(() => { var _ = SecureMemoryHelper.IsSupported; });
+            Assert.IsTrue(isSupported);
         }
 
-        [Test]
+        [TestMethod]
         public void ProtectMemory_WithNullData_ReturnsFalse()
         {
             var result = SecureMemoryHelper.ProtectMemory(null);
             Assert.IsFalse(result);
         }
 
-        [Test]
+        [TestMethod]
         public void ProtectMemory_WithInvalidLength_ReturnsFalse()
         {
             // ProtectedMemory requires arrays to be multiples of 16 bytes
@@ -35,16 +31,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Assert.IsFalse(result);
         }
 
-        [Test]
-        [Platform("Win")]
+        [TestMethod]
         public void ProtectMemory_WithValidLength_WorksCorrectly()
         {
-            // Skip test if not on Windows
-            if (!SecureMemoryHelper.IsSupported)
-            {
-                Assert.Ignore("ProtectedMemory is only supported on Windows platforms");
-            }
-
             var validData = new byte[16]; // Multiple of 16
             for (int i = 0; i < validData.Length; i++)
             {
@@ -66,33 +55,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Assert.IsTrue(ArraysEqual(validData, originalData));
         }
 
-        [Test]
-        [Platform(Exclude = "Win")]
-        public void ProtectMemory_OnNonWindows_ReturnsFalse()
-        {
-            // This test only runs on non-Windows platforms
-            if (SecureMemoryHelper.IsSupported)
-            {
-                Assert.Ignore("This test is for non-Windows platforms only");
-            }
-
-            var validData = new byte[16]; // Multiple of 16
-            var protectResult = SecureMemoryHelper.ProtectMemory(validData);
-            
-            // On unsupported platforms, protect should return false
-            Assert.IsFalse(protectResult);
-        }
-
-        [Test]
-        [Platform("Win")]
+        [TestMethod]
         public void CreateProtectedCopy_WithValidData_ReturnsProtectedCopy()
         {
-            // Skip test if not on Windows
-            if (!SecureMemoryHelper.IsSupported)
-            {
-                Assert.Ignore("ProtectedMemory is only supported on Windows platforms");
-            }
-
             var originalData = new byte[] { 1, 2, 3, 4, 5 };
             var protectedCopy = SecureMemoryHelper.CreateProtectedCopy(originalData);
             
@@ -103,34 +68,9 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Assert.IsFalse(ArraysEqual(protectedCopy, originalData));
         }
 
-        [Test]
-        [Platform(Exclude = "Win")]
-        public void CreateProtectedCopy_OnNonWindows_ReturnsOriginal()
-        {
-            // This test only runs on non-Windows platforms
-            if (SecureMemoryHelper.IsSupported)
-            {
-                Assert.Ignore("This test is for non-Windows platforms only");
-            }
-
-            var originalData = new byte[] { 1, 2, 3, 4, 5 };
-            var protectedCopy = SecureMemoryHelper.CreateProtectedCopy(originalData);
-            
-            Assert.IsNotNull(protectedCopy);
-            // On unsupported platforms, should return original
-            Assert.AreSame(originalData, protectedCopy);
-        }
-
-        [Test]
-        [Platform("Win")]
+        [TestMethod]
         public void ExtractProtectedData_WithValidData_ReturnsOriginalData()
         {
-            // Skip test if not on Windows
-            if (!SecureMemoryHelper.IsSupported)
-            {
-                Assert.Ignore("ProtectedMemory is only supported on Windows platforms");
-            }
-
             var originalData = new byte[] { 1, 2, 3, 4, 5 };
             var protectedCopy = SecureMemoryHelper.CreateProtectedCopy(originalData);
             
@@ -141,26 +81,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Assert.IsTrue(ArraysEqual(extractedData, originalData));
         }
 
-        [Test]
-        [Platform(Exclude = "Win")]
-        public void ExtractProtectedData_OnNonWindows_ReturnsEmptyArray()
-        {
-            // This test only runs on non-Windows platforms
-            if (SecureMemoryHelper.IsSupported)
-            {
-                Assert.Ignore("This test is for non-Windows platforms only");
-            }
-
-            var originalData = new byte[] { 1, 2, 3, 4, 5 };
-            var protectedCopy = SecureMemoryHelper.CreateProtectedCopy(originalData);
-            
-            var extractedData = SecureMemoryHelper.ExtractProtectedData(protectedCopy, originalData.Length);
-            
-            Assert.IsNotNull(extractedData);
-            Assert.AreEqual(0, extractedData.Length); // Should return empty array on non-Windows
-        }
-
-        [Test]
+        [TestMethod]
         public void ClearMemory_WithValidData_ClearsArray()
         {
             var data = new byte[] { 1, 2, 3, 4, 5 };
@@ -173,13 +94,21 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             }
         }
 
-        [Test]
+        [TestMethod]
         public void ClearMemory_WithNullData_DoesNotThrow()
         {
-            Assert.DoesNotThrow(() => SecureMemoryHelper.ClearMemory(null));
+            try
+            {
+                SecureMemoryHelper.ClearMemory(null);
+                // If we reach here, no exception was thrown, which is expected
+            }
+            catch
+            {
+                Assert.Fail("ClearMemory should not throw when given null data");
+            }
         }
 
-        [Test]
+        [TestMethod]
         public void WithUnprotectedData_ExecutesActionCorrectly()
         {
             var data = new byte[16];
@@ -201,17 +130,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Assert.IsTrue(actionExecuted);
             Assert.IsNotNull(dataSeenInAction);
             Assert.AreEqual(data.Length, dataSeenInAction.Length);
-            
-            // On Windows, expect true result; on non-Windows, expect false but action still executed
-            if (SecureMemoryHelper.IsSupported)
-            {
-                // Note: This might be true or false depending on whether data was actually protected
-                // The important thing is that the action was executed
-            }
-            else
-            {
-                Assert.IsFalse(result);
-            }
+            Assert.IsTrue(result); // Should return true on Windows
         }
 
         private bool ArraysEqual(byte[] a, byte[] b)
