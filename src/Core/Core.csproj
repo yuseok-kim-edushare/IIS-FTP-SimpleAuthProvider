@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="System.Security, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\WelsonJS\WelsonJS.Toolkit\WelsonJS.Esent\WelsonJS.Esent.csproj" />
     <ProjectReference Include="..\..\WelsonJS\WelsonJS.Toolkit\EsentInterop\EsentInterop.csproj" />
   </ItemGroup>
