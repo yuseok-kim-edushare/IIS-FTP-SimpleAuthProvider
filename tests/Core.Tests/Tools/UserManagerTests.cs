@@ -53,7 +53,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(user.UserId, Is.EqualTo(userId));
             Assert.That(user.DisplayName, Is.EqualTo(displayName));
             Assert.That(user.HomeDirectory, Is.EqualTo(homeDirectory));
-            Assert.That(user.Salt, Is.Not.Null.And.Not.Empty);
+            // BCrypt generates its own salt internally, so Salt can be empty for BCrypt
             Assert.That(user.PasswordHash, Is.Not.Null.And.Not.Empty);
             Assert.That(user.Permissions, Has.Count.EqualTo(1));
             Assert.That(user.Permissions.First().Path, Is.EqualTo("/"));
@@ -173,7 +173,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             var usersAfter = LoadUsersFromFile();
             var user = usersAfter.First();
             
-            Assert.That(user.Salt, Is.Not.EqualTo(originalSalt));
+            // For BCrypt, salt may remain empty as BCrypt generates its own salt
             Assert.That(user.PasswordHash, Is.Not.EqualTo(originalHash));
             
             // Verify password works
@@ -341,18 +341,22 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
         public void CreateUser_CustomIterations_ShouldUseSpecifiedIterations()
         {
             // Arrange
-            var iterations = 50000;
+            var userId = "testuser";
+            var password = "TestPassword123!";
+            var displayName = "Test User";
+            var customIterations = 50_000; // This only affects PBKDF2, not BCrypt
 
             // Act
-            UserManager.CreateUser(_tempFilePath, "testuser", "password", "Test User", iterations: iterations);
+            UserManager.CreateUser(_tempFilePath, userId, password, displayName, algorithm: "PBKDF2", iterations: customIterations);
 
             // Assert
             var users = LoadUsersFromFile();
             var user = users.First();
             
-            // Verify password works with custom iterations
-            Assert.That(PasswordHasher.Verify("password", user.Salt, user.PasswordHash, iterations), Is.True);
-            Assert.That(PasswordHasher.Verify("password", user.Salt, user.PasswordHash, 100000), Is.False);
+            // For PBKDF2, verify that the custom iterations are used
+            Assert.That(PasswordHasher.Verify(password, user.Salt, user.PasswordHash, customIterations), Is.True);
+            // Verify that different iterations fail
+            Assert.That(PasswordHasher.Verify(password, user.Salt, user.PasswordHash, 100000), Is.False);
         }
 
         [Test]

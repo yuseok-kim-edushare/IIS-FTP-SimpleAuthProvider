@@ -148,7 +148,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             var config = new HashingConfig();
 
             // Assert
-            Assert.That(config.Algorithm, Is.EqualTo("PBKDF2"));
+            Assert.That(config.Algorithm, Is.EqualTo("BCrypt"));
             Assert.That(config.Iterations, Is.EqualTo(100_000));
             Assert.That(config.SaltSize, Is.EqualTo(16));
         }
