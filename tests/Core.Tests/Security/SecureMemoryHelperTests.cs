@@ -1,37 +1,37 @@
 using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using IIS.Ftp.SimpleAuth.Core.Security;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
 {
-    [TestClass]
+    [TestFixture]
     public class SecureMemoryHelperTests
     {
-        [TestMethod]
+        [Test]
         public void IsSupported_ReturnsTrue()
         {
             // On Windows .NET Framework, ProtectedMemory should be supported
             var isSupported = SecureMemoryHelper.IsSupported;
-            Assert.IsTrue(isSupported);
+            Assert.That(isSupported, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void ProtectMemory_WithNullData_ReturnsFalse()
         {
             var result = SecureMemoryHelper.ProtectMemory(null);
-            Assert.IsFalse(result);
+            Assert.That(result, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void ProtectMemory_WithInvalidLength_ReturnsFalse()
         {
             // ProtectedMemory requires arrays to be multiples of 16 bytes
             var invalidData = new byte[15]; // Not a multiple of 16
             var result = SecureMemoryHelper.ProtectMemory(invalidData);
-            Assert.IsFalse(result);
+            Assert.That(result, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void ProtectMemory_WithValidLength_WorksCorrectly()
         {
             var validData = new byte[16]; // Multiple of 16
@@ -44,31 +44,31 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             Array.Copy(validData, originalData, 16);
 
             var protectResult = SecureMemoryHelper.ProtectMemory(validData);
-            Assert.IsTrue(protectResult);
+            Assert.That(protectResult, Is.True);
             
             // Data should be modified (encrypted)
-            Assert.IsFalse(ArraysEqual(validData, originalData));
+            Assert.That(ArraysEqual(validData, originalData), Is.False);
             
             // Unprotect should restore original data
             var unprotectResult = SecureMemoryHelper.UnprotectMemory(validData);
-            Assert.IsTrue(unprotectResult);
-            Assert.IsTrue(ArraysEqual(validData, originalData));
+            Assert.That(unprotectResult, Is.True);
+            Assert.That(ArraysEqual(validData, originalData), Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void CreateProtectedCopy_WithValidData_ReturnsProtectedCopy()
         {
             var originalData = new byte[] { 1, 2, 3, 4, 5 };
             var protectedCopy = SecureMemoryHelper.CreateProtectedCopy(originalData);
             
-            Assert.IsNotNull(protectedCopy);
+            Assert.That(protectedCopy, Is.Not.Null);
             // Should be padded to multiple of 16
-            Assert.AreEqual(16, protectedCopy.Length);
+            Assert.That(protectedCopy.Length, Is.EqualTo(16));
             // Should not equal original data (it's protected)
-            Assert.IsFalse(ArraysEqual(protectedCopy, originalData));
+            Assert.That(ArraysEqual(protectedCopy, originalData), Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void ExtractProtectedData_WithValidData_ReturnsOriginalData()
         {
             var originalData = new byte[] { 1, 2, 3, 4, 5 };
@@ -76,12 +76,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             
             var extractedData = SecureMemoryHelper.ExtractProtectedData(protectedCopy, originalData.Length);
             
-            Assert.IsNotNull(extractedData);
-            Assert.AreEqual(originalData.Length, extractedData.Length);
-            Assert.IsTrue(ArraysEqual(extractedData, originalData));
+            Assert.That(extractedData, Is.Not.Null);
+            Assert.That(extractedData.Length, Is.EqualTo(originalData.Length));
+            Assert.That(ArraysEqual(extractedData, originalData), Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void ClearMemory_WithValidData_ClearsArray()
         {
             var data = new byte[] { 1, 2, 3, 4, 5 };
@@ -90,11 +90,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             // All bytes should be zero
             foreach (var b in data)
             {
-                Assert.AreEqual(0, b);
+                Assert.That(b, Is.EqualTo(0));
             }
         }
 
-        [TestMethod]
+        [Test]
         public void ClearMemory_WithNullData_DoesNotThrow()
         {
             try
@@ -108,7 +108,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             }
         }
 
-        [TestMethod]
+        [Test]
         public void WithUnprotectedData_ExecutesActionCorrectly()
         {
             var data = new byte[16];
@@ -127,10 +127,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
                 Array.Copy(unprotectedData, dataSeenInAction, unprotectedData.Length);
             });
 
-            Assert.IsTrue(actionExecuted);
-            Assert.IsNotNull(dataSeenInAction);
-            Assert.AreEqual(data.Length, dataSeenInAction.Length);
-            Assert.IsTrue(result); // Should return true on Windows
+            Assert.That(actionExecuted, Is.True);
+            Assert.That(dataSeenInAction, Is.Not.Null);
+            Assert.That(dataSeenInAction.Length, Is.EqualTo(data.Length));
+            Assert.That(result, Is.True); // Should return true on Windows
         }
 
         private bool ArraysEqual(byte[] a, byte[] b)

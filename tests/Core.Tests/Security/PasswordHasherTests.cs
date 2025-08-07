@@ -1,15 +1,15 @@
 using IIS.Ftp.SimpleAuth.Core.Security;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
 {
-    [TestClass]
+    [TestFixture]
     public class PasswordHasherTests
     {
         #region BCrypt Tests
 
-        [TestMethod]
+        [Test]
         public void HashPasswordBCrypt_ValidPassword_ShouldReturnBCryptHash()
         {
             // Arrange
@@ -19,12 +19,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash = PasswordHasher.HashPasswordBCrypt(password);
 
             // Assert
-            Assert.IsNotNull(hash);
-            Assert.IsTrue(!string.IsNullOrEmpty(hash));
-            Assert.IsTrue(hash.StartsWith("$2a$") || hash.StartsWith("$2b$"), "BCrypt hash should start with $2a$ or $2b$");
+            Assert.That(hash, Is.Not.Null);
+            Assert.That(!string.IsNullOrEmpty(hash), Is.True);
+            Assert.That(hash.StartsWith("$2a$") || hash.StartsWith("$2b$"), Is.True, "BCrypt hash should start with $2a$ or $2b$");
         }
 
-        [TestMethod]
+        [Test]
         public void HashPasswordBCrypt_SamePassword_ShouldReturnDifferentHashes()
         {
             // Arrange
@@ -35,10 +35,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash2 = PasswordHasher.HashPasswordBCrypt(password);
 
             // Assert
-            Assert.AreNotEqual(hash1, hash2, "BCrypt should generate different hashes for same password (due to random salt)");
+            Assert.That(hash1, Is.Not.EqualTo(hash2), "BCrypt should generate different hashes for same password (due to random salt)");
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_BCryptHash_CorrectPassword_ShouldReturnTrue()
         {
             // Arrange
@@ -49,10 +49,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, "", hash); // Salt is empty for BCrypt
 
             // Assert
-            Assert.IsTrue(isValid);
+            Assert.That(isValid, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_BCryptHash_IncorrectPassword_ShouldReturnFalse()
         {
             // Arrange
@@ -64,10 +64,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(wrongPassword, "", hash); // Salt is empty for BCrypt
 
             // Assert
-            Assert.IsFalse(isValid);
+            Assert.That(isValid, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void DetectAlgorithm_BCryptHash_ShouldReturnBCrypt()
         {
             // Arrange
@@ -78,61 +78,61 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var algorithm = PasswordHasher.DetectAlgorithm(hash);
 
             // Assert
-            Assert.AreEqual("BCrypt", algorithm);
+            Assert.That(algorithm, Is.EqualTo("BCrypt"));
         }
 
-        [TestMethod]
-        [DataRow("$2a$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW")]
-        [DataRow("$2b$10$N9qo8uLOickgx2ZMRZoMye8YjEj2e0T/F8KJnN9P.jBJ8JEOKyJ.K")]
-        [DataRow("$2x$10$3VEMj9fTKS5FdGqJJ/aJq.yDgJ9vJ6d9sJdZ.aF2.fE2eQ2sJ8yTK")]
-        [DataRow("$2y$12$8J9lOQjJ7A8O8Q8A8A8A8.8A8A8A8A8A8A8A8A8A8A8A8A8A8A8A8A")]
+        [Test]
+        [TestCase("$2a$12$R9h/cIPz0gi.URNNX3kh2OPST9/PgBkqquzi.Ss7KIUgO2t0jWMUW")]
+        [TestCase("$2b$10$N9qo8uLOickgx2ZMRZoMye8YjEj2e0T/F8KJnN9P.jBJ8JEOKyJ.K")]
+        [TestCase("$2x$10$3VEMj9fTKS5FdGqJJ/aJq.yDgJ9vJ6d9sJdZ.aF2.fE2eQ2sJ8yTK")]
+        [TestCase("$2y$12$8J9lOQjJ7A8O8Q8A8A8A8.8A8A8A8A8A8A8A8A8A8A8A8A8A8A8A8A")]
         public void DetectAlgorithm_VariousBCryptFormats_ShouldReturnBCrypt(string hash)
         {
             // Act
             var algorithm = PasswordHasher.DetectAlgorithm(hash);
 
             // Assert
-            Assert.AreEqual("BCrypt", algorithm);
+            Assert.That(algorithm, Is.EqualTo("BCrypt"));
         }
 
         #endregion
 
         #region PBKDF2 Tests (Legacy Support)
 
-        [TestMethod]
+        [Test]
         public void GenerateSalt_DefaultSize_ShouldReturnBase64String()
         {
             // Act
             var salt = PasswordHasher.GenerateSalt();
 
             // Assert
-            Assert.IsNotNull(salt);
-            Assert.IsTrue(!string.IsNullOrEmpty(salt));
+            Assert.That(salt, Is.Not.Null);
+            Assert.That(!string.IsNullOrEmpty(salt), Is.True);
             
             // Should be valid base64
             var saltBytes = Convert.FromBase64String(salt);
-            Assert.AreEqual(16, saltBytes.Length); // Default size is 16 bytes
+            Assert.That(saltBytes.Length, Is.EqualTo(16)); // Default size is 16 bytes
         }
 
-        [TestMethod]
-        [DataRow(8)]
-        [DataRow(16)]
-        [DataRow(32)]
-        [DataRow(64)]
+        [Test]
+        [TestCase(8)]
+        [TestCase(16)]
+        [TestCase(32)]
+        [TestCase(64)]
         public void GenerateSalt_CustomSize_ShouldReturnCorrectSize(int sizeBytes)
         {
             // Act
             var salt = PasswordHasher.GenerateSalt(sizeBytes);
 
             // Assert
-            Assert.IsNotNull(salt);
-            Assert.IsTrue(!string.IsNullOrEmpty(salt));
+            Assert.That(salt, Is.Not.Null);
+            Assert.That(!string.IsNullOrEmpty(salt), Is.True);
             
             var saltBytes = Convert.FromBase64String(salt);
-            Assert.AreEqual(sizeBytes, saltBytes.Length);
+            Assert.That(saltBytes.Length, Is.EqualTo(sizeBytes));
         }
 
-        [TestMethod]
+        [Test]
         public void GenerateSalt_MultipleCalls_ShouldReturnDifferentValues()
         {
             // Act
@@ -141,12 +141,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var salt3 = PasswordHasher.GenerateSalt();
 
             // Assert
-            Assert.AreNotEqual(salt1, salt2);
-            Assert.AreNotEqual(salt2, salt3);
-            Assert.AreNotEqual(salt1, salt3);
+            Assert.That(salt1, Is.Not.EqualTo(salt2));
+            Assert.That(salt2, Is.Not.EqualTo(salt3));
+            Assert.That(salt1, Is.Not.EqualTo(salt3));
         }
 
-        [TestMethod]
+        [Test]
         public void HashPasswordPBKDF2_ValidInputs_ShouldReturnBase64Hash()
         {
             // Arrange
@@ -157,15 +157,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash = PasswordHasher.HashPasswordPBKDF2(password, salt);
 
             // Assert
-            Assert.IsNotNull(hash);
-            Assert.IsTrue(!string.IsNullOrEmpty(hash));
+            Assert.That(hash, Is.Not.Null);
+            Assert.That(!string.IsNullOrEmpty(hash), Is.True);
             
             // Should be valid base64
             var hashBytes = Convert.FromBase64String(hash);
-            Assert.AreEqual(32, hashBytes.Length); // 256 bits = 32 bytes
+            Assert.That(hashBytes.Length, Is.EqualTo(32)); // 256 bits = 32 bytes
         }
 
-        [TestMethod]
+        [Test]
         public void HashPasswordPBKDF2_SameInputs_ShouldReturnSameHash()
         {
             // Arrange
@@ -177,10 +177,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash2 = PasswordHasher.HashPasswordPBKDF2(password, salt);
 
             // Assert
-            Assert.AreEqual(hash1, hash2);
+            Assert.That(hash1, Is.EqualTo(hash2));
         }
 
-        [TestMethod]
+        [Test]
         public void HashPasswordPBKDF2_DifferentPasswords_ShouldReturnDifferentHashes()
         {
             // Arrange
@@ -193,10 +193,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash2 = PasswordHasher.HashPasswordPBKDF2(password2, salt);
 
             // Assert
-            Assert.AreNotEqual(hash1, hash2);
+            Assert.That(hash1, Is.Not.EqualTo(hash2));
         }
 
-        [TestMethod]
+        [Test]
         public void HashPasswordPBKDF2_DifferentSalts_ShouldReturnDifferentHashes()
         {
             // Arrange
@@ -209,13 +209,13 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash2 = PasswordHasher.HashPasswordPBKDF2(password, salt2);
 
             // Assert
-            Assert.AreNotEqual(hash1, hash2);
+            Assert.That(hash1, Is.Not.EqualTo(hash2));
         }
 
-        [TestMethod]
-        [DataRow(1000)]
-        [DataRow(10000)]
-        [DataRow(100000)]
+        [Test]
+        [TestCase(1000)]
+        [TestCase(10000)]
+        [TestCase(100000)]
         public void HashPasswordPBKDF2_DifferentIterations_ShouldReturnDifferentHashes(int iterations)
         {
             // Arrange
@@ -227,10 +227,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash2 = PasswordHasher.HashPasswordPBKDF2(password, salt, iterations + 1000);
 
             // Assert
-            Assert.AreNotEqual(hash1, hash2);
+            Assert.That(hash1, Is.Not.EqualTo(hash2));
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_PBKDF2Hash_CorrectPassword_ShouldReturnTrue()
         {
             // Arrange
@@ -242,10 +242,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, salt, hash);
 
             // Assert
-            Assert.IsTrue(isValid);
+            Assert.That(isValid, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_PBKDF2Hash_IncorrectPassword_ShouldReturnFalse()
         {
             // Arrange
@@ -258,10 +258,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(wrongPassword, salt, hash);
 
             // Assert
-            Assert.IsFalse(isValid);
+            Assert.That(isValid, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_PBKDF2Hash_IncorrectSalt_ShouldReturnFalse()
         {
             // Arrange
@@ -274,10 +274,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, wrongSalt, hash);
 
             // Assert
-            Assert.IsFalse(isValid);
+            Assert.That(isValid, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_PBKDF2Hash_IncorrectHash_ShouldReturnFalse()
         {
             // Arrange
@@ -290,13 +290,13 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, salt, wrongHash);
 
             // Assert
-            Assert.IsFalse(isValid);
+            Assert.That(isValid, Is.False);
         }
 
-        [TestMethod]
-        [DataRow(1000)]
-        [DataRow(50000)]
-        [DataRow(200000)]
+        [Test]
+        [TestCase(1000)]
+        [TestCase(50000)]
+        [TestCase(200000)]
         public void Verify_PBKDF2Hash_CustomIterations_ShouldWork(int iterations)
         {
             // Arrange
@@ -308,10 +308,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, salt, hash, iterations);
 
             // Assert
-            Assert.IsTrue(isValid);
+            Assert.That(isValid, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_PBKDF2Hash_MismatchedIterations_ShouldReturnFalse()
         {
             // Arrange
@@ -323,10 +323,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, salt, hash, 50000);
 
             // Assert
-            Assert.IsFalse(isValid);
+            Assert.That(isValid, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void DetectAlgorithm_PBKDF2Hash_ShouldReturnPBKDF2()
         {
             // Arrange
@@ -338,34 +338,34 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var algorithm = PasswordHasher.DetectAlgorithm(hash);
 
             // Assert
-            Assert.AreEqual("PBKDF2", algorithm);
+            Assert.That(algorithm, Is.EqualTo("PBKDF2"));
         }
 
-        [TestMethod]
+        [Test]
         public void DetectAlgorithm_EmptyHash_ShouldReturnBCryptAsDefault()
         {
             // Act
             var algorithm = PasswordHasher.DetectAlgorithm("");
 
             // Assert
-            Assert.AreEqual("BCrypt", algorithm);
+            Assert.That(algorithm, Is.EqualTo("BCrypt"));
         }
 
-        [TestMethod]
+        [Test]
         public void DetectAlgorithm_NullHash_ShouldReturnBCryptAsDefault()
         {
             // Act
             var algorithm = PasswordHasher.DetectAlgorithm(null);
 
             // Assert
-            Assert.AreEqual("BCrypt", algorithm);
+            Assert.That(algorithm, Is.EqualTo("BCrypt"));
         }
 
         #endregion
 
         #region Legacy Method Tests
 
-        [TestMethod]
+        [Test]
         public void HashPassword_LegacyMethod_ShouldWorkWithPBKDF2()
         {
             // Arrange
@@ -376,13 +376,13 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var hash = PasswordHasher.HashPassword(password, salt);
 
             // Assert
-            Assert.IsNotNull(hash);
-            Assert.IsTrue(!string.IsNullOrEmpty(hash));
+            Assert.That(hash, Is.Not.Null);
+            Assert.That(!string.IsNullOrEmpty(hash), Is.True);
             var hashBytes = Convert.FromBase64String(hash);
-            Assert.AreEqual(32, hashBytes.Length);
+            Assert.That(hashBytes.Length, Is.EqualTo(32));
         }
 
-        [TestMethod]
+        [Test]
         public void HashPassword_EmptyPassword_ShouldNotThrow()
         {
             // Arrange
@@ -391,11 +391,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
 
             // Act & Assert
             var hash = PasswordHasher.HashPassword(password, salt);
-            Assert.IsNotNull(hash);
-            Assert.IsTrue(!string.IsNullOrEmpty(hash));
+            Assert.That(hash, Is.Not.Null);
+            Assert.That(!string.IsNullOrEmpty(hash), Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void Verify_EmptyPassword_ShouldWork()
         {
             // Arrange
@@ -407,14 +407,14 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var isValid = PasswordHasher.Verify(password, salt, hash);
 
             // Assert
-            Assert.IsTrue(isValid);
+            Assert.That(isValid, Is.True);
         }
 
         #endregion
 
         #region Mixed Algorithm Tests
 
-        [TestMethod]
+        [Test]
         public void Verify_AutoDetection_ShouldWorkForBothAlgorithms()
         {
             // Arrange
@@ -428,11 +428,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Security
             var pbkdf2Hash = PasswordHasher.HashPasswordPBKDF2(password, salt);
 
             // Act & Assert
-            Assert.IsTrue(PasswordHasher.Verify(password, "", bcryptHash), "BCrypt verification should work");
-            Assert.IsTrue(PasswordHasher.Verify(password, salt, pbkdf2Hash), "PBKDF2 verification should work");
+            Assert.That(PasswordHasher.Verify(password, "", bcryptHash), Is.True, "BCrypt verification should work");
+            Assert.That(PasswordHasher.Verify(password, salt, pbkdf2Hash), Is.True, "PBKDF2 verification should work");
             
-            Assert.IsFalse(PasswordHasher.Verify("wrong", "", bcryptHash), "BCrypt verification should fail with wrong password");
-            Assert.IsFalse(PasswordHasher.Verify("wrong", salt, pbkdf2Hash), "PBKDF2 verification should fail with wrong password");
+            Assert.That(PasswordHasher.Verify("wrong", "", bcryptHash), Is.False, "BCrypt verification should fail with wrong password");
+            Assert.That(PasswordHasher.Verify("wrong", salt, pbkdf2Hash), Is.False, "PBKDF2 verification should fail with wrong password");
         }
 
         #endregion

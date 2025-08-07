@@ -1,24 +1,24 @@
 using IIS.Ftp.SimpleAuth.Core.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
 {
-    [TestClass]
+    [TestFixture]
     public class AuthProviderConfigTests
     {
-        [TestMethod]
+        [Test]
         public void AuthProviderConfig_DefaultConstructor_ShouldInitializeWithDefaults()
         {
             // Act
             var config = new AuthProviderConfig();
 
             // Assert
-            Assert.IsNotNull(config.UserStore);
-            Assert.IsNotNull(config.Hashing);
-            Assert.IsNotNull(config.Logging);
+            Assert.That(config.UserStore, Is.Not.Null);
+            Assert.That(config.Hashing, Is.Not.Null);
+            Assert.That(config.Logging, Is.Not.Null);
         }
 
-        [TestMethod]
+        [Test]
         public void AuthProviderConfig_Properties_ShouldBeSettable()
         {
             // Arrange
@@ -41,23 +41,23 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
         }
     }
 
-    [TestClass]
+    [TestFixture]
     public class UserStoreConfigTests
     {
-        [TestMethod]
+        [Test]
         public void UserStoreConfig_DefaultConstructor_ShouldInitializeWithDefaults()
         {
             // Act
             var config = new UserStoreConfig();
 
             // Assert
-            Assert.AreEqual("Json", config.Type);
-            Assert.AreEqual("C:\\inetpub\\ftpusers\\users.json", config.Path);
-            Assert.IsNull(config.EncryptionKeyEnv);
-            Assert.IsTrue(config.EnableHotReload);
+            Assert.That(config.Type, Is.EqualTo("Json"));
+            Assert.That(config.Path, Is.EqualTo("C:\\inetpub\\ftpusers\\users.json"));
+            Assert.That(config.EncryptionKeyEnv, Is.Null);
+            Assert.That(config.EnableHotReload, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void UserStoreConfig_Type_ShouldBeSettable()
         {
             // Arrange
@@ -68,10 +68,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.Type = expectedType;
 
             // Assert
-            Assert.AreEqual(expectedType, config.Type);
+            Assert.That(config.Type, Is.EqualTo(expectedType));
         }
 
-        [TestMethod]
+        [Test]
         public void UserStoreConfig_Path_ShouldBeSettable()
         {
             // Arrange
@@ -82,10 +82,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.Path = expectedPath;
 
             // Assert
-            Assert.AreEqual(expectedPath, config.Path);
+            Assert.That(config.Path, Is.EqualTo(expectedPath));
         }
 
-        [TestMethod]
+        [Test]
         public void UserStoreConfig_EncryptionKeyEnv_ShouldBeSettable()
         {
             // Arrange
@@ -96,10 +96,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.EncryptionKeyEnv = expectedKeyEnv;
 
             // Assert
-            Assert.AreEqual(expectedKeyEnv, config.EncryptionKeyEnv);
+            Assert.That(config.EncryptionKeyEnv, Is.EqualTo(expectedKeyEnv));
         }
 
-        [TestMethod]
+        [Test]
         public void UserStoreConfig_EnableHotReload_ShouldBeSettable()
         {
             // Arrange
@@ -109,10 +109,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.EnableHotReload = false;
 
             // Assert
-            Assert.IsFalse(config.EnableHotReload);
+            Assert.That(config.EnableHotReload, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void UserStoreConfig_AllProperties_ShouldBeSettable()
         {
             // Arrange
@@ -131,29 +131,29 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             };
 
             // Assert
-            Assert.AreEqual(expectedType, config.Type);
-            Assert.AreEqual(expectedPath, config.Path);
-            Assert.AreEqual(expectedKeyEnv, config.EncryptionKeyEnv);
-            Assert.AreEqual(expectedHotReload, config.EnableHotReload);
+            Assert.That(config.Type, Is.EqualTo(expectedType));
+            Assert.That(config.Path, Is.EqualTo(expectedPath));
+            Assert.That(config.EncryptionKeyEnv, Is.EqualTo(expectedKeyEnv));
+            Assert.That(config.EnableHotReload, Is.EqualTo(expectedHotReload));
         }
     }
 
-    [TestClass]
+    [TestFixture]
     public class HashingConfigTests
     {
-        [TestMethod]
+        [Test]
         public void HashingConfig_DefaultConstructor_ShouldInitializeWithDefaults()
         {
             // Act
             var config = new HashingConfig();
 
             // Assert
-            Assert.AreEqual("PBKDF2", config.Algorithm);
-            Assert.AreEqual(100_000, config.Iterations);
-            Assert.AreEqual(16, config.SaltSize);
+            Assert.That(config.Algorithm, Is.EqualTo("PBKDF2"));
+            Assert.That(config.Iterations, Is.EqualTo(100_000));
+            Assert.That(config.SaltSize, Is.EqualTo(16));
         }
 
-        [TestMethod]
+        [Test]
         public void HashingConfig_Algorithm_ShouldBeSettable()
         {
             // Arrange
@@ -164,10 +164,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.Algorithm = expectedAlgorithm;
 
             // Assert
-            Assert.AreEqual(expectedAlgorithm, config.Algorithm);
+            Assert.That(config.Algorithm, Is.EqualTo(expectedAlgorithm));
         }
 
-        [TestMethod]
+        [Test]
         public void HashingConfig_Iterations_ShouldBeSettable()
         {
             // Arrange
@@ -178,10 +178,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.Iterations = expectedIterations;
 
             // Assert
-            Assert.AreEqual(expectedIterations, config.Iterations);
+            Assert.That(config.Iterations, Is.EqualTo(expectedIterations));
         }
 
-        [TestMethod]
+        [Test]
         public void HashingConfig_SaltSize_ShouldBeSettable()
         {
             // Arrange
@@ -192,10 +192,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.SaltSize = expectedSaltSize;
 
             // Assert
-            Assert.AreEqual(expectedSaltSize, config.SaltSize);
+            Assert.That(config.SaltSize, Is.EqualTo(expectedSaltSize));
         }
 
-        [TestMethod]
+        [Test]
         public void HashingConfig_AllProperties_ShouldBeSettable()
         {
             // Arrange
@@ -212,15 +212,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             };
 
             // Assert
-            Assert.AreEqual(expectedAlgorithm, config.Algorithm);
-            Assert.AreEqual(expectedIterations, config.Iterations);
-            Assert.AreEqual(expectedSaltSize, config.SaltSize);
+            Assert.That(config.Algorithm, Is.EqualTo(expectedAlgorithm));
+            Assert.That(config.Iterations, Is.EqualTo(expectedIterations));
+            Assert.That(config.SaltSize, Is.EqualTo(expectedSaltSize));
         }
 
-        [TestMethod]
-        [DataRow("PBKDF2")]
-        [DataRow("BCrypt")]
-        [DataRow("Argon2")]
+        [Test]
+        [TestCase("PBKDF2")]
+        [TestCase("BCrypt")]
+        [TestCase("Argon2")]
         public void HashingConfig_Algorithm_ShouldAcceptValidValues(string algorithm)
         {
             // Arrange
@@ -230,14 +230,14 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.Algorithm = algorithm;
 
             // Assert
-            Assert.AreEqual(algorithm, config.Algorithm);
+            Assert.That(config.Algorithm, Is.EqualTo(algorithm));
         }
 
-        [TestMethod]
-        [DataRow(1000)]
-        [DataRow(10_000)]
-        [DataRow(100_000)]
-        [DataRow(1_000_000)]
+        [Test]
+        [TestCase(1000)]
+        [TestCase(10_000)]
+        [TestCase(100_000)]
+        [TestCase(1_000_000)]
         public void HashingConfig_Iterations_ShouldAcceptValidValues(int iterations)
         {
             // Arrange
@@ -247,14 +247,14 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.Iterations = iterations;
 
             // Assert
-            Assert.AreEqual(iterations, config.Iterations);
+            Assert.That(config.Iterations, Is.EqualTo(iterations));
         }
 
-        [TestMethod]
-        [DataRow(8)]
-        [DataRow(16)]
-        [DataRow(32)]
-        [DataRow(64)]
+        [Test]
+        [TestCase(8)]
+        [TestCase(16)]
+        [TestCase(32)]
+        [TestCase(64)]
         public void HashingConfig_SaltSize_ShouldAcceptValidValues(int saltSize)
         {
             // Arrange
@@ -264,27 +264,27 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.SaltSize = saltSize;
 
             // Assert
-            Assert.AreEqual(saltSize, config.SaltSize);
+            Assert.That(config.SaltSize, Is.EqualTo(saltSize));
         }
     }
 
-    [TestClass]
+    [TestFixture]
     public class LoggingConfigTests
     {
-        [TestMethod]
+        [Test]
         public void LoggingConfig_DefaultConstructor_ShouldInitializeWithDefaults()
         {
             // Act
             var config = new LoggingConfig();
 
             // Assert
-            Assert.IsTrue(config.EnableEventLog);
-            Assert.AreEqual("IIS-FTP-SimpleAuth", config.EventLogSource);
-            Assert.IsTrue(config.LogFailures);
-            Assert.IsFalse(config.LogSuccesses);
+            Assert.That(config.EnableEventLog, Is.True);
+            Assert.That(config.EventLogSource, Is.EqualTo("IIS-FTP-SimpleAuth"));
+            Assert.That(config.LogFailures, Is.True);
+            Assert.That(config.LogSuccesses, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void LoggingConfig_EnableEventLog_ShouldBeSettable()
         {
             // Arrange
@@ -294,10 +294,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.EnableEventLog = false;
 
             // Assert
-            Assert.IsFalse(config.EnableEventLog);
+            Assert.That(config.EnableEventLog, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void LoggingConfig_EventLogSource_ShouldBeSettable()
         {
             // Arrange
@@ -308,10 +308,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.EventLogSource = expectedSource;
 
             // Assert
-            Assert.AreEqual(expectedSource, config.EventLogSource);
+            Assert.That(config.EventLogSource, Is.EqualTo(expectedSource));
         }
 
-        [TestMethod]
+        [Test]
         public void LoggingConfig_LogFailures_ShouldBeSettable()
         {
             // Arrange
@@ -321,10 +321,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.LogFailures = false;
 
             // Assert
-            Assert.IsFalse(config.LogFailures);
+            Assert.That(config.LogFailures, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void LoggingConfig_LogSuccesses_ShouldBeSettable()
         {
             // Arrange
@@ -334,10 +334,10 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.LogSuccesses = true;
 
             // Assert
-            Assert.IsTrue(config.LogSuccesses);
+            Assert.That(config.LogSuccesses, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void LoggingConfig_AllProperties_ShouldBeSettable()
         {
             // Arrange
@@ -356,13 +356,13 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             };
 
             // Assert
-            Assert.AreEqual(expectedEnableEventLog, config.EnableEventLog);
-            Assert.AreEqual(expectedEventLogSource, config.EventLogSource);
-            Assert.AreEqual(expectedLogFailures, config.LogFailures);
-            Assert.AreEqual(expectedLogSuccesses, config.LogSuccesses);
+            Assert.That(config.EnableEventLog, Is.EqualTo(expectedEnableEventLog));
+            Assert.That(config.EventLogSource, Is.EqualTo(expectedEventLogSource));
+            Assert.That(config.LogFailures, Is.EqualTo(expectedLogFailures));
+            Assert.That(config.LogSuccesses, Is.EqualTo(expectedLogSuccesses));
         }
 
-        [TestMethod]
+        [Test]
         public void LoggingConfig_EventLogSource_ShouldAcceptEmptyString()
         {
             // Arrange
@@ -372,7 +372,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Configuration
             config.EventLogSource = string.Empty;
 
             // Assert
-            Assert.AreEqual(string.Empty, config.EventLogSource);
+            Assert.That(config.EventLogSource, Is.EqualTo(string.Empty));
         }
     }
 } 

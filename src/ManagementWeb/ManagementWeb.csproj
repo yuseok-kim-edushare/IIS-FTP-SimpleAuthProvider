@@ -12,6 +12,12 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!-- Add these properties for .NET Framework web applications -->
+    <OutputType>Library</OutputType>
+    <UseWPF>false</UseWPF>
+    <UseWindowsForms>false</UseWindowsForms>
+    <UseConsoleApplication>false</UseConsoleApplication>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +33,7 @@
     <PackageReference Include="jQuery.Validation" Version="1.19.5" />
     <PackageReference Include="bootstrap" Version="5.2.3" />
     <PackageReference Include="Microsoft.AspNet.Web.Optimization" Version="1.1.3" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -35,6 +42,7 @@
 
   <ItemGroup>
     <Reference Include="System.Web" />
+    <Reference Include="System.Configuration" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,6 +52,14 @@
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
+    <!-- Add explicit content includes for web application -->
+    <Content Include="Web.config" />
+    <Content Include="Global.asax" />
+    <Content Include="Views\**\*" />
+    <Content Include="Content\**\*" />
+    <Content Include="Scripts\**\*" />
+    <Content Include="App_Start\**\*" />
+    <Content Include="Properties\**\*" />
   </ItemGroup>
 
 </Project> 

@@ -176,19 +176,21 @@ namespace IIS.FTP.ManagementWeb.Services
             return await _auditLogger.GetRecentEntriesAsync(count);
         }
 
-        public async Task<SystemHealth> GetSystemHealthAsync()
+        public Task<SystemHealth> GetSystemHealthAsync()
         {
             var metrics = _metricsCollector.GetMetrics();
             
-            return new SystemHealth
+            var systemHealth = new SystemHealth
             {
                 IsHealthy = true, // TODO: Implement actual health checks
                 UserStoreType = _config.UserStore.Type,
                 UserStoreConnected = true, // TODO: Check actual connection
-                AuthSuccessCount = metrics.GetValueOrDefault("auth_success_total", 0),
-                AuthFailureCount = metrics.GetValueOrDefault("auth_failure_total", 0),
+                AuthSuccessCount = metrics.ContainsKey("auth_success_total") ? metrics["auth_success_total"] : 0,
+                AuthFailureCount = metrics.ContainsKey("auth_failure_total") ? metrics["auth_failure_total"] : 0,
                 LastChecked = DateTime.UtcNow
             };
+            
+            return Task.FromResult(systemHealth);
         }
     }
 } 

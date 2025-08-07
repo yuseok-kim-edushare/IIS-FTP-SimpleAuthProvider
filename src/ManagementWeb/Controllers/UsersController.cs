@@ -87,8 +87,8 @@ namespace IIS.FTP.ManagementWeb.Controllers
                 Permissions = model.Permissions?.Select(p => new Permission
                 {
                     Path = p.Path,
-                    Read = p.Read,
-                    Write = p.Write
+                    CanRead = p.Read,
+                    CanWrite = p.Write
                 }).ToList() ?? new List<Permission>()
             };
 
@@ -133,8 +133,8 @@ namespace IIS.FTP.ManagementWeb.Controllers
                 Permissions = user.Permissions?.Select(p => new PermissionViewModel
                 {
                     Path = p.Path,
-                    Read = p.Read,
-                    Write = p.Write
+                    Read = p.CanRead,
+                    Write = p.CanWrite
                 }).ToList() ?? new List<PermissionViewModel>()
             };
 
@@ -163,8 +163,8 @@ namespace IIS.FTP.ManagementWeb.Controllers
                 Permissions = model.Permissions?.Select(p => new Permission
                 {
                     Path = p.Path,
-                    Read = p.Read,
-                    Write = p.Write
+                    CanRead = p.Read,
+                    CanWrite = p.Write
                 }).ToList() ?? new List<Permission>()
             };
 

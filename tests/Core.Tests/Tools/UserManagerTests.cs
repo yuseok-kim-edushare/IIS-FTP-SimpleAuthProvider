@@ -1,7 +1,7 @@
 using IIS.Ftp.SimpleAuth.Core.Domain;
 using IIS.Ftp.SimpleAuth.Core.Security;
 using IIS.Ftp.SimpleAuth.Core.Tools;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -10,13 +10,13 @@ using System.Text.Json;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
 {
-    [TestClass]
+    [TestFixture]
     public class UserManagerTests
     {
         private string _tempFilePath = null!;
         private string _tempDirectory = null!;
 
-        [TestInitialize]
+        [SetUp]
         public void SetUp()
         {
             _tempDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
@@ -24,7 +24,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             _tempFilePath = Path.Combine(_tempDirectory, "users.json");
         }
 
-        [TestCleanup]
+        [TearDown]
         public void TearDown()
         {
             if (Directory.Exists(_tempDirectory))
@@ -33,7 +33,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             }
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_ValidData_ShouldCreateUserSuccessfully()
         {
             // Arrange
@@ -50,18 +50,18 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(users, Has.Count.EqualTo(1));
 
             var user = users.First();
-            Assert.AreEqual(userId, user.UserId);
-            Assert.AreEqual(displayName, user.DisplayName);
-            Assert.AreEqual(homeDirectory, user.HomeDirectory);
+            Assert.That(user.UserId, Is.EqualTo(userId));
+            Assert.That(user.DisplayName, Is.EqualTo(displayName));
+            Assert.That(user.HomeDirectory, Is.EqualTo(homeDirectory));
             Assert.That(user.Salt, Is.Not.Null.And.Not.Empty);
             Assert.That(user.PasswordHash, Is.Not.Null.And.Not.Empty);
             Assert.That(user.Permissions, Has.Count.EqualTo(1));
-            Assert.AreEqual("/", user.Permissions.First().Path);
-            Assert.IsTrue(user.Permissions.First().CanRead);
-            Assert.IsFalse(user.Permissions.First().CanWrite);
+            Assert.That(user.Permissions.First().Path, Is.EqualTo("/"));
+            Assert.That(user.Permissions.First().CanRead, Is.True);
+            Assert.That(user.Permissions.First().CanWrite, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_WithCustomPermissions_ShouldUseProvidedPermissions()
         {
             // Arrange
@@ -83,7 +83,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(user.Permissions, Is.EquivalentTo(permissions));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_EmptyUserId_ShouldThrowArgumentException()
         {
             // Act & Assert
@@ -91,7 +91,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("User ID cannot be empty"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_NullUserId_ShouldThrowArgumentException()
         {
             // Act & Assert
@@ -99,7 +99,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("User ID cannot be empty"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_EmptyPassword_ShouldThrowArgumentException()
         {
             // Act & Assert
@@ -107,7 +107,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("Password cannot be empty"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_NullPassword_ShouldThrowArgumentException()
         {
             // Act & Assert
@@ -115,7 +115,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("Password cannot be empty"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_DuplicateUserId_ShouldThrowInvalidOperationException()
         {
             // Arrange
@@ -126,7 +126,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo("User 'testuser' already exists"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_CaseInsensitiveDuplicate_ShouldThrowInvalidOperationException()
         {
             // Arrange
@@ -137,7 +137,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo("User 'testuser' already exists"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_NonExistentDirectory_ShouldCreateDirectoryAndFile()
         {
             // Arrange
@@ -147,12 +147,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             UserManager.CreateUser(nonExistentPath, "testuser", "password", "Test User");
 
             // Assert
-            Assert.IsTrue(File.Exists(nonExistentPath));
+            Assert.That(File.Exists(nonExistentPath), Is.True);
             var users = LoadUsersFromFile(nonExistentPath);
             Assert.That(users, Has.Count.EqualTo(1));
         }
 
-        [TestMethod]
+        [Test]
         public void ChangePassword_ExistingUser_ShouldUpdatePassword()
         {
             // Arrange
@@ -173,15 +173,15 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             var usersAfter = LoadUsersFromFile();
             var user = usersAfter.First();
             
-            Assert.AreNotEqual(originalSalt, user.Salt);
-            Assert.AreNotEqual(originalHash, user.PasswordHash);
+            Assert.That(user.Salt, Is.Not.EqualTo(originalSalt));
+            Assert.That(user.PasswordHash, Is.Not.EqualTo(originalHash));
             
             // Verify password works
             Assert.That(PasswordHasher.Verify(newPassword, user.Salt, user.PasswordHash), Is.True);
             Assert.That(PasswordHasher.Verify(originalPassword, user.Salt, user.PasswordHash), Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void ChangePassword_NonExistentUser_ShouldThrowInvalidOperationException()
         {
             // Act & Assert
@@ -189,7 +189,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo("User 'nonexistent' not found"));
         }
 
-        [TestMethod]
+        [Test]
         public void ChangePassword_EmptyUserId_ShouldThrowArgumentException()
         {
             // Act & Assert
@@ -197,7 +197,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("User ID cannot be empty"));
         }
 
-        [TestMethod]
+        [Test]
         public void ChangePassword_EmptyPassword_ShouldThrowArgumentException()
         {
             // Act & Assert
@@ -205,7 +205,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<ArgumentException>().With.Message.StartsWith("Password cannot be empty"));
         }
 
-        [TestMethod]
+        [Test]
         public void AddPermission_ExistingUser_ShouldAddNewPermission()
         {
             // Arrange
@@ -220,12 +220,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(user.Permissions, Has.Count.EqualTo(2));
             
             var sharedPermission = user.Permissions.FirstOrDefault(p => p.Path == "/shared");
-            Assert.IsNotNull(sharedPermission);
-            Assert.IsTrue(sharedPermission!.CanRead);
-            Assert.IsTrue(sharedPermission.CanWrite);
+            Assert.That(sharedPermission, Is.Not.Null);
+            Assert.That(sharedPermission!.CanRead, Is.True);
+            Assert.That(sharedPermission.CanWrite, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void AddPermission_ExistingPath_ShouldUpdatePermission()
         {
             // Arrange
@@ -241,12 +241,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(user.Permissions, Has.Count.EqualTo(2)); // Default "/" + "/shared"
             
             var sharedPermission = user.Permissions.FirstOrDefault(p => p.Path == "/shared");
-            Assert.IsNotNull(sharedPermission);
-            Assert.IsFalse(sharedPermission!.CanRead);
-            Assert.IsTrue(sharedPermission.CanWrite);
+            Assert.That(sharedPermission, Is.Not.Null);
+            Assert.That(sharedPermission!.CanRead, Is.False);
+            Assert.That(sharedPermission.CanWrite, Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public void AddPermission_NonExistentUser_ShouldThrowInvalidOperationException()
         {
             // Act & Assert
@@ -254,7 +254,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.EqualTo("User 'nonexistent' not found"));
         }
 
-        [TestMethod]
+        [Test]
         public void AddPermission_UserWithNullPermissions_ShouldInitializeAndAddPermission()
         {
             // Arrange - Create user and manually set permissions to null to test edge case
@@ -269,12 +269,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             // Assert
             var updatedUsers = LoadUsersFromFile();
             var user = updatedUsers.First();
-            Assert.IsNotNull(user.Permissions);
+            Assert.That(user.Permissions, Is.Not.Null);
             Assert.That(user.Permissions, Has.Count.EqualTo(1));
-            Assert.AreEqual("/test", user.Permissions.First().Path);
+            Assert.That(user.Permissions.First().Path, Is.EqualTo("/test"));
         }
 
-        [TestMethod]
+        [Test]
         public void GenerateEncryptionKey_ShouldReturnValidBase64Key()
         {
             // Act
@@ -288,7 +288,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(keyBytes, Has.Length.EqualTo(32)); // 256 bits = 32 bytes
         }
 
-        [TestMethod]
+        [Test]
         public void GenerateEncryptionKey_MultipleCalls_ShouldReturnDifferentKeys()
         {
             // Act
@@ -297,12 +297,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             var key3 = UserManager.GenerateEncryptionKey();
 
             // Assert
-            Assert.AreNotEqual(key2, key1);
-            Assert.AreNotEqual(key3, key2);
-            Assert.AreNotEqual(key3, key1);
+            Assert.That(key2, Is.Not.EqualTo(key1));
+            Assert.That(key3, Is.Not.EqualTo(key2));
+            Assert.That(key3, Is.Not.EqualTo(key1));
         }
 
-        [TestMethod]
+        [Test]
         public void EncryptUserFile_NonExistentSourceFile_ShouldThrowFileNotFoundException()
         {
             // Arrange
@@ -314,7 +314,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<FileNotFoundException>().With.Message.EqualTo($"Source file not found: {nonExistentPath}"));
         }
 
-        [TestMethod]
+        [Test]
         public void DecryptUserFile_NonExistentSourceFile_ShouldThrowFileNotFoundException()
         {
             // Arrange
@@ -326,7 +326,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<FileNotFoundException>().With.Message.EqualTo($"Source file not found: {nonExistentPath}"));
         }
 
-        [TestMethod]
+        [Test]
         public void LoadUsers_InvalidJsonFile_ShouldThrowInvalidOperationException()
         {
             // Arrange
@@ -337,7 +337,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(action, Throws.TypeOf<InvalidOperationException>().With.Message.StartsWith($"Failed to load users from {_tempFilePath}"));
         }
 
-        [TestMethod]
+        [Test]
         public void CreateUser_CustomIterations_ShouldUseSpecifiedIterations()
         {
             // Arrange
@@ -355,7 +355,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Tools
             Assert.That(PasswordHasher.Verify("password", user.Salt, user.PasswordHash, 100000), Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void ChangePassword_CustomIterations_ShouldUseSpecifiedIterations()
         {
             // Arrange

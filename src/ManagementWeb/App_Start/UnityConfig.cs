@@ -31,9 +31,9 @@ namespace IIS.FTP.ManagementWeb
             container.RegisterInstance<AuthProviderConfig>(config);
 
             // Register Core services
-            container.RegisterType<IPasswordHasher, PasswordHasher>();
-            container.RegisterType<IAuditLogger, AuditLogger>();
-            container.RegisterType<IMetricsCollector, MetricsCollector>();
+            container.RegisterType<IPasswordHasher, PasswordHasherService>();
+            container.RegisterType<IAuditLogger, IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger>();
+            container.RegisterType<IMetricsCollector, IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector>();
 
             // Register user store based on configuration
             RegisterUserStore(container, config);

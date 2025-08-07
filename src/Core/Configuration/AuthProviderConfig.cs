@@ -35,6 +35,11 @@ namespace IIS.Ftp.SimpleAuth.Core.Configuration
         /// Enable hot-reload of user store changes.
         /// </summary>
         public bool EnableHotReload { get; set; } = true;
+
+        /// <summary>
+        /// Database connection string for SQL-based stores.
+        /// </summary>
+        public string? ConnectionString { get; set; }
     }
 
     public class HashingConfig

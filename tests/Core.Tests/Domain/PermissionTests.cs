@@ -1,24 +1,24 @@
 using IIS.Ftp.SimpleAuth.Core.Domain;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 
 namespace IIS.Ftp.SimpleAuth.Core.Tests.Domain
 {
-    [TestClass]
+    [TestFixture]
     public class PermissionTests
     {
-        [TestMethod]
+        [Test]
         public void Permission_DefaultConstructor_ShouldInitializeWithDefaultValues()
         {
             // Act
             var permission = new Permission();
 
             // Assert
-            Assert.AreEqual("/", permission.Path);
-            Assert.IsFalse(permission.CanRead);
-            Assert.IsFalse(permission.CanWrite);
+            Assert.That(permission.Path, Is.EqualTo("/"));
+            Assert.That(permission.CanRead, Is.False);
+            Assert.That(permission.CanWrite, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void Permission_Properties_ShouldBeSettable()
         {
             // Arrange
@@ -35,44 +35,44 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Domain
             };
 
             // Assert
-            Assert.AreEqual(expectedPath, permission.Path);
-            Assert.AreEqual(expectedCanRead, permission.CanRead);
-            Assert.AreEqual(expectedCanWrite, permission.CanWrite);
+            Assert.That(permission.Path, Is.EqualTo(expectedPath));
+            Assert.That(permission.CanRead, Is.EqualTo(expectedCanRead));
+            Assert.That(permission.CanWrite, Is.EqualTo(expectedCanWrite));
         }
 
-        [TestMethod]
+        [Test]
         public void Permission_CanRead_ShouldToggle()
         {
             // Arrange
             var permission = new Permission();
 
             // Act & Assert
-            Assert.IsFalse(permission.CanRead);
+            Assert.That(permission.CanRead, Is.False);
             
             permission.CanRead = true;
-            Assert.IsTrue(permission.CanRead);
+            Assert.That(permission.CanRead, Is.True);
             
             permission.CanRead = false;
-            Assert.IsFalse(permission.CanRead);
+            Assert.That(permission.CanRead, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void Permission_CanWrite_ShouldToggle()
         {
             // Arrange
             var permission = new Permission();
 
             // Act & Assert
-            Assert.IsFalse(permission.CanWrite);
+            Assert.That(permission.CanWrite, Is.False);
             
             permission.CanWrite = true;
-            Assert.IsTrue(permission.CanWrite);
+            Assert.That(permission.CanWrite, Is.True);
             
             permission.CanWrite = false;
-            Assert.IsFalse(permission.CanWrite);
+            Assert.That(permission.CanWrite, Is.False);
         }
 
-        [TestMethod]
+        [Test]
         public void Permission_Path_ShouldAcceptVariousFormats()
         {
             // Arrange
@@ -91,7 +91,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tests.Domain
             foreach (var path in testPaths)
             {
                 permission.Path = path;
-                Assert.AreEqual(path, permission.Path);
+                Assert.That(permission.Path, Is.EqualTo(path));
             }
         }
     }
