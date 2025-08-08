@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -33,11 +35,4 @@ jobs:
           dotnet test tests/Core.Tests/Core.Tests.csproj --configuration Release --no-build --logger trx
           dotnet test tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj --configuration Release --no-build --logger trx
 
-      - name: Publish Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: '**/*.trx'
-
-
+    
