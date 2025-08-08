@@ -28,8 +28,7 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
         {
             try
             {
-                var hashedPassword = _passwordHasher.HashPassword(password);
-                var salt = _passwordHasher.GenerateSalt();
+                var hashedPassword = _passwordHasher.HashPassword(password, out var salt);
 
                 var user = new User
                 {
@@ -60,8 +59,8 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
                 var user = await _userStore.FindAsync(userId);
                 if (user == null) return false;
 
-                user.PasswordHash = _passwordHasher.HashPassword(newPassword);
-                user.Salt = _passwordHasher.GenerateSalt();
+                user.PasswordHash = _passwordHasher.HashPassword(newPassword, out var salt);
+                user.Salt = salt;
 
                 await _userStore.SaveUserAsync(user);
                 return true;

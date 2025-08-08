@@ -39,7 +39,7 @@ ASP.NET MVC 5 web application for managing FTP users and permissions.
    </appSettings>
    ```
 
-4. **Set environment variables**:
+4. **Set environment variables (for AES‑256‑GCM at rest)**:
    ```powershell
    [System.Environment]::SetEnvironmentVariable("FTP_USERS_KEY", "your-encryption-key", "Machine")
    ```
@@ -48,7 +48,7 @@ ASP.NET MVC 5 web application for managing FTP users and permissions.
 
 ### User Store Types
 
-- **JSON**: File-based storage with encryption
+- **JSON**: File-based storage with optional AES‑256‑GCM encryption (set `FTP_USERS_KEY`)
 - **SQLite**: Lightweight database storage
 - **SQL Server**: Enterprise database storage
 

@@ -39,8 +39,17 @@ namespace IIS.Ftp.SimpleAuth.Provider
                 case "JSON":
                 default:
                     var enableHotReload = _config?.UserStore?.EnableHotReload ?? true;
-                    auditLogger.LogConfigurationChange("UserStoreFactory", $"Creating JSON user store at: {path}, HotReload: {enableHotReload}");
-                    store = new JsonUserStore(path, enableHotReload, auditLogger);
+                    var keyEnv = _config?.UserStore?.EncryptionKeyEnv;
+                    if (!string.IsNullOrWhiteSpace(keyEnv))
+                    {
+                        auditLogger.LogConfigurationChange("UserStoreFactory", $"Creating Encrypted JSON user store at: {path}, HotReload: {enableHotReload}, KeyEnv: {keyEnv}");
+                        store = new EncryptedJsonUserStore(path, enableHotReload, keyEnv, auditLogger);
+                    }
+                    else
+                    {
+                        auditLogger.LogConfigurationChange("UserStoreFactory", $"Creating JSON user store at: {path}, HotReload: {enableHotReload}");
+                        store = new JsonUserStore(path, enableHotReload, auditLogger);
+                    }
                     break;
             }
             

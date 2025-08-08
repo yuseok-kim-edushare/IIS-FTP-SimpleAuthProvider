@@ -31,9 +31,15 @@ namespace IIS.FTP.ManagementWeb
             container.RegisterInstance<AuthProviderConfig>(config);
 
             // Register Core services
-            container.RegisterType<IPasswordHasher, PasswordHasherService>();
-            container.RegisterType<IAuditLogger, IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger>();
-            container.RegisterType<IMetricsCollector, IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector>();
+            // Configure password hasher: default BCrypt; allow PBKDF2 via appSettings
+            var algorithm = config.Hashing.Algorithm ?? "BCrypt";
+            var iterations = config.Hashing.Iterations;
+            var bcryptCost = 12; // could be moved to config later
+            // Argon2 defaults (can become part of config later)
+            var argonMemory = 32768; var argonIters = 3; var argonParallel = 2;
+            container.RegisterFactory<IPasswordHasher>(_ => new PasswordHasherService(algorithm, iterations, bcryptCost, argonMemory, argonIters, argonParallel));
+            container.RegisterFactory<IAuditLogger>(_ => new IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger(config.Logging));
+            container.RegisterFactory<IMetricsCollector>(_ => new IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector(config.Metrics.MetricsFilePath, TimeSpan.FromSeconds(config.Metrics.ExportIntervalSeconds)));
 
             // Register user store based on configuration
             RegisterUserStore(container, config);
@@ -74,26 +80,39 @@ namespace IIS.FTP.ManagementWeb
             switch (config.UserStore.Type.ToLowerInvariant())
             {
                 case "json":
-                    container.RegisterType<IUserStore, JsonUserStore>();
+                    if (!string.IsNullOrWhiteSpace(config.UserStore.EncryptionKeyEnv))
+                    {
+                        container.RegisterType<IUserStore, EncryptedJsonUserStore>("InnerUserStore",
+                            new Unity.Injection.InjectionConstructor(
+                                config.UserStore.Path,
+                                config.UserStore.EnableHotReload,
+                                config.UserStore.EncryptionKeyEnv,
+                                new Unity.Injection.ResolvedParameter<IAuditLogger>()));
+                    }
+                    else
+                    {
+                        container.RegisterType<IUserStore, JsonUserStore>("InnerUserStore",
+                            new Unity.Injection.InjectionConstructor(config.UserStore.Path, config.UserStore.EnableHotReload, new Unity.Injection.ResolvedParameter<IAuditLogger>()));
+                    }
                     break;
                 case "sqlite":
-                    container.RegisterType<IUserStore, SqliteUserStore>();
+                    container.RegisterType<IUserStore, SqliteUserStore>("InnerUserStore",
+                        new Unity.Injection.InjectionConstructor(config.UserStore.Path, new Unity.Injection.ResolvedParameter<IAuditLogger>()));
                     break;
                 case "sqlserver":
-                    container.RegisterType<IUserStore, SqlServerUserStore>();
+                    container.RegisterType<IUserStore, SqlServerUserStore>("InnerUserStore",
+                        new Unity.Injection.InjectionConstructor(config.UserStore.ConnectionString ?? string.Empty, new Unity.Injection.ResolvedParameter<IAuditLogger>()));
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown user store type: {config.UserStore.Type}");
             }
 
-            // Wrap with instrumentation
+            // Wrap with instrumentation: default mapping resolves to decorator over named inner
             container.RegisterType<IUserStore, InstrumentedUserStore>(
                 new Unity.Injection.InjectionConstructor(
-                    new Unity.Injection.ResolvedParameter<IUserStore>(),
-                    new Unity.Injection.ResolvedParameter<IMetricsCollector>(),
-                    new Unity.Injection.ResolvedParameter<IAuditLogger>()
-                )
-            );
+                    new Unity.Injection.ResolvedParameter<IUserStore>("InnerUserStore"),
+                    new Unity.Injection.ResolvedParameter<IMetricsCollector>()
+                ));
         }
     }
 } 

@@ -57,7 +57,7 @@ The codebase follows a **layered architecture** with these main components:
 - **Value Semantics**: `Permission` implements `IEquatable<T>` for comparison
 
 #### Security (`/Core/Security/`)
-- `PasswordHasher.cs` - Multi-algorithm password hashing (BCrypt, PBKDF2)
+- `PasswordHasher.cs` - Multi-algorithm password hashing (BCrypt default, PBKDF2; Argon2 planned via Konscious)
 - `FileEncryption.cs` - File encryption using DPAPI or AES-GCM
 - `IPasswordHasher.cs` - Interface for password hashing operations
 
@@ -130,7 +130,7 @@ The codebase follows a **layered architecture** with these main components:
 ## 🔐 Security Architecture
 
 ### Password Hashing
-- **Multi-Algorithm Support**: BCrypt (default) and PBKDF2
+- **Multi-Algorithm Support**: BCrypt (default) and PBKDF2; Argon2 via `Konscious.Security.Cryptography` planned
 - **Auto-Detection**: Automatically detects hash format for migration
 - **Constant-Time Comparison**: Prevents timing attacks
 - **Configurable Work Factors**: Adjustable iteration counts

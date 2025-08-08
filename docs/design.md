@@ -54,9 +54,9 @@ Hot-reload pattern for JSON:
 * `FileSystemWatcher` → debounce 1-2 s → reload into immutable in-memory cache → `Interlocked.Exchange`.
 
 ## 5 Crypto & Security
-* Use `Rfc2898DeriveBytes` (PBKDF2 100 000 iterations) or stronger (bcrypt by Bcrypt-net).
+* Use BCrypt by default for password hashing; PBKDF2 (`Rfc2898DeriveBytes`) supported for legacy; Argon2 planned via `Konscious.Security.Cryptography`.
 * Never store plain salts; keep them next to hashes.
-* Encrypt the JSON/SQLite file with DPAPI-NG or AES-GCM; key path supplied via environment variable.
+* Encrypt the JSON/SQLite file with AES-256-GCM when key env var is set; fallback to DPAPI when not provided. Key supplied via environment variable.
 * Constant-time compare for password validation.
 * Log failed auth to Windows Event Log (do **not** echo passwords).
 

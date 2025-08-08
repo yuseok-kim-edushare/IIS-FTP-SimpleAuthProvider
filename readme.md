@@ -10,11 +10,11 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 
 - ✅ **Zero dependency on Windows/AD accounts** - Manage FTP users independently
 - ✅ **Native IIS integration** - Works seamlessly with IIS FTP Server
-- ✅ **Security first** - BCrypt password hashing, encryption at rest, audit logging
+- ✅ **Security first** - BCrypt (default) password hashing, Argon2 support, encryption at rest, audit logging
 - ✅ **Hot-reload support** - Update users without restarting IIS
 - ✅ **Flexible permissions** - Per-path read/write access control
 - ✅ **CLI management tool** - Easy user and encryption key management
-- ✅ **Multiple encryption options** - DPAPI or AES-GCM with environment variable keys
+- ✅ **Multiple encryption options** - DPAPI or AES-256-GCM with environment variable keys
 
 ## Quick Start (5 Steps)
 
@@ -68,7 +68,7 @@ Create `ftpauth.config.json` in your IIS directory:
     "EnableHotReload": true
   },
   "Hashing": {
-    "Algorithm": "BCrypt",
+    "Algorithm": "BCrypt", // or "PBKDF2" or "Argon2"
     "Iterations": 100000,
     "SaltSize": 16
   },
@@ -109,7 +109,7 @@ To use ESENT storage, update your configuration:
 | `UserStore.Path` | Path to the users JSON file | `C:\inetpub\ftpusers\users.json` |
 | `UserStore.EncryptionKeyEnv` | Environment variable with encryption key | `null` (uses DPAPI) |
 | `UserStore.EnableHotReload` | Auto-reload users when file changes | `true` |
-| `Hashing.Algorithm` | Password hashing algorithm (BCrypt, PBKDF2) | `BCrypt` |
+| `Hashing.Algorithm` | Password hashing algorithm (BCrypt, PBKDF2, Argon2) | `BCrypt` |
 | `Hashing.Iterations` | PBKDF2 iterations for password hashing | `100000` |
 | `Logging.EnableEventLog` | Write to Windows Event Log | `true` |
 
@@ -161,13 +161,14 @@ ftpauth rotate-key -f users.enc -o OLD_KEY -n NEW_KEY
 
 ### Password Hashing
 - Uses BCrypt with work factor 12 by default for battle-tested security
-- Auto-detects algorithm for backward compatibility with existing PBKDF2 hashes
-- Legacy PBKDF2-SHA256 support maintained for existing users
+- Argon2id support (PHC format) for modern memory-hard hashing
+- Auto-detects algorithm for backward compatibility (BCrypt, PBKDF2, Argon2)
+- Legacy PBKDF2-SHA256 support maintained
 - Constant-time comparison prevents timing attacks
 
 ### Encryption at Rest
 - **Option 1: DPAPI** (default) - Windows Data Protection API, machine-specific
-- **Option 2: AES-GCM** - 256-bit key from environment variable
+- **Option 2: AES-256-GCM** - 256-bit key from environment variable (`FTP_USERS_KEY`)
 
 ### Key Rotation
 Regular key rotation is recommended:
@@ -274,6 +275,15 @@ This project includes the Bcrypt.NET library for BCrypt password hashing:
 - **Description**: Provides BCrypt password hashing functionality
 
 The Bcrypt.NET library is included by PackageReference in the project.
+
+### Konscious.Security.Cryptography
+
+This project includes the Konscious.Security.Cryptography library for Argon2 password hashing:
+
+- **Project**: [Konscious.Security.Cryptography](https://github.com/kmaragon/Konscious.Security.Cryptography)
+- **License**: MIT License
+- **Copyright**: 2017 Keef Aragon
+- **Description**: Provides Argon2 password hashing functionality
 
 ## Acknowledgments
 

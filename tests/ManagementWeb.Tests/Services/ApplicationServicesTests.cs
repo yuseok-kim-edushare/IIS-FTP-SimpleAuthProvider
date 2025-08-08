@@ -5,7 +5,7 @@ using IIS.Ftp.SimpleAuth.Core.Configuration;
 using IIS.Ftp.SimpleAuth.Core.Security;
 using IIS.Ftp.SimpleAuth.Core.Stores;
 using IIS.Ftp.SimpleAuth.Core.Domain;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NUnit.Framework;
 using Moq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,7 +14,7 @@ using System.Linq;
 
 namespace IIS.FTP.ManagementWeb.Tests.Services
 {
-    [TestClass]
+    [TestFixture]
     public class ApplicationServicesTests
     {
         private Mock<IUserStore> _mockUserStore;
@@ -24,7 +24,7 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
         private AuthProviderConfig _config;
         private ApplicationServices _applicationServices;
 
-        [TestInitialize]
+        [SetUp]
         public void TestInitialize()
         {
             _mockUserStore = new Mock<IUserStore>();
@@ -35,7 +35,7 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
             _config = new AuthProviderConfig
             {
                 UserStore = new UserStoreConfig { Type = "Json" },
-                Hashing = new HashingConfig { Algorithm = "PBKDF2" }
+                Hashing = new HashingConfig { Algorithm = "BCrypt" }
             };
 
             _applicationServices = new ApplicationServices(
@@ -46,7 +46,7 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
                 _config);
         }
 
-        [TestMethod]
+        [Test]
         public async Task ValidateUserAsync_ValidCredentials_ReturnsTrue()
         {
             // Arrange
@@ -59,12 +59,12 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
             var result = await _applicationServices.ValidateUserAsync(userId, password);
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.That(result, Is.True);
             _mockAuditLogger.Verify(x => x.LogAuthenticationAsync(userId, true, "Web UI login"), Times.Once);
             _mockMetricsCollector.Verify(x => x.IncrementAuthSuccess(), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task ValidateUserAsync_InvalidCredentials_ReturnsFalse()
         {
             // Arrange
@@ -77,12 +77,12 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
             var result = await _applicationServices.ValidateUserAsync(userId, password);
 
             // Assert
-            Assert.IsFalse(result);
+            Assert.That(result, Is.False);
             _mockAuditLogger.Verify(x => x.LogAuthenticationAsync(userId, false, "Web UI login failed"), Times.Once);
             _mockMetricsCollector.Verify(x => x.IncrementAuthFailure(), Times.Once);
         }
 
-        [TestMethod]
+        [Test]
         public async Task GetAllUsersAsync_ReturnsUsersFromStore()
         {
             // Arrange
@@ -98,19 +98,19 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
             var result = await _applicationServices.GetAllUsersAsync();
 
             // Assert
-            Assert.AreEqual(2, result.Count());
-            Assert.IsTrue(result.Any(u => u.UserId == "user1"));
-            Assert.IsTrue(result.Any(u => u.UserId == "user2"));
+            Assert.That(result.Count(), Is.EqualTo(2));
+            Assert.That(result.Any(u => u.UserId == "user1"), Is.True);
+            Assert.That(result.Any(u => u.UserId == "user2"), Is.True);
         }
 
-        [TestMethod]
+        [Test]
         public async Task GetSystemHealthAsync_ReturnsHealthInformation()
         {
             // Arrange
             var metrics = new Dictionary<string, long>
             {
-                { "auth_success_total", 10 },
-                { "auth_failure_total", 2 }
+                { "ftp_auth_success_total", 10 },
+                { "ftp_auth_failure_total", 2 }
             };
             _mockMetricsCollector.Setup(x => x.GetMetrics())
                                .Returns(metrics);
@@ -119,11 +119,11 @@ namespace IIS.FTP.ManagementWeb.Tests.Services
             var result = await _applicationServices.GetSystemHealthAsync();
 
             // Assert
-            Assert.IsNotNull(result);
-            Assert.IsTrue(result.IsHealthy);
-            Assert.AreEqual("Json", result.UserStoreType);
-            Assert.AreEqual(10, result.AuthSuccessCount);
-            Assert.AreEqual(2, result.AuthFailureCount);
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result.IsHealthy, Is.True);
+            Assert.That(result.UserStoreType, Is.EqualTo("Json"));
+            Assert.That(result.AuthSuccessCount, Is.EqualTo(10));
+            Assert.That(result.AuthFailureCount, Is.EqualTo(2));
         }
     }
 }

@@ -185,8 +185,8 @@ namespace IIS.FTP.ManagementWeb.Services
                 IsHealthy = true, // TODO: Implement actual health checks
                 UserStoreType = _config.UserStore.Type,
                 UserStoreConnected = true, // TODO: Check actual connection
-                AuthSuccessCount = metrics.ContainsKey("auth_success_total") ? metrics["auth_success_total"] : 0,
-                AuthFailureCount = metrics.ContainsKey("auth_failure_total") ? metrics["auth_failure_total"] : 0,
+                AuthSuccessCount = metrics.ContainsKey("ftp_auth_success_total") ? metrics["ftp_auth_success_total"] : 0,
+                AuthFailureCount = metrics.ContainsKey("ftp_auth_failure_total") ? metrics["ftp_auth_failure_total"] : 0,
                 LastChecked = DateTime.UtcNow
             };
             
