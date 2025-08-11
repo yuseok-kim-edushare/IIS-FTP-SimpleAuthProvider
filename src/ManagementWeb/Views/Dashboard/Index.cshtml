@@ -3,45 +3,54 @@
     ViewBag.Title = "Dashboard";
 }
 
-<div class="row">
+<div class="row mb-4">
     <div class="col-12">
-        <h1><i class="bi bi-speedometer2"></i> Dashboard</h1>
-        <hr />
+        <div class="flex items-center space-x-3 mb-6">
+            <div class="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                <i class="bi bi-speedometer2 text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">Dashboard</h1>
+                <p class="text-slate-600">Monitor your FTP server performance and user activity</p>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row mb-4">
+<div class="row mb-5 g-4">
     <div class="col-md-3">
-        <div class="card text-white bg-primary">
-            <div class="card-body">
+        <div class="card border-0 bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Total Users</h5>
-                        <h2 class="mb-0">@Model.TotalUsers</h2>
+                        <h6 class="card-title text-blue-100 mb-2 font-semibold">Total Users</h6>
+                        <h2 class="mb-0 font-bold text-3xl">@Model.TotalUsers</h2>
+                        <small class="text-blue-200 text-sm">Active accounts</small>
                     </div>
-                    <div>
-                        <i class="bi bi-people display-4"></i>
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <i class="bi bi-people text-3xl"></i>
                     </div>
                 </div>
             </div>
-            <div class="card-footer">
-                <a href="@Url.Action("Index", "Users")" class="text-white text-decoration-none">
-                    View details <i class="bi bi-arrow-right-circle"></i>
+            <div class="card-footer bg-black/20 border-0 rounded-bottom-2xl">
+                <a href="@Url.Action("Index", "Users")" class="text-white text-decoration-none hover:text-blue-200 transition-colors duration-300 font-medium">
+                    View details <i class="bi bi-arrow-right-circle ml-1"></i>
                 </a>
             </div>
         </div>
     </div>
     
     <div class="col-md-3">
-        <div class="card text-white bg-success">
-            <div class="card-body">
+        <div class="card border-0 bg-gradient-to-br from-emerald-500 to-green-600 text-white shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Successful Logins</h5>
-                        <h2 class="mb-0">@Model.SystemHealth.AuthSuccessCount</h2>
+                        <h6 class="card-title text-emerald-100 mb-2 font-semibold">Successful Logins</h6>
+                        <h2 class="mb-0 font-bold text-3xl">@Model.SystemHealth.AuthSuccessCount</h2>
+                        <small class="text-emerald-200 text-sm">Authentication success</small>
                     </div>
-                    <div>
-                        <i class="bi bi-check-circle display-4"></i>
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <i class="bi bi-check-circle text-3xl"></i>
                     </div>
                 </div>
             </div>
@@ -49,15 +58,16 @@
     </div>
     
     <div class="col-md-3">
-        <div class="card text-white bg-danger">
-            <div class="card-body">
+        <div class="card border-0 bg-gradient-to-br from-red-500 to-pink-600 text-white shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">Failed Logins</h5>
-                        <h2 class="mb-0">@Model.SystemHealth.AuthFailureCount</h2>
+                        <h6 class="card-title text-red-100 mb-2 font-semibold">Failed Logins</h6>
+                        <h2 class="mb-0 font-bold text-3xl">@Model.SystemHealth.AuthFailureCount</h2>
+                        <small class="text-red-200 text-sm">Authentication failures</small>
                     </div>
-                    <div>
-                        <i class="bi bi-x-circle display-4"></i>
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <i class="bi bi-x-circle text-3xl"></i>
                     </div>
                 </div>
             </div>
@@ -65,15 +75,16 @@
     </div>
     
     <div class="col-md-3">
-        <div class="card text-white @(Model.SystemHealth.IsHealthy ? "bg-info" : "bg-warning")">
-            <div class="card-body">
+        <div class="card border-0 bg-gradient-to-br @(Model.SystemHealth.IsHealthy ? "from-cyan-500 to-blue-600" : "from-amber-500 to-orange-600") text-white shadow-xl rounded-2xl transform hover:scale-105 transition-all duration-300 hover:shadow-2xl">
+            <div class="card-body p-4">
                 <div class="d-flex justify-content-between align-items-center">
                     <div>
-                        <h5 class="card-title">System Status</h5>
-                        <h4 class="mb-0">@(Model.SystemHealth.IsHealthy ? "Healthy" : "Warning")</h4>
+                        <h6 class="card-title @(Model.SystemHealth.IsHealthy ? "text-cyan-100" : "text-amber-100") mb-2 font-semibold">System Status</h6>
+                        <h4 class="mb-0 font-bold text-xl">@(Model.SystemHealth.IsHealthy ? "Healthy" : "Warning")</h4>
+                        <small class="@(Model.SystemHealth.IsHealthy ? "text-cyan-200" : "text-amber-200") text-sm">@(Model.SystemHealth.IsHealthy ? "All systems operational" : "Needs attention")</small>
                     </div>
-                    <div>
-                        <i class="bi @(Model.SystemHealth.IsHealthy ? "bi-heart-pulse" : "bi-exclamation-triangle") display-4"></i>
+                    <div class="p-3 bg-white/20 rounded-xl">
+                        <i class="bi @(Model.SystemHealth.IsHealthy ? "bi-heart-pulse" : "bi-exclamation-triangle") text-3xl"></i>
                     </div>
                 </div>
             </div>
@@ -81,42 +92,51 @@
     </div>
 </div>
 
-<div class="row">
+<div class="row g-4">
     <div class="col-md-8">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-activity"></i> Recent Activity</h5>
+        <div class="card border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
+            <div class="card-header border-0 bg-gradient-to-r from-slate-50 to-blue-50 rounded-top-2xl py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-gradient-to-br from-purple-500 to-blue-600 rounded-lg">
+                        <i class="bi bi-activity text-white text-xl"></i>
+                    </div>
+                    <h5 class="mb-0 text-xl font-bold text-slate-800">Recent Activity</h5>
+                </div>
             </div>
-            <div class="card-body">
+            <div class="card-body p-0">
                 @if (Model.RecentActivities.Any())
                 {
                     <div class="table-responsive">
-                        <table class="table table-sm table-hover">
-                            <thead>
+                        <table class="table table-hover mb-0">
+                            <thead class="bg-gradient-to-r from-slate-100 to-blue-100">
                                 <tr>
-                                    <th>Time</th>
-                                    <th>User</th>
-                                    <th>Action</th>
-                                    <th>Details</th>
-                                    <th>Status</th>
+                                    <th class="border-0 text-slate-700 font-semibold py-3 px-4">Time</th>
+                                    <th class="border-0 text-slate-700 font-semibold py-3">User</th>
+                                    <th class="border-0 text-slate-700 font-semibold py-3">Action</th>
+                                    <th class="border-0 text-slate-700 font-semibold py-3">Details</th>
+                                    <th class="border-0 text-slate-700 font-semibold py-3">Status</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var activity in Model.RecentActivities)
                                 {
-                                    <tr>
-                                        <td>@activity.Timestamp.ToString("g")</td>
-                                        <td>@activity.UserId</td>
-                                        <td>@activity.Action</td>
-                                        <td>@activity.Details</td>
-                                        <td>
+                                    <tr class="hover:bg-blue-50/50 transition-colors duration-200">
+                                        <td class="border-0 py-3 px-4 text-slate-600 font-medium">@activity.Timestamp.ToString("g")</td>
+                                        <td class="border-0 py-3 text-slate-800 font-semibold">@activity.UserId</td>
+                                        <td class="border-0 py-3 text-slate-700">@activity.Action</td>
+                                        <td class="border-0 py-3 text-slate-600">@activity.Details</td>
+                                        <td class="border-0 py-3">
                                             @if (activity.Success)
                                             {
-                                                <span class="badge bg-success">Success</span>
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                                                    <i class="bi bi-check-circle-fill mr-1"></i> Success
+                                                </span>
                                             }
                                             else
                                             {
-                                                <span class="badge bg-danger">Failed</span>
+                                                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-800 border border-red-200">
+                                                    <i class="bi bi-x-circle-fill mr-1"></i> Failed
+                                                </span>
                                             }
                                         </td>
                                     </tr>
@@ -127,42 +147,86 @@
                 }
                 else
                 {
-                    <p class="text-muted">No recent activity to display.</p>
+                    <div class="p-6 text-center">
+                        <div class="mb-4">
+                            <i class="bi bi-inbox text-6xl text-slate-400"></i>
+                        </div>
+                        <p class="text-slate-500 font-medium">No recent activity to display.</p>
+                        <p class="text-slate-400 text-sm">Activity will appear here as users interact with the system.</p>
+                    </div>
                 }
             </div>
         </div>
     </div>
     
     <div class="col-md-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0"><i class="bi bi-info-circle"></i> System Information</h5>
+        <div class="card border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
+            <div class="card-header border-0 bg-gradient-to-r from-slate-50 to-blue-50 rounded-top-2xl py-4">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg">
+                        <i class="bi bi-info-circle text-white text-xl"></i>
+                    </div>
+                    <h5 class="mb-0 text-xl font-bold text-slate-800">System Information</h5>
+                </div>
             </div>
-            <div class="card-body">
-                <dl class="row">
-                    <dt class="col-sm-6">User Store Type:</dt>
-                    <dd class="col-sm-6">@Model.SystemHealth.UserStoreType</dd>
+            <div class="card-body p-4">
+                <dl class="row mb-4">
+                    <dt class="col-sm-6 text-slate-700 font-semibold py-2">User Store Type:</dt>
+                    <dd class="col-sm-6 py-2">
+                        <span class="inline-flex items-center px-2 py-1 rounded-lg text-sm font-medium bg-blue-100 text-blue-800">
+                            @Model.SystemHealth.UserStoreType
+                        </span>
+                    </dd>
                     
-                    <dt class="col-sm-6">Store Status:</dt>
-                    <dd class="col-sm-6">
+                    <dt class="col-sm-6 text-slate-700 font-semibold py-2">Store Status:</dt>
+                    <dd class="col-sm-6 py-2">
                         @if (Model.SystemHealth.UserStoreConnected)
                         {
-                            <span class="text-success"><i class="bi bi-check-circle"></i> Connected</span>
+                            <span class="inline-flex items-center text-emerald-700">
+                                <i class="bi bi-check-circle-fill mr-2 text-emerald-500"></i> 
+                                <span class="font-semibold">Connected</span>
+                            </span>
                         }
                         else
                         {
-                            <span class="text-danger"><i class="bi bi-x-circle"></i> Disconnected</span>
+                            <span class="inline-flex items-center text-red-700">
+                                <i class="bi bi-x-circle-fill mr-2 text-red-500"></i> 
+                                <span class="font-semibold">Disconnected</span>
+                            </span>
                         }
                     </dd>
                     
-                    <dt class="col-sm-6">Last Check:</dt>
-                    <dd class="col-sm-6">@Model.SystemHealth.LastChecked.ToString("g")</dd>
+                    <dt class="col-sm-6 text-slate-700 font-semibold py-2">Last Check:</dt>
+                    <dd class="col-sm-6 py-2 text-slate-600 font-medium">@Model.SystemHealth.LastChecked.ToString("g")</dd>
                 </dl>
                 
-                <div class="mt-3">
-                    <a href="@Url.Action("Create", "Users")" class="btn btn-primary w-100">
-                        <i class="bi bi-person-plus"></i> Add New User
+                <div class="mt-4">
+                    <a href="@Url.Action("Create", "Users")" class="btn btn-primary w-100 py-3 rounded-xl font-semibold bg-gradient-to-r from-blue-500 to-purple-600 border-0 shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+                        <i class="bi bi-person-plus mr-2"></i> Add New User
                     </a>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="mt-4 p-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl">
+                    <h6 class="text-slate-700 font-semibold mb-3">Quick Stats</h6>
+                    <div class="space-y-2">
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600 text-sm">Success Rate</span>
+                            <span class="font-bold text-emerald-600">
+                                @{
+                                    var total = Model.SystemHealth.AuthSuccessCount + Model.SystemHealth.AuthFailureCount;
+                                    var rate = total > 0 ? (Model.SystemHealth.AuthSuccessCount * 100.0 / total).ToString("F1") : "0.0";
+                                }
+                                @rate%
+                            </span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-slate-600 text-sm">System Health</span>
+                            <span class="font-bold @(Model.SystemHealth.IsHealthy ? "text-emerald-600" : "text-amber-600")">
+                                @(Model.SystemHealth.IsHealthy ? "Optimal" : "Warning")
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -11,70 +11,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - FTP User Management</title>
     @Styles.Render("~/Content/css")
+    <!-- TailwindCSS for enhanced styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <style>
         body {
             height: 100vh;
             display: flex;
             align-items: center;
-            background-color: #f5f5f5;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
         }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><radialGradient id="a"><stop offset="0" stop-color="%23ffffff" stop-opacity="0.1"/><stop offset="1" stop-color="%23ffffff" stop-opacity="0"/></radialGradient></defs><circle cx="20" cy="20" r="20" fill="url(%23a)"/><circle cx="80" cy="80" r="20" fill="url(%23a)"/></svg>') center/cover;
+            animation: float 20s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
         .login-form {
             width: 100%;
             max-width: 400px;
             padding: 15px;
             margin: auto;
-        }
-        .login-form .form-control {
             position: relative;
-            box-sizing: border-box;
-            height: auto;
-            padding: 10px;
-            font-size: 16px;
+            z-index: 10;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800">
     <div class="login-form">
-        <div class="card shadow">
-            <div class="card-body">
-                <div class="text-center mb-4">
-                    <i class="bi bi-server display-4 text-primary"></i>
-                    <h1 class="h3 mb-3 font-weight-normal">FTP Management</h1>
-                    <p class="text-muted">Please sign in to continue</p>
+        <div class="glass-card rounded-2xl p-8 shadow-2xl">
+            <div class="text-center mb-6">
+                <div class="inline-flex p-4 bg-white/30 rounded-2xl mb-4 backdrop-blur-sm">
+                    <i class="bi bi-server text-4xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white mb-2">FTP Management</h1>
+                <p class="text-blue-100">Please sign in to continue</p>
+            </div>
+
+            @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-signin" }))
+            {
+                @Html.AntiForgeryToken()
+                
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="bg-red-500/20 border border-red-300/30 backdrop-blur-sm text-white p-3 rounded-xl mb-4">
+                        <div class="flex items-center">
+                            <i class="bi bi-exclamation-triangle mr-2"></i>
+                            <div>
+                                @Html.ValidationSummary(true, "Please correct the errors below:", new { @class = "mb-0" })
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="mb-4">
+                    <div class="relative">
+                        @Html.TextBoxFor(m => m.Username, new { 
+                            @class = "form-control w-full px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-blue-200 focus:bg-white/30 focus:border-white/50 transition-all duration-300", 
+                            placeholder = "Username", 
+                            autofocus = "autofocus" 
+                        })
+                        <label class="absolute left-4 top-3 text-blue-200 text-sm pointer-events-none transition-all duration-300">
+                            <i class="bi bi-person mr-1"></i>
+                        </label>
+                    </div>
+                    @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-red-200 text-sm mt-1 block" })
                 </div>
 
-                @using (Html.BeginForm("Login", "Account", new { ReturnUrl = ViewBag.ReturnUrl }, FormMethod.Post, new { @class = "form-signin" }))
-                {
-                    @Html.AntiForgeryToken()
-                    
-                    @Html.ValidationSummary(true, "", new { @class = "alert alert-danger" })
-
-                    <div class="form-floating mb-3">
-                        @Html.TextBoxFor(m => m.Username, new { @class = "form-control", placeholder = "Username", autofocus = "autofocus" })
-                        @Html.LabelFor(m => m.Username)
-                        @Html.ValidationMessageFor(m => m.Username, "", new { @class = "text-danger" })
+                <div class="mb-4">
+                    <div class="relative">
+                        @Html.PasswordFor(m => m.Password, new { 
+                            @class = "form-control w-full px-4 py-3 bg-white/20 backdrop-blur-sm border border-white/30 rounded-xl text-white placeholder-blue-200 focus:bg-white/30 focus:border-white/50 transition-all duration-300", 
+                            placeholder = "Password" 
+                        })
+                        <label class="absolute left-4 top-3 text-blue-200 text-sm pointer-events-none transition-all duration-300">
+                            <i class="bi bi-lock mr-1"></i>
+                        </label>
                     </div>
+                    @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-red-200 text-sm mt-1 block" })
+                </div>
 
-                    <div class="form-floating mb-3">
-                        @Html.PasswordFor(m => m.Password, new { @class = "form-control", placeholder = "Password" })
-                        @Html.LabelFor(m => m.Password)
-                        @Html.ValidationMessageFor(m => m.Password, "", new { @class = "text-danger" })
-                    </div>
+                <div class="flex items-center mb-6">
+                    @Html.CheckBoxFor(m => m.RememberMe, new { @class = "w-4 h-4 text-blue-600 bg-white/20 border-white/30 rounded focus:ring-blue-500 focus:ring-2" })
+                    @Html.LabelFor(m => m.RememberMe, new { @class = "ml-2 text-sm text-blue-100 font-medium" })
+                </div>
 
-                    <div class="form-check mb-3">
-                        @Html.CheckBoxFor(m => m.RememberMe, new { @class = "form-check-input" })
-                        @Html.LabelFor(m => m.RememberMe, new { @class = "form-check-label" })
-                    </div>
-
-                    <button class="btn btn-primary btn-lg w-100" type="submit">
-                        <i class="bi bi-box-arrow-in-right"></i> Sign In
-                    </button>
-                }
-            </div>
+                <button class="w-full bg-gradient-to-r from-white/20 to-white/30 backdrop-blur-sm border border-white/30 text-white font-semibold py-3 px-4 rounded-xl hover:from-white/30 hover:to-white/40 hover:shadow-lg transform hover:scale-105 transition-all duration-300" type="submit">
+                    <i class="bi bi-box-arrow-in-right mr-2"></i> Sign In
+                </button>
+            }
         </div>
         
-        <p class="mt-3 mb-3 text-muted text-center">
-            <small>&copy; @DateTime.Now.Year - IIS FTP Simple Authentication Provider</small>
+        <p class="mt-4 text-center text-blue-200 text-sm">
+            &copy; @DateTime.Now.Year - IIS FTP Simple Authentication Provider
         </p>
     </div>
 

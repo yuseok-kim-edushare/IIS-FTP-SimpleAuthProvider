@@ -5,28 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@ViewBag.Title - FTP User Management</title>
     @Styles.Render("~/Content/css")
+    <!-- TailwindCSS for enhanced styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#eff6ff',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            700: '#1d4ed8',
+                            900: '#1e3a8a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+<body class="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-gradient-to-r from-slate-900 via-purple-900 to-slate-900 shadow-lg">
         <div class="container-fluid">
-            <a class="navbar-brand" href="@Url.Action("Index", "Dashboard")">
-                <i class="bi bi-server"></i> FTP Management
+            <a class="navbar-brand hover:text-blue-300 transition-colors duration-300" href="@Url.Action("Index", "Dashboard")">
+                <i class="bi bi-server text-blue-400"></i> 
+                <span class="font-bold text-white">FTP Management</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0 hover:bg-white/10 rounded-lg transition-all duration-300" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Dashboard" ? "active" : "")" 
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Dashboard" ? "active bg-white/20 rounded-lg" : "hover:bg-white/10 rounded-lg") transition-all duration-300" 
                            href="@Url.Action("Index", "Dashboard")">
-                            <i class="bi bi-speedometer2"></i> Dashboard
+                            <i class="bi bi-speedometer2 text-emerald-400"></i> Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Users" ? "active" : "")" 
+                        <a class="nav-link @(ViewContext.RouteData.Values["controller"].ToString() == "Users" ? "active bg-white/20 rounded-lg" : "hover:bg-white/10 rounded-lg") transition-all duration-300" 
                            href="@Url.Action("Index", "Users")">
-                            <i class="bi bi-people"></i> Users
+                            <i class="bi bi-people text-blue-400"></i> Users
                         </a>
                     </li>
                 </ul>
@@ -34,13 +54,13 @@
                     @if (Request.IsAuthenticated)
                     {
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
-                                <i class="bi bi-person-circle"></i> @User.Identity.Name
+                            <a class="nav-link dropdown-toggle hover:bg-white/10 rounded-lg transition-all duration-300" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                <i class="bi bi-person-circle text-yellow-400"></i> @User.Identity.Name
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
+                            <ul class="dropdown-menu dropdown-menu-end bg-white/95 backdrop-blur-sm border-0 shadow-xl rounded-xl">
                                 <li>
-                                    <a class="dropdown-item" href="@Url.Action("Logout", "Account")">
-                                        <i class="bi bi-box-arrow-right"></i> Logout
+                                    <a class="dropdown-item hover:bg-red-50 rounded-lg transition-colors duration-300" href="@Url.Action("Logout", "Account")">
+                                        <i class="bi bi-box-arrow-right text-red-500"></i> Logout
                                     </a>
                                 </li>
                             </ul>
@@ -51,28 +71,34 @@
         </div>
     </nav>
 
-    <main class="container-fluid mt-4">
+    <main class="container-fluid mt-4 px-4">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle"></i> @TempData["SuccessMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-success border-0 bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-lg rounded-xl mb-4 fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-check-circle-fill text-2xl mr-3"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                    <button type="button" class="btn-close btn-close-white ml-auto" data-bs-dismiss="alert"></button>
+                </div>
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i> @TempData["ErrorMessage"]
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            <div class="alert alert-danger border-0 bg-gradient-to-r from-red-500 to-pink-500 text-white shadow-lg rounded-xl mb-4 fade show" role="alert">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-exclamation-triangle-fill text-2xl mr-3"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close btn-close-white ml-auto" data-bs-dismiss="alert"></button>
+                </div>
             </div>
         }
         
         @RenderBody()
     </main>
 
-    <footer class="footer mt-auto py-3 bg-light">
-        <div class="container text-center text-muted">
-            <small>&copy; @DateTime.Now.Year - IIS FTP Simple Authentication Provider</small>
+    <footer class="footer mt-auto py-4 bg-gradient-to-r from-slate-100 to-blue-100 border-t border-slate-200">
+        <div class="container text-center">
+            <small class="text-slate-600 font-medium">&copy; @DateTime.Now.Year - IIS FTP Simple Authentication Provider</small>
         </div>
     </footer>
 
