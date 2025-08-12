@@ -45,13 +45,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout (actions/checkout, with submodules and correct ref)
-        uses: actions/checkout@v4
+      - name: Checkout (actions/checkout, with submodules, ignore submodule errors)
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          submodules: recursive
-          ref: ${{ github.sha }}
-          persist-credentials: false
+          fetch-tags: 0
+          submodules: 'true'
+          
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
