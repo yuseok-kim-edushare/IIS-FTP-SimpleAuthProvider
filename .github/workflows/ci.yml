@@ -45,13 +45,13 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout (git CLI with nested submodules and correct ref)
-        run: |
-          git init .
-          git remote add origin ${{ github.repositoryUrl }}
-          git fetch --no-tags origin ${{ github.sha }}
-          git checkout ${{ github.sha }}
-          git submodule update --init --recursive
+      - name: Checkout (actions/checkout, with submodules and correct ref)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          submodules: recursive
+          ref: ${{ github.sha }}
+          persist-credentials: false
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
