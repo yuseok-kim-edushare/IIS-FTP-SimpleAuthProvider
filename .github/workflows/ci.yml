@@ -66,6 +66,24 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Get USERPROFILE and set CACHE_PATH
+        id: set_cache_path
+        shell: pwsh
+        run: |
+            $userProfile = [System.Environment]::GetEnvironmentVariable("USERPROFILE")
+            $cachePath = Join-Path $userProfile ".nuget\packages"
+            echo "CACHE_PATH=$cachePath" >> $env:GITHUB_ENV
+    
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ${{ env.CACHE_PATH }}
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
+
       - name: Restore
         run: |
           dotnet restore src/Core/Core.csproj
@@ -82,8 +100,8 @@ jobs:
 
       - name: Test (exclude AuthProvider tests)
         run: |
-          dotnet test tests/Core.Tests/Core.Tests.csproj --configuration Release --no-build --logger trx
-          dotnet test tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj --configuration Release --no-build --logger trx
+          dotnet test tests/Core.Tests/Core.Tests.csproj --configuration Release --logger trx
+          dotnet test tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj --configuration Release --logger trx
 
     
     
