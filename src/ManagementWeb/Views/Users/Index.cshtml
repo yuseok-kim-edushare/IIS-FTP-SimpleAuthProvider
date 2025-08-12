@@ -3,25 +3,32 @@
     ViewBag.Title = "Users";
 }
 
-<div class="row">
+<div class="row mb-4">
     <div class="col-12">
-        <h1><i class="bi bi-people"></i> Users</h1>
-        <hr />
+        <div class="flex items-center space-x-3 mb-6">
+            <div class="p-3 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl shadow-lg">
+                <i class="bi bi-people text-white text-2xl"></i>
+            </div>
+            <div>
+                <h1 class="text-3xl font-bold bg-gradient-to-r from-slate-800 to-blue-600 bg-clip-text text-transparent">Users</h1>
+                <p class="text-slate-600">Manage FTP user accounts and permissions</p>
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="row mb-3">
+<div class="row mb-4">
     <div class="col-md-6">
         @using (Html.BeginForm("Index", "Users", FormMethod.Get, new { @class = "d-flex" }))
         {
-            <div class="input-group">
-                @Html.TextBox("search", Model.SearchTerm, new { @class = "form-control", placeholder = "Search users..." })
-                <button class="btn btn-outline-secondary" type="submit">
+            <div class="input-group shadow-lg rounded-xl overflow-hidden">
+                @Html.TextBox("search", Model.SearchTerm, new { @class = "form-control border-0 bg-white/80 backdrop-blur-sm", placeholder = "Search users..." })
+                <button class="btn bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 px-4 hover:from-purple-600 hover:to-blue-500 transition-all duration-300" type="submit">
                     <i class="bi bi-search"></i> Search
                 </button>
                 @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
                 {
-                    <a href="@Url.Action("Index", "Users")" class="btn btn-outline-secondary">
+                    <a href="@Url.Action("Index", "Users")" class="btn btn-outline-secondary border-0 hover:bg-red-100 hover:text-red-600 transition-all duration-300">
                         <i class="bi bi-x-circle"></i> Clear
                     </a>
                 }
@@ -29,53 +36,74 @@
         }
     </div>
     <div class="col-md-6 text-end">
-        <a href="@Url.Action("Create", "Users")" class="btn btn-primary">
-            <i class="bi bi-person-plus"></i> Add New User
+        <a href="@Url.Action("Create", "Users")" class="btn bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 px-6 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300">
+            <i class="bi bi-person-plus mr-2"></i> Add New User
         </a>
     </div>
 </div>
 
 @if (Model.Users.Any())
 {
-    <div class="card">
-        <div class="card-body">
+    <div class="card border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
+        <div class="card-header border-0 bg-gradient-to-r from-slate-50 to-blue-50 rounded-top-2xl py-4">
+            <div class="flex items-center justify-between">
+                <h5 class="mb-0 text-xl font-bold text-slate-800">User Accounts (@Model.TotalCount total)</h5>
+                <div class="text-sm text-slate-600">
+                    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                    {
+                        <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 font-medium">
+                            <i class="bi bi-search mr-1"></i> "@Model.SearchTerm"
+                        </span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
+                <table class="table table-hover mb-0">
+                    <thead class="bg-gradient-to-r from-slate-100 to-blue-100">
                         <tr>
-                            <th>User ID</th>
-                            <th>Display Name</th>
-                            <th>Home Directory</th>
-                            <th>Permissions</th>
-                            <th class="text-end">Actions</th>
+                            <th class="border-0 text-slate-700 font-semibold py-3 px-4">User ID</th>
+                            <th class="border-0 text-slate-700 font-semibold py-3">Display Name</th>
+                            <th class="border-0 text-slate-700 font-semibold py-3">Home Directory</th>
+                            <th class="border-0 text-slate-700 font-semibold py-3">Permissions</th>
+                            <th class="border-0 text-slate-700 font-semibold py-3 text-end">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var user in Model.Users)
                         {
-                            <tr>
-                                <td>
-                                    <i class="bi bi-person"></i> @user.UserId
+                            <tr class="hover:bg-blue-50/50 transition-colors duration-200">
+                                <td class="border-0 py-3 px-4">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="p-2 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg">
+                                            <i class="bi bi-person text-blue-600"></i>
+                                        </div>
+                                        <span class="font-semibold text-slate-800">@user.UserId</span>
+                                    </div>
                                 </td>
-                                <td>@user.DisplayName</td>
-                                <td>
-                                    <code>@user.HomeDirectory</code>
+                                <td class="border-0 py-3 text-slate-700 font-medium">@user.DisplayName</td>
+                                <td class="border-0 py-3">
+                                    <code class="bg-gradient-to-r from-slate-100 to-blue-100 text-slate-700 px-3 py-1 rounded-lg font-mono text-sm">@user.HomeDirectory</code>
                                 </td>
-                                <td>
-                                    <span class="badge bg-secondary">@user.PermissionCount permissions</span>
+                                <td class="border-0 py-3">
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-semibold bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-800">
+                                        <i class="bi bi-shield-check mr-1"></i>
+                                        @user.PermissionCount permissions
+                                    </span>
                                 </td>
-                                <td class="text-end">
+                                <td class="border-0 py-3 text-end">
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="@Url.Action("Edit", "Users", new { id = user.UserId })" 
-                                           class="btn btn-outline-primary" title="Edit">
+                                           class="btn btn-outline-primary border-0 hover:bg-blue-100 hover:text-blue-700 transition-all duration-300 rounded-l-lg" title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <a href="@Url.Action("ChangePassword", "Users", new { id = user.UserId })" 
-                                           class="btn btn-outline-warning" title="Change Password">
+                                           class="btn btn-outline-warning border-0 hover:bg-amber-100 hover:text-amber-700 transition-all duration-300" title="Change Password">
                                             <i class="bi bi-key"></i>
                                         </a>
                                         <a href="@Url.Action("Delete", "Users", new { id = user.UserId })" 
-                                           class="btn btn-outline-danger" title="Delete">
+                                           class="btn btn-outline-danger border-0 hover:bg-red-100 hover:text-red-700 transition-all duration-300 rounded-r-lg" title="Delete">
                                             <i class="bi bi-trash"></i>
                                         </a>
                                     </div>
@@ -90,7 +118,7 @@
 
     @if (Model.TotalCount > Model.PageSize)
     {
-        <nav aria-label="User pagination" class="mt-3">
+        <nav aria-label="User pagination" class="mt-4">
             <ul class="pagination justify-content-center">
                 @{
                     var totalPages = (int)Math.Ceiling((double)Model.TotalCount / Model.PageSize);
@@ -101,7 +129,7 @@
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
                     @Html.ActionLink("Previous", "Index", "Users", 
                         new { page = currentPage - 1, search = Model.SearchTerm }, 
-                        new { @class = "page-link" })
+                        new { @class = "page-link border-0 rounded-l-lg bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-600 transition-all duration-300" })
                 </li>
                 
                 @for (int i = 1; i <= totalPages; i++)
@@ -109,14 +137,14 @@
                     <li class="page-item @(i == currentPage ? "active" : "")">
                         @Html.ActionLink(i.ToString(), "Index", "Users", 
                             new { page = i, search = Model.SearchTerm }, 
-                            new { @class = "page-link" })
+                            new { @class = $"page-link border-0 {(i == currentPage ? "bg-gradient-to-r from-blue-500 to-purple-600 text-white" : "bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-600")} transition-all duration-300" })
                     </li>
                 }
                 
                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
                     @Html.ActionLink("Next", "Index", "Users", 
                         new { page = currentPage + 1, search = Model.SearchTerm }, 
-                        new { @class = "page-link" })
+                        new { @class = "page-link border-0 rounded-r-lg bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-600 transition-all duration-300" })
                 </li>
             </ul>
         </nav>
@@ -124,15 +152,36 @@
 }
 else
 {
-    <div class="alert alert-info">
-        <i class="bi bi-info-circle"></i> 
-        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
-        {
-            <text>No users found matching your search criteria.</text>
-        }
-        else
-        {
-            <text>No users have been created yet. <a href="@Url.Action("Create", "Users")">Create the first user</a>.</text>
-        }
+    <div class="card border-0 shadow-xl rounded-2xl bg-white/80 backdrop-blur-sm">
+        <div class="card-body p-6 text-center">
+            <div class="mb-4">
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                {
+                    <i class="bi bi-search text-6xl text-slate-400"></i>
+                }
+                else
+                {
+                    <i class="bi bi-people text-6xl text-slate-400"></i>
+                }
+            </div>
+            <div class="text-slate-600">
+                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                {
+                    <h4 class="text-slate-700 font-semibold mb-2">No users found</h4>
+                    <p class="mb-3">No users found matching your search criteria "<strong>@Model.SearchTerm</strong>".</p>
+                    <a href="@Url.Action("Index", "Users")" class="btn bg-gradient-to-r from-blue-500 to-purple-600 text-white border-0 px-4 py-2 rounded-lg">
+                        <i class="bi bi-arrow-left mr-1"></i> View All Users
+                    </a>
+                }
+                else
+                {
+                    <h4 class="text-slate-700 font-semibold mb-2">No users yet</h4>
+                    <p class="mb-3">No users have been created yet. Get started by creating your first user account.</p>
+                    <a href="@Url.Action("Create", "Users")" class="btn bg-gradient-to-r from-emerald-500 to-green-600 text-white border-0 px-6 py-3 rounded-xl font-semibold shadow-lg">
+                        <i class="bi bi-person-plus mr-2"></i> Create First User
+                    </a>
+                }
+            </div>
+        </div>
     </div>
 } 
