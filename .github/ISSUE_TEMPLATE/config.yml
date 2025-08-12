@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📋 General Questions
+    url: https://github.com/yuseok-kim-edushare/IIS-FTP-SimpleAuthProvider/discussions
+    about: Ask questions and discuss ideas with the community
+  - name: 🛡️ Security Issues
+    url: https://github.com/yuseok-kim-edushare/IIS-FTP-SimpleAuthProvider/security/advisories/new
+    about: Report security vulnerabilities privately
+  - name: 📖 Documentation
+    url: https://github.com/yuseok-kim-edushare/IIS-FTP-SimpleAuthProvider/blob/main/README.md
+    about: Read the project documentation and guides

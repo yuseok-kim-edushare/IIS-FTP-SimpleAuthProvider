@@ -1,0 +1,225 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for the IIS FTP Simple Authentication Provider
+title: "[FEATURE] "
+labels: ["enhancement"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a new feature! Please fill out the form below to help us understand your request.
+        
+        **For GenAI/Copilot users:** Each section includes specific prompts and examples to help you articulate your feature request clearly and provide all necessary context.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Feature Summary
+      description: "Provide a brief, clear summary of the feature you'd like to see. Example: 'Add support for LDAP authentication backend'"
+      placeholder: "e.g., Support for multi-factor authentication with TOTP codes"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Feature Category
+      description: Which area of the system would this feature affect?
+      options:
+        - Authentication (login mechanisms, password policies)
+        - Authorization (permissions, access control)
+        - User Management (CLI tools, user operations)
+        - Security (encryption, hashing, audit)
+        - Storage Backend (JSON, SQLite, ESENT, new backends)
+        - Configuration (settings, deployment)
+        - Monitoring & Logging (events, diagnostics)
+        - Performance (optimization, caching)
+        - Integration (IIS, external systems)
+        - Documentation & Tooling
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Motivation and Use Case
+      description: |
+        Explain why this feature would be valuable and what problem it solves.
+        
+        **GenAI Prompt:** Describe the specific problem or limitation you're facing with the current system. Explain how this feature would improve your workflow, security posture, or user experience. Include real-world scenarios where this would be beneficial.
+      placeholder: |
+        Example:
+        
+        **Problem:** Currently, there's no way to enforce password complexity requirements, leading to weak passwords that compromise security.
+        
+        **Use Case:** In enterprise environments, security policies require passwords to meet specific criteria (length, character types, expiration). This feature would allow administrators to:
+        - Configure minimum password requirements
+        - Enforce password rotation policies  
+        - Prevent common weak passwords
+        - Meet compliance requirements (SOX, HIPAA, etc.)
+        
+        **Impact:** This would improve security posture and enable adoption in regulated industries.
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Detailed Feature Description
+      description: |
+        Provide a detailed description of how you envision this feature working.
+        
+        **GenAI Prompt:** Describe the feature's functionality, user interface (if applicable), configuration options, and integration points. Include specific examples of how users would interact with this feature.
+      placeholder: |
+        Example:
+        
+        **Functionality:**
+        - Add password policy configuration to ftpauth.config.json
+        - Validate passwords against policy during user creation/password changes
+        - Support configurable rules: minimum length, character requirements, dictionary checks
+        
+        **Configuration Example:**
+        ```json
+        {
+          "PasswordPolicy": {
+            "MinLength": 12,
+            "RequireUppercase": true,
+            "RequireNumbers": true,
+            "RequireSpecialChars": true,
+            "ProhibitCommonPasswords": true,
+            "MaxAge": 90
+          }
+        }
+        ```
+        
+        **CLI Integration:**
+        - `ftpauth create-user` validates against policy
+        - `ftpauth check-policy` command to test passwords
+        - `ftpauth audit-passwords` to check existing users
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance_criteria
+    attributes:
+      label: Acceptance Criteria
+      description: |
+        Define specific, testable criteria that would indicate this feature is complete.
+        
+        **GenAI Prompt:** List measurable outcomes and behaviors that the feature must exhibit. Write these as "Given/When/Then" scenarios or bullet points that could be used for testing.
+      placeholder: |
+        Example:
+        
+        - [ ] Configuration file accepts password policy settings
+        - [ ] User creation fails when password doesn't meet policy
+        - [ ] Existing users with weak passwords are flagged during audit
+        - [ ] CLI provides clear error messages for policy violations
+        - [ ] Documentation includes policy configuration examples
+        - [ ] Feature works with all user store types (JSON, SQLite, ESENT)
+        - [ ] Performance impact is minimal (< 50ms additional validation time)
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: |
+        Describe alternative solutions or workarounds you've considered.
+        
+        **GenAI Prompt:** Explain other approaches to solving this problem that you've thought about. Include why the proposed solution is preferable to these alternatives.
+      placeholder: |
+        Example:
+        
+        **Alternative 1:** Use Windows password policy enforcement
+        - Pros: Leverages existing system capabilities
+        - Cons: Requires Windows/AD accounts, defeats purpose of standalone auth provider
+        
+        **Alternative 2:** Third-party password validation service
+        - Pros: Robust validation rules
+        - Cons: External dependency, additional complexity, potential privacy concerns
+        
+        **Preferred Solution:** Built-in policy validation
+        - Pros: No external dependencies, configurable, works offline
+        - Cons: Requires development effort, additional configuration complexity
+
+  - type: textarea
+    id: technical_considerations
+    attributes:
+      label: Technical Considerations
+      description: |
+        Any technical aspects, constraints, or implementation ideas you'd like to share.
+        
+        **GenAI Prompt:** Consider aspects like backward compatibility, performance implications, security considerations, integration challenges, or suggested implementation approaches.
+      placeholder: |
+        Example:
+        
+        **Backward Compatibility:** Feature should be opt-in to avoid breaking existing deployments
+        
+        **Performance:** Policy validation should be fast and not significantly impact authentication time
+        
+        **Security:** Policy settings should be validated to prevent weak configurations
+        
+        **Implementation Ideas:**
+        - Use existing password hashing infrastructure
+        - Add policy validation layer before hashing
+        - Consider caching policy rules for performance
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority Level
+      description: How important is this feature to your use case?
+      options:
+        - Critical (blocking adoption or causing security issues)
+        - High (significantly improves functionality or security)
+        - Medium (nice to have, improves user experience)
+        - Low (minor improvement or convenience feature)
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: Would you be interested in contributing to this feature?
+      options:
+        - label: I would like to contribute to implementing this feature
+          required: false
+        - label: I can help with testing and validation
+          required: false
+        - label: I can provide documentation or examples
+          required: false
+        - label: I can help with code review
+          required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please verify you have completed the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this feature hasn't been requested
+          required: true
+        - label: I have provided clear motivation and use cases
+          required: true
+        - label: I have considered alternative solutions
+          required: true
+        - label: I have defined specific acceptance criteria
+          required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information, mockups, or references that would be helpful.
+        
+        **GenAI Prompt:** Include links to related projects, industry standards, mockups, diagrams, or any other supporting material that illustrates your feature request.
+      placeholder: |
+        - Related projects: [links to similar implementations]
+        - Industry standards: [relevant RFCs, standards, or best practices]
+        - Mockups: [UI mockups or configuration examples]
+        - References: [documentation, articles, or discussions]

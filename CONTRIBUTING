@@ -4,7 +4,34 @@ We welcome contributions to the IIS FTP Simple Authentication Provider project! 
 
 ## How to Contribute
 
-The process for contributing is as follows:
+We've streamlined the contribution process with comprehensive templates and guidelines:
+
+### 📋 Using Our Templates
+
+**Before creating any issue or PR**, please use our structured templates:
+
+#### Issues
+- **🐛 Bug Reports:** Use the [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.yml) 
+  - Includes reproduction steps, environment details, and error logs
+  - GenAI-friendly prompts help you provide complete information
+  
+- **✨ Feature Requests:** Use the [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.yml)
+  - Covers motivation, detailed descriptions, and acceptance criteria
+  - Includes sections for alternatives considered and technical considerations
+  
+- **📚 Documentation:** Use the [Documentation template](.github/ISSUE_TEMPLATE/documentation.yml)
+  - Identifies missing, unclear, or incorrect documentation
+  - Provides suggestions for improvement with specific examples
+
+#### Pull Requests
+- **🔄 All PRs:** Use our comprehensive [PR template](.github/PULL_REQUEST_TEMPLATE.md)
+  - Covers changes made, testing instructions, and security considerations
+  - Includes code quality checklists and deployment notes
+  - Designed to work seamlessly with GenAI/Copilot tools
+
+### 🚀 Contribution Workflow
+
+The detailed process for contributing is as follows:
 
 1.  **Fork the repository:** Start by forking the main repository to your personal GitHub account.
 
@@ -30,11 +57,30 @@ The process for contributing is as follows:
 
 ## Reporting Bugs
 
-If you find a bug, please open an issue on GitHub. Provide a clear description of the bug, steps to reproduce it, and the expected behavior.
+If you find a bug, please use our [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.yml) on GitHub. The template will guide you to provide:
+- Clear description with reproduction steps
+- Environment details (OS, IIS version, .NET Framework)
+- Error logs and messages from Windows Event Log
+- Configuration details and any workarounds found
+
+**For GenAI users:** The template includes specific prompts to help AI assistants generate comprehensive bug reports automatically.
 
 ## Suggesting Features
 
-If you have an idea for a new feature, please open an issue on GitHub to discuss it. This helps prevent duplicate work and ensures that the feature aligns with the project's goals.
+If you have an idea for a new feature, please use our [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.yml) to discuss it. This template helps you provide:
+- Clear motivation and use cases
+- Detailed implementation ideas  
+- Acceptance criteria and alternatives considered
+- Technical considerations and priority level
+
+This helps prevent duplicate work and ensures that the feature aligns with the project's goals.
+
+## Documentation Issues
+
+Found unclear or missing documentation? Use our [Documentation Request template](.github/ISSUE_TEMPLATE/documentation.yml) to help us improve:
+- Identify specific gaps or errors in documentation
+- Suggest concrete improvements with examples
+- Help prioritize documentation needs based on user impact
 
 ## Development Setup
 
