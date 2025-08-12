@@ -59,7 +59,12 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore
-        run: dotnet restore
+        run: |
+          dotnet restore src/Core/Core.csproj
+          dotnet restore src/ManagementWeb/ManagementWeb.csproj
+          dotnet restore src/ManagementCli/ManagementCli.csproj
+          dotnet restore tests/Core.Tests/Core.Tests.csproj
+          dotnet restore tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj
 
       - name: Build (excluding AuthProvider)
         run: |
