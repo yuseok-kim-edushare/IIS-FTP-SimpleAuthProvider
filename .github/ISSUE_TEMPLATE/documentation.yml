@@ -1,0 +1,258 @@
+name: Documentation Request
+description: Report missing, unclear, or incorrect documentation
+title: "[DOCS] "
+labels: ["documentation"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve our documentation! Please fill out the form below to describe what documentation needs attention.
+        
+        **For GenAI/Copilot users:** Use the prompts in each section to provide specific, actionable feedback about documentation gaps or improvements.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Documentation Issue Summary
+      description: "Provide a brief summary of the documentation issue. Example: 'Missing configuration examples for SQLite user store'"
+      placeholder: "e.g., Installation instructions for Windows Server 2022 are incomplete"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: type
+    attributes:
+      label: Issue Type
+      description: What type of documentation issue is this?
+      options:
+        - Missing Documentation (content doesn't exist)
+        - Incorrect Information (content is wrong or outdated)
+        - Unclear Instructions (content exists but is confusing)
+        - Missing Examples (need code samples or use cases)
+        - Formatting Issues (markup, rendering, or layout problems)
+        - Broken Links (links don't work or point to wrong content)
+        - Outdated Content (content refers to old versions or deprecated features)
+        - Translation Request (content needs translation)
+        - Accessibility Issue (content not accessible to all users)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: location
+    attributes:
+      label: Documentation Location
+      description: Where is this documentation issue located?
+      options:
+        - README.md (main project overview)
+        - CONTRIBUTING (contributor guidelines)
+        - Installation Guide (setup and deployment)
+        - Configuration Reference (settings and options)
+        - CLI Documentation (ftpauth.exe usage)
+        - API Documentation (code interfaces)
+        - Troubleshooting Guide (common issues)
+        - Security Guide (encryption, hashing, best practices)
+        - Code Comments (inline documentation)
+        - Wiki or External Docs
+        - Multiple Locations
+        - New Documentation Needed
+    validations:
+      required: true
+
+  - type: textarea
+    id: current_content
+    attributes:
+      label: Current Content (if applicable)
+      description: |
+        If updating existing content, please quote the current text that needs improvement.
+        
+        **GenAI Prompt:** Copy and paste the exact text, code snippet, or section that has issues. This helps us identify precisely what needs to be changed.
+      placeholder: |
+        Example:
+        
+        Current text from README.md lines 45-50:
+        ```
+        2. **Install the providers to IIS**
+           Copy-Item "src\AuthProvider\bin\Debug\net48\*.dll" "C:\Windows\System32\inetsrv\"
+        ```
+        
+        Issue: This assumes a Debug build and doesn't explain Release builds or different deployment scenarios.
+      render: markdown
+
+  - type: textarea
+    id: issue_description
+    attributes:
+      label: Detailed Issue Description
+      description: |
+        Explain what's wrong with the current documentation or what's missing.
+        
+        **GenAI Prompt:** Describe specifically what makes the documentation inadequate. Is information missing? Are instructions unclear? Are examples incomplete? What would a user struggle with when following the current documentation?
+      placeholder: |
+        Example:
+        
+        **Missing Information:**
+        - No explanation of when to use Debug vs Release builds
+        - Missing steps for registering the provider in IIS
+        - No troubleshooting steps if installation fails
+        
+        **User Impact:**
+        - New users can't complete installation successfully
+        - Deployment to production servers fails
+        - No guidance for resolving permission errors
+        
+        **Specific Problems:**
+        - Step 2 copies Debug binaries but production needs Release
+        - No mention of required IIS features/roles
+        - Missing verification steps to confirm installation
+    validations:
+      required: true
+
+  - type: textarea
+    id: suggested_content
+    attributes:
+      label: Suggested Improvement
+      description: |
+        Provide your suggestion for how to improve the documentation.
+        
+        **GenAI Prompt:** Write the improved documentation content, including code examples, step-by-step instructions, or clarifications. Format this as you would like to see it in the final documentation.
+      placeholder: |
+        Example:
+        
+        **Improved Section:**
+        
+        ## 2. Install the Authentication Providers
+        
+        ### Build the Solution
+        ```powershell
+        # For development/testing
+        dotnet build --configuration Debug
+        
+        # For production deployment
+        dotnet build --configuration Release
+        ```
+        
+        ### Deploy to IIS
+        ```powershell
+        # Copy Release binaries to IIS directory
+        Copy-Item "src\AuthProvider\bin\Release\net48\*.dll" "C:\Windows\System32\inetsrv\"
+        
+        # Verify files are copied
+        Get-ChildItem "C:\Windows\System32\inetsrv\" -Filter "*SimpleAuth*"
+        ```
+        
+        ### Register Providers in IIS
+        1. Open IIS Manager as Administrator
+        2. Navigate to your FTP site
+        3. Double-click "FTP Authentication"
+        4. Click "Custom Providers..."
+        5. Add the provider names:
+           - Authentication: `IIS.Ftp.SimpleAuth.Provider.SimpleFtpAuthenticationProvider`
+           - Authorization: `IIS.Ftp.SimpleAuth.Provider.SimpleFtpAuthorizationProvider`
+        
+        ### Verify Installation
+        ```powershell
+        # Check Windows Event Log for any registration errors
+        Get-EventLog -LogName Application -Source "IIS-FTP-SimpleAuth" -Newest 10
+        ```
+      render: markdown
+
+  - type: dropdown
+    id: audience
+    attributes:
+      label: Target Audience
+      description: Who would benefit most from this documentation improvement?
+      options:
+        - New Users (first-time installation and setup)
+        - System Administrators (deployment and maintenance)
+        - Developers (contributing to the project)
+        - Security Teams (security configuration and best practices)
+        - Troubleshooters (solving problems and errors)
+        - Advanced Users (customization and integration)
+        - All Users
+    validations:
+      required: true
+
+  - type: dropdown
+    id: urgency
+    attributes:
+      label: Urgency Level
+      description: How urgent is this documentation issue?
+      options:
+        - Critical (blocks users from basic functionality)
+        - High (causes significant user confusion or errors)
+        - Medium (improves user experience but workarounds exist)
+        - Low (minor improvement or enhancement)
+    validations:
+      required: true
+
+  - type: textarea
+    id: user_story
+    attributes:
+      label: User Story
+      description: |
+        Describe a scenario where someone would encounter this documentation issue.
+        
+        **GenAI Prompt:** Write a brief user story that illustrates when and how someone would run into this documentation problem. This helps prioritize the fix and understand the impact.
+      placeholder: |
+        Example:
+        
+        **Scenario:** A system administrator needs to deploy the FTP authentication provider to a production Windows Server 2022 environment.
+        
+        **Current Experience:**
+        1. Admin follows README installation steps
+        2. Copies Debug binaries as instructed
+        3. FTP authentication fails in production
+        4. No troubleshooting guidance in docs
+        5. Admin has to reverse-engineer the correct process
+        
+        **Desired Experience:**
+        1. Admin follows comprehensive installation guide
+        2. Builds Release binaries for production
+        3. Verifies installation with provided scripts
+        4. FTP authentication works correctly
+        5. Admin can troubleshoot issues using provided guidance
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Contribution Interest
+      description: Would you be interested in contributing to this documentation improvement?
+      options:
+        - label: I would like to write the improved documentation
+          required: false
+        - label: I can provide additional examples or use cases
+          required: false
+        - label: I can help review and test the documentation
+          required: false
+        - label: I can provide screenshots or diagrams
+          required: false
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please verify you have completed the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this documentation issue hasn't been reported
+          required: true
+        - label: I have provided specific examples of the problem
+          required: true
+        - label: I have suggested concrete improvements
+          required: true
+        - label: I have considered the target audience for this documentation
+          required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that would help improve the documentation.
+        
+        **GenAI Prompt:** Include related documentation that works well, links to similar projects with good docs, or any other context that would help create excellent documentation.
+      placeholder: |
+        - Related good examples: [links to well-documented similar projects]
+        - Supporting materials: [screenshots, diagrams, or external references]
+        - User feedback: [quotes or summaries of user confusion]
+        - Platform-specific notes: [Windows Server versions, IIS versions, etc.]

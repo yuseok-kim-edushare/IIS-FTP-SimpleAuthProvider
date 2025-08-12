@@ -1,0 +1,153 @@
+name: Bug Report
+description: Report a bug to help us improve the IIS FTP Simple Authentication Provider
+title: "[BUG] "
+labels: ["bug"]
+assignees: []
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the form below to help us understand and reproduce the issue.
+        
+        **For GenAI/Copilot users:** Each section below includes examples and specific prompts to help you provide detailed, useful information.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Bug Summary
+      description: "Provide a brief, clear summary of the bug. Example: 'FTP authentication fails for users with special characters in password'"
+      placeholder: "e.g., Authentication provider crashes when processing usernames with Unicode characters"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component Affected
+      description: Which component of the system is affected by this bug?
+      options:
+        - Authentication Provider (IIS FTP authentication)
+        - Authorization Provider (IIS FTP permissions)
+        - Management CLI (ftpauth.exe)
+        - Management Web Interface
+        - Core Library (password hashing, encryption)
+        - User Store (JSON/SQLite/ESENT)
+        - Documentation
+        - Other (specify in description)
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Detailed Description
+      description: |
+        Provide a detailed description of the bug. Include what you expected to happen vs. what actually happened.
+        
+        **GenAI Prompt:** Describe the specific behavior you observed, including any error messages, unexpected responses, or system failures. Compare this with the expected behavior based on documentation or reasonable assumptions.
+      placeholder: |
+        Example:
+        - Expected: User should be able to authenticate with password containing special characters
+        - Actual: Authentication fails with "Invalid credentials" error
+        - Error appears in Windows Event Log as "Password validation failed for user"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        Provide step-by-step instructions to reproduce the bug.
+        
+        **GenAI Prompt:** List numbered steps that someone else could follow to recreate this issue. Include specific commands, configuration settings, or user actions.
+      placeholder: |
+        1. Configure IIS FTP site with Simple Authentication Provider
+        2. Create user with CLI: `ftpauth create-user -u "test@domain.com" -p "Pass@123!" -f users.json`
+        3. Attempt FTP login: `ftp ftp://test@domain.com:Pass@123!@localhost`
+        4. Observe authentication failure
+        5. Check Windows Event Log for error details
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment Details
+      description: |
+        Provide information about your environment where the bug occurs.
+        
+        **GenAI Prompt:** Include operating system version, IIS version, .NET Framework version, and any relevant configuration details from ftpauth.config.json.
+      placeholder: |
+        - OS: Windows Server 2019 (Build 17763)
+        - IIS Version: 10.0
+        - .NET Framework: 4.8
+        - Authentication Provider Version: [version number]
+        - User Store Type: JSON/SQLite/ESENT
+        - Encryption: DPAPI/AES-GCM
+        - Special configurations: [any custom settings]
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log Output and Error Messages
+      description: |
+        Include relevant log entries, error messages, or stack traces.
+        
+        **GenAI Prompt:** Copy and paste any error messages from Windows Event Log (Event Viewer > Applications > IIS-FTP-SimpleAuth), IIS logs, or console output. Remove any sensitive information like passwords or encryption keys.
+      placeholder: |
+        Example from Windows Event Log:
+        ```
+        Event ID: 1001
+        Source: IIS-FTP-SimpleAuth
+        Level: Error
+        Description: Authentication failed for user 'test@domain.com' from IP 127.0.0.1
+        Details: Password validation failed - invalid character encoding
+        ```
+      render: text
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround (if any)
+      description: |
+        If you found a temporary workaround, please describe it.
+        
+        **GenAI Prompt:** Describe any temporary solutions or configuration changes that resolve or mitigate the issue.
+      placeholder: |
+        Example: Using passwords without special characters allows authentication to work.
+        Alternative: Switching from BCrypt to PBKDF2 hashing resolves the issue.
+
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Pre-submission Checklist
+      description: Please verify you have completed the following before submitting
+      options:
+        - label: I have searched existing issues to ensure this bug hasn't been reported
+          required: true
+        - label: I have included clear steps to reproduce the issue
+          required: true
+        - label: I have provided relevant environment and configuration details
+          required: true
+        - label: I have removed any sensitive information (passwords, keys) from logs
+          required: true
+        - label: I have tested this with the latest version when possible
+          required: false
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: |
+        Any additional information that might be helpful for debugging.
+        
+        **GenAI Prompt:** Include screenshots, configuration files (with sensitive data removed), related issues, or any other context that might help understand the problem.
+      placeholder: |
+        - Related issues: #123, #456
+        - Configuration files: [attach relevant config snippets]
+        - Screenshots: [if UI-related bug]
+        - Timeline: [when did this start occurring?]

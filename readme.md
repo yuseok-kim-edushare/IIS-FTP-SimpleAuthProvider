@@ -239,14 +239,52 @@ ftpauth list-users -f dummy.json
 
 ## Contributing
 
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+Contributions are welcome! We've made it easy to get started with comprehensive templates and guidelines.
 
-See [CONTRIBUTING](CONTRIBUTING) for detailed guidelines.
+### 🚀 Quick Start for Contributors
+1. **Fork the repository** and create a feature branch
+2. **Choose the right template** when creating issues or PRs
+3. **Follow our guidelines** for code quality and testing
+4. **Submit your contribution** with detailed information
+
+### 📋 Issue and PR Templates
+We provide structured templates to help you contribute effectively:
+
+#### 🐛 **Bug Reports**
+Use our [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.yml) when you encounter issues. The template includes:
+- Step-by-step reproduction instructions
+- Environment details and error logs
+- GenAI-friendly prompts for comprehensive reporting
+
+#### ✨ **Feature Requests** 
+Use our [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.yml) to suggest enhancements. Include:
+- Clear motivation and use cases
+- Detailed implementation ideas
+- Acceptance criteria and alternatives considered
+
+#### 📚 **Documentation Issues**
+Use our [Documentation Request template](.github/ISSUE_TEMPLATE/documentation.yml) for docs improvements:
+- Identify missing or unclear content
+- Suggest specific improvements
+- Help us prioritize documentation needs
+
+#### 🔄 **Pull Requests**
+Our [PR template](.github/PULL_REQUEST_TEMPLATE.md) guides you through:
+- Comprehensive change descriptions
+- Testing instructions and security considerations
+- Code quality checklists and deployment notes
+
+### 🤖 GenAI/Copilot Friendly
+All templates include specific prompts and examples designed to work well with AI coding assistants like GitHub Copilot, making it easier to:
+- Generate complete issue reports
+- Create detailed PR descriptions
+- Follow best practices automatically
+
+### 📖 Detailed Guidelines
+See [CONTRIBUTING](CONTRIBUTING) for comprehensive contributor guidelines including:
+- Development setup and building from source
+- Code style and quality standards
+- Testing requirements and procedures
 
 ## License
 
