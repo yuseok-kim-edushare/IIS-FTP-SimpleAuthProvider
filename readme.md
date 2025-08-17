@@ -14,9 +14,12 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 - ✅ **Hot-reload support** - Update users without restarting IIS
 - ✅ **Flexible permissions** - Per-path read/write access control
 - ✅ **CLI management tool** - Easy user and encryption key management
+- ✅ **Web management interface** - User-friendly web UI for user and permission management
 - ✅ **Multiple encryption options** - DPAPI or AES-256-GCM with environment variable keys
 
 ## Quick Start (5 Steps)
+
+> **📖 For detailed installation and setup instructions, see [Installation & Setup Guide](docs/installation-and-setup-guide.md)**
 
 1. **Build the solution**
    ```powershell
@@ -136,6 +139,24 @@ ftpauth add-permission -f users.json -u jane.doe -p "/shared/documents" --read -
 ftpauth remove-user -f users.json -u jane.doe
 ```
 
+## Web Management Interface
+
+The project includes a comprehensive web-based management console for easy user and permission management:
+
+### Features
+- **Dashboard**: System health monitoring and user statistics
+- **User Management**: Create, edit, and delete users through web UI
+- **Permission Management**: Granular folder access control with visual interface
+- **System Monitoring**: Health checks, metrics, and audit logs
+- **Bulk Operations**: Import/export users and bulk permission updates
+
+### Access
+- Navigate to `/ftpauth/` on your IIS server
+- Login with admin credentials configured during setup
+- Manage users and permissions through the intuitive web interface
+
+> **🔧 Setup**: See [Installation & Setup Guide](docs/installation-and-setup-guide.md) for web interface configuration
+
 ### Encryption Management
 
 ```powershell
@@ -191,6 +212,13 @@ Authentication events are logged to Windows Event Log:
 - Source: `IIS-FTP-SimpleAuth`
 - Success/failure events with session ID and client IP
 - Configure verbosity in `ftpauth.config.json`
+
+## Documentation
+
+- **[Installation & Setup Guide](docs/installation-and-setup-guide.md)** - Complete step-by-step installation and configuration
+- **[Design Documentation](docs/design.md)** - Architecture and design decisions
+- **[Web Management Console](docs/Web-Management-Console-Summary.md)** - Web UI features and usage
+- **[Improvement Roadmap](docs/improvement-roadmap.md)** - Future development plans
 
 ## Development
 
