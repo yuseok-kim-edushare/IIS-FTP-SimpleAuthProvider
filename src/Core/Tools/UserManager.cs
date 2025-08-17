@@ -268,8 +268,12 @@ namespace IIS.Ftp.SimpleAuth.Core.Tools
                 var options = new JsonSerializerOptions { WriteIndented = true };
                 var json = JsonSerializer.Serialize(users, options);
                 
-                // Ensure directory exists
-                Directory.CreateDirectory(Path.GetDirectoryName(filePath) ?? ".");
+                // Ensure directory exists if file path contains directory
+                var directory = Path.GetDirectoryName(filePath);
+                if (!string.IsNullOrEmpty(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
                 
                 File.WriteAllText(filePath, json);
             }
