@@ -20,6 +20,7 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 ## Quick Start (5 Steps)
 
 > **📖 For detailed installation and setup instructions, see [Installation & Setup Guide](docs/installation-and-setup-guide.md)**
+> **🖥️ For Windows 11 Pro client setup, see [Windows 11 Pro Client Setup Guide](docs/windows-11-pro-client-setup.md)**
 
 1. **Build the solution**
    ```powershell
@@ -216,6 +217,7 @@ Authentication events are logged to Windows Event Log:
 ## Documentation
 
 - **[Installation & Setup Guide](docs/installation-and-setup-guide.md)** - Complete step-by-step installation and configuration
+- **[Windows 11 Pro Client Setup Guide](docs/windows-11-pro-client-setup.md)** - Windows 11 Pro 클라이언트 환경에서 실행하기 위한 설정 가이드
 - **[Design Documentation](docs/design.md)** - Architecture and design decisions
 - **[Web Management Console](docs/Web-Management-Console-Summary.md)** - Web UI features and usage
 - **[Improvement Roadmap](docs/improvement-roadmap.md)** - Future development plans

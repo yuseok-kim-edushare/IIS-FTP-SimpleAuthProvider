@@ -5,6 +5,9 @@
     <AssemblyName>IIS.Ftp.SimpleAuth.Provider</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <!-- Add these lines to ensure dependencies are copied -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
   </PropertyGroup>
   
   <ItemGroup>

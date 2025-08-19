@@ -18,12 +18,14 @@
     <UseWindowsForms>false</UseWindowsForms>
     <UseConsoleApplication>false</UseConsoleApplication>
     <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <!-- Ensure NuGet packages are copied to bin folder -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.3.0" />
-    <PackageReference Include="Microsoft.AspNet.Razor" Version="3.3.0" />
-    <PackageReference Include="Microsoft.AspNet.WebPages" Version="3.3.0" />
+    <PackageReference Include="Microsoft.AspNet.Mvc" Version="5.2.9" />
+    <PackageReference Include="Microsoft.AspNet.Razor" Version="3.2.9" />
+    <PackageReference Include="Microsoft.AspNet.WebPages" Version="3.2.9" />
     <PackageReference Include="Microsoft.Web.Infrastructure" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Unity" Version="5.11.10" />
@@ -43,6 +45,13 @@
   <ItemGroup>
     <Reference Include="System.Web" />
     <Reference Include="System.Configuration" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Web.Extensions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
 
   <ItemGroup>

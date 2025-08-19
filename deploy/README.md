@@ -1,0 +1,222 @@
+# IIS FTP SimpleAuthProvider 배포 가이드
+
+이 폴더에는 IIS FTP SimpleAuthProvider를 IIS에 배포하고 관리하기 위한 PowerShell 스크립트들이 포함되어 있습니다.
+
+## 📋 사전 요구사항
+
+### 시스템 요구사항
+- Windows Server 2016+ 또는 Windows 10/11 Pro
+- IIS 10.0+ 설치 및 활성화
+- .NET Framework 4.8 설치
+- IIS FTP Server 기능 설치
+- PowerShell 5.0+ (Windows 10/11 기본 포함)
+
+### 권한 요구사항
+- **관리자 권한**: 모든 스크립트는 관리자 권한으로 실행해야 합니다
+- **IIS 관리 권한**: IIS 사이트 및 애플리케이션 풀 생성/수정 권한
+
+## 🚀 스크립트 개요
+
+### 1. `deploy-to-iis.ps1` - 메인 배포 스크립트
+IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업데이트합니다.
+
+**주요 기능:**
+- 웹 애플리케이션 파일 복사
+- AuthProvider DLL을 IIS 시스템 디렉토리에 복사
+- 사용자 데이터 디렉토리 생성 및 권한 설정
+- IIS 애플리케이션 풀 및 사이트 생성 (선택사항)
+- 기존 배포 자동 백업
+
+**사용법:**
+```powershell
+# 기본 배포
+.\deploy-to-iis.ps1
+
+# IIS 구성 요소까지 생성
+.\deploy-to-iis.ps1 -CreateAppPool -CreateSite
+
+# 기존 배포 강제 덮어쓰기
+.\deploy-to-iis.ps1 -Force
+```
+
+### 2. `update-deployment.ps1` - 업데이트 스크립트
+기존 배포를 안전하게 업데이트합니다.
+
+**주요 기능:**
+- 현재 배포 자동 백업
+- 파일 및 DLL 업데이트
+- 오류 시 자동 롤백 (선택사항)
+
+**사용법:**
+```powershell
+# 기본 업데이트
+.\update-deployment.ps1
+
+# 오류 시 자동 롤백
+.\update-deployment.ps1 -RollbackOnError
+```
+
+### 3. `rollback-deployment.ps1` - 배포 철회 스크립트
+배포를 철회하고 시스템을 이전 상태로 복원합니다.
+
+**주요 기능:**
+- 웹 애플리케이션 제거
+- AuthProvider DLL 제거/복원
+- IIS 구성 요소 제거 (선택사항)
+- 백업에서 복원 옵션
+
+**사용법:**
+```powershell
+# 기본 철회
+.\rollback-deployment.ps1
+
+# IIS 구성 요소까지 제거
+.\rollback-deployment.ps1 -RemoveSite -RemoveAppPool
+
+# 강제 철회 (확인 없음)
+.\rollback-deployment.ps1 -Force
+```
+
+### 4. `check-deployment-status.ps1` - 상태 확인 스크립트
+현재 배포 상태와 시스템 상태를 확인합니다.
+
+**주요 기능:**
+- 웹 애플리케이션 상태 확인
+- AuthProvider DLL 상태 확인
+- IIS 구성 상태 확인
+- 백업 상태 확인
+- 시스템 요구사항 확인
+
+**사용법:**
+```powershell
+# 기본 상태 확인
+.\check-deployment-status.ps1
+
+# 상세 정보 포함
+.\check-deployment-status.ps1 -Detailed
+```
+
+## 🔧 배포 워크플로우
+
+### 초기 배포
+```powershell
+# 1. 프로젝트 빌드
+dotnet build --configuration Release
+
+# 2. IIS에 배포
+.\deploy-to-iis.ps1 -CreateAppPool -CreateSite
+
+# 3. 배포 상태 확인
+.\check-deployment-status.ps1
+```
+
+### 업데이트
+```powershell
+# 1. 프로젝트 빌드
+dotnet build --configuration Release
+
+# 2. 안전한 업데이트
+.\update-deployment.ps1 -RollbackOnError
+
+# 3. 업데이트 후 상태 확인
+.\check-deployment-status.ps1
+```
+
+### 문제 발생 시
+```powershell
+# 1. 현재 상태 확인
+.\check-deployment-status.ps1
+
+# 2. 배포 철회
+.\rollback-deployment.ps1
+
+# 3. 백업에서 복원 (선택사항)
+# 스크립트가 자동으로 복원 옵션을 제공합니다
+```
+
+## 📁 배포 구조
+
+```
+C:\inetpub\wwwroot\ftpauth\          # 웹 애플리케이션
+├── ManagementWeb.dll                 # 메인 웹 애플리케이션
+├── IIS.Ftp.SimpleAuth.Core.dll      # 핵심 라이브러리
+├── Web.config                        # 웹 설정
+├── deployment-info.json              # 배포 정보
+└── [기타 웹 파일들]
+
+C:\Windows\System32\inetsrv\         # IIS 시스템 디렉토리
+├── IIS.Ftp.SimpleAuth.Provider.dll  # FTP 인증 공급자
+├── IIS.Ftp.SimpleAuth.Core.dll      # 핵심 라이브러리
+├── WelsonJS.Esent.dll               # ESENT 데이터베이스 지원
+└── Esent.Interop.dll                # ESENT 인터페이스
+
+C:\inetpub\ftpusers\                 # 사용자 데이터
+├── users.json                        # 사용자 정보
+└── [기타 데이터 파일들]
+
+C:\inetpub\backup\ftpauth\           # 백업 디렉토리
+├── 20241201_143022\                 # 타임스탬프별 백업
+├── 20241201_150015\
+└── [DLL 백업 파일들]
+```
+
+## ⚠️ 주의사항
+
+### 보안
+- 모든 스크립트는 관리자 권한으로 실행됩니다
+- 프로덕션 환경에서 실행하기 전에 테스트 환경에서 검증하세요
+- 백업이 자동으로 생성되지만 중요한 데이터는 별도로 백업하세요
+
+### IIS 설정
+- IIS FTP 사이트에 AuthProvider를 수동으로 등록해야 합니다
+- 애플리케이션 풀의 .NET Framework 버전이 4.0으로 설정되어야 합니다
+- IIS_IUSRS 그룹에 사용자 데이터 디렉토리 접근 권한이 필요합니다
+
+### 문제 해결
+- 스크립트 실행 오류 시 PowerShell 실행 정책을 확인하세요: `Get-ExecutionPolicy`
+- IIS 관리 모듈 로드 실패 시 IIS가 제대로 설치되었는지 확인하세요
+- DLL 복사 실패 시 바이러스 백신 소프트웨어의 간섭을 확인하세요
+
+## 🔍 문제 해결
+
+### 일반적인 문제들
+
+#### 1. PowerShell 실행 정책 오류
+```powershell
+# 현재 정책 확인
+Get-ExecutionPolicy
+
+# 정책 변경 (관리자 권한 필요)
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+#### 2. IIS 관리 모듈 로드 실패
+```powershell
+# IIS 기능 확인
+Get-WindowsFeature -Name Web-Server
+
+# IIS 관리 도구 설치
+Install-WindowsFeature -Name Web-Mgmt-Tools
+```
+
+#### 3. 권한 오류
+```powershell
+# IIS_IUSRS 그룹에 권한 부여
+$acl = Get-Acl "C:\inetpub\ftpusers"
+$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
+$acl.SetAccessRule($accessRule)
+Set-Acl -Path "C:\inetpub\ftpusers" -AclObject $acl
+```
+
+## 📞 지원
+
+문제가 발생하거나 추가 도움이 필요한 경우:
+1. `check-deployment-status.ps1`을 실행하여 현재 상태 확인
+2. Windows 이벤트 로그에서 오류 메시지 확인
+3. 프로젝트 이슈 페이지에 문제 보고
+
+## 📝 변경 이력
+
+- **v1.0.0**: 초기 배포 스크립트 생성
+- **v1.1.0**: 업데이트 및 롤백 기능 추가
+- **v1.2.0**: 상태 확인 및 문제 해결 기능 추가

@@ -18,10 +18,12 @@ Complete step-by-step guide for installing, configuring, and managing the IIS FT
 - [Security Best Practices](#security-best-practices)
 - [Maintenance & Updates](#maintenance--updates)
 
+> **🖥️ Windows 11 Pro 클라이언트에서 실행하려면 [Windows 11 Pro Client Setup Guide](windows-11-pro-client-setup.md)를 참조하세요.**
+
 ## 🔧 Prerequisites
 
 ### System Requirements
-- **Operating System**: Windows Server 2012 R2 or later
+- **Operating System**: Windows Server 2012 R2 or later, **Windows 11 Pro** (see [Windows 11 Pro Client Setup Guide](windows-11-pro-client-setup.md))
 - **IIS Version**: IIS 8.0 or later
 - **.NET Framework**: 4.8 or later (server 2012R2 requires upgrade .NET Fx)
 - **PowerShell**: 5.1 or later (server 2012R2 requires upgrade Powershell)
@@ -68,8 +70,12 @@ New-Item -ItemType Directory -Path "C:\Program Files\IIS-FTP-SimpleAuth" -Force
 New-Item -ItemType Directory -Path "C:\inetpub\wwwroot\ftpauth" -Force
 New-Item -ItemType Directory -Path "C:\inetpub\ftpusers" -Force
 
-# Deploy ManagementWeb to IIS
-Copy-Item "src\ManagementWeb\bin\Release\net48\*" "C:\inetpub\wwwroot\ftpauth\" -Recurse -Force
+# Deploy ManagementWeb to IIS (complete web application)
+# First, copy the web content (excluding bin and obj folders)
+Get-ChildItem "src\ManagementWeb" -Exclude "bin", "obj" | Copy-Item -Destination "C:\inetpub\wwwroot\ftpauth\" -Recurse -Force
+
+# Then copy the compiled assemblies to the bin folder
+Copy-Item "src\ManagementWeb\bin\Release\net48\*" "C:\inetpub\wwwroot\ftpauth\bin\" -Recurse -Force
 
 # Deploy CLI tool
 Copy-Item "src\ManagementCli\bin\Release\net48\ftpauth.exe" "C:\Program Files\IIS-FTP-SimpleAuth\"
@@ -79,6 +85,22 @@ Copy-Item "src\Core\bin\Release\net48\*.dll" "C:\Windows\System32\inetsrv\"
 Copy-Item "src\AuthProvider\bin\Release\net48\*.dll" "C:\Windows\System32\inetsrv\"
 
 Write-Host "✅ Components deployed successfully!" -ForegroundColor Green
+
+# Verify web deployment
+Write-Host "🔍 Verifying web deployment..." -ForegroundColor Yellow
+$webFiles = @(
+    "C:\inetpub\wwwroot\ftpauth\Web.config",
+    "C:\inetpub\wwwroot\ftpauth\Global.asax",
+    "C:\inetpub\wwwroot\ftpauth\bin\ManagementWeb.dll"
+)
+
+foreach ($file in $webFiles) {
+    if (Test-Path $file) {
+        Write-Host "✅ Found: $file" -ForegroundColor Green
+    } else {
+        Write-Host "❌ Missing: $file" -ForegroundColor Red
+    }
+}
 ```
 
 ### 1.3 Configure IIS Application
@@ -377,6 +399,53 @@ Get-WebConfiguration "/system.ftpServer/security/authentication/customAuthentica
 iisreset /restart
 ```
 
+#### 2.1 Web Application Deployment Issues
+```powershell
+# Check if web files are properly deployed
+$webPath = "C:\inetpub\wwwroot\ftpauth"
+Write-Host "Checking web deployment at: $webPath" -ForegroundColor Yellow
+
+# Check essential web files
+$essentialFiles = @("Web.config", "Global.asax", "bin\ManagementWeb.dll")
+foreach ($file in $essentialFiles) {
+    $fullPath = Join-Path $webPath $file
+    if (Test-Path $fullPath) {
+        Write-Host "✅ Found: $file" -ForegroundColor Green
+    } else {
+        Write-Host "❌ Missing: $file" -ForegroundColor Red
+    }
+}
+
+# Check web directories
+$webDirs = @("Controllers", "Views", "Content", "Scripts")
+foreach ($dir in $webDirs) {
+    $fullPath = Join-Path $webPath $dir
+    if (Test-Path $fullPath) {
+        Write-Host "✅ Found directory: $dir" -ForegroundColor Green
+    } else {
+        Write-Host "❌ Missing directory: $dir" -ForegroundColor Red
+    }
+}
+
+# Redeploy if files are missing
+if (-not (Test-Path "$webPath\Web.config")) {
+    Write-Host "🔄 Redeploying web application..." -ForegroundColor Yellow
+    
+    # Stop application pool
+    Stop-WebAppPool "FTP-SimpleAuth-Pool"
+    
+    # Clean and redeploy
+    Remove-Item "$webPath\*" -Recurse -Force
+    Get-ChildItem "src\ManagementWeb" -Exclude "bin", "obj" | Copy-Item -Destination $webPath -Recurse -Force
+    Copy-Item "src\ManagementWeb\bin\Release\net48\*" "$webPath\bin\" -Recurse -Force
+    
+    # Start application pool
+    Start-WebAppPool "FTP-SimpleAuth-Pool"
+    
+    Write-Host "✅ Web application redeployed!" -ForegroundColor Green
+}
+```
+
 #### 3. Permission Denied Errors
 ```powershell
 # Check file permissions
@@ -489,6 +558,7 @@ Start-WebAppPool "FTP-SimpleAuth-Pool"
 
 ### Documentation
 - [Main README](../readme.md) - Project overview and quick start
+- [Windows 11 Pro Client Setup Guide](windows-11-pro-client-setup.md) - Windows 11 Pro 클라이언트 환경 설정
 - [Design Documentation](design.md) - Architecture and design decisions
 - [Web Management Console](Web-Management-Console-Summary.md) - Web UI features
 - [Improvement Roadmap](improvement-roadmap.md) - Future development plans
