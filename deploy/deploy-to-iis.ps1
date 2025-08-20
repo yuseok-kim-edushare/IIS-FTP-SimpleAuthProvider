@@ -1,4 +1,4 @@
-# IIS FTP SimpleAuthProvider ë°°í¬ ìŠ¤í¬ë¦½íŠ¸
+# IIS FTP SimpleAuthProvider ¹èÆ÷ ½ºÅ©¸³Æ®
 param(
     [string]$IISPath = "C:\inetpub\wwwroot\ftpauth",
     [string]$SourcePath = "src\ManagementWeb\bin\Release\net48",
@@ -9,26 +9,26 @@ param(
     [switch]$Force
 )
 
-Write-Host "IIS FTP SimpleAuthProvider ë°°í¬ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤..." -ForegroundColor Green
+Write-Host "IIS FTP SimpleAuthProvider ¹èÆ÷¸¦ ½ÃÀÛÇÕ´Ï´Ù..." -ForegroundColor Green
 
-# ê´€ë¦¬ì ê¶Œí•œ í™•ì¸
+# °ü¸®ÀÚ ±ÇÇÑ È®ÀÎ
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Error "ì´ ìŠ¤í¬ë¦½íŠ¸ëŠ” ê´€ë¦¬ì ê¶Œí•œìœ¼ë¡œ ì‹¤í–‰í•´ì•¼ í•©ë‹ˆë‹¤."
+    Write-Error "ÀÌ ½ºÅ©¸³Æ®´Â °ü¸®ÀÚ ±ÇÇÑÀ¸·Î ½ÇÇàÇØ¾ß ÇÕ´Ï´Ù."
     exit 1
 }
 
-# IIS ê¸°ëŠ¥ í™•ì¸
+# IIS ±â´É È®ÀÎ
 try {
     Import-Module WebAdministration
 } catch {
-    Write-Error "IIS ê´€ë¦¬ ëª¨ë“ˆì„ ë¡œë“œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤. IISê°€ ì„¤ì¹˜ë˜ì–´ ìˆëŠ”ì§€ í™•ì¸í•˜ì„¸ìš”."
+    Write-Error "IIS °ü¸® ¸ğµâÀ» ·ÎµåÇÒ ¼ö ¾ø½À´Ï´Ù. IIS°¡ ¼³Ä¡µÇ¾î ÀÖ´ÂÁö È®ÀÎÇÏ¼¼¿ä."
     exit 1
 }
 
-# ê¸°ì¡´ ë°°í¬ ë°±ì—…
+# ±âÁ¸ ¹èÆ÷ ¹é¾÷
 if (Test-Path $IISPath) {
     if (!$Force) {
-        $response = Read-Host "ê¸°ì¡´ ë°°í¬ê°€ ë°œê²¬ë˜ì—ˆìŠµë‹ˆë‹¤. ë°±ì—…í•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n)"
+        $response = Read-Host "±âÁ¸ ¹èÆ÷°¡ ¹ß°ßµÇ¾ú½À´Ï´Ù. ¹é¾÷ÇÏ½Ã°Ú½À´Ï±î? (y/n)"
         if ($response -eq 'y' -or $response -eq 'Y') {
             $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
             $backupPathWithTimestamp = "$BackupPath\$timestamp"
@@ -38,28 +38,28 @@ if (Test-Path $IISPath) {
             }
             
             Copy-Item $IISPath -Destination $backupPathWithTimestamp -Recurse -Force
-            Write-Host "ê¸°ì¡´ ë°°í¬ë¥¼ ë°±ì—…í–ˆìŠµë‹ˆë‹¤: $backupPathWithTimestamp" -ForegroundColor Yellow
+            Write-Host "±âÁ¸ ¹èÆ÷¸¦ ¹é¾÷Çß½À´Ï´Ù: $backupPathWithTimestamp" -ForegroundColor Yellow
         }
     }
 }
 
-# ëŒ€ìƒ ë””ë ‰í† ë¦¬ ìƒì„±/ì •ë¦¬
+# ´ë»ó µğ·ºÅä¸® »ı¼º/Á¤¸®
 if (Test-Path $IISPath) {
     if ($Force) {
         Remove-Item $IISPath -Recurse -Force
-        Write-Host "ê¸°ì¡´ ë°°í¬ë¥¼ ì œê±°í–ˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+        Write-Host "±âÁ¸ ¹èÆ÷¸¦ Á¦°ÅÇß½À´Ï´Ù." -ForegroundColor Yellow
     }
 }
 New-Item -ItemType Directory -Path $IISPath -Force | Out-Null
 
-# íŒŒì¼ ë³µì‚¬
-Write-Host "íŒŒì¼ì„ ë³µì‚¬í•˜ëŠ” ì¤‘..." -ForegroundColor Yellow
+# ÆÄÀÏ º¹»ç
+Write-Host "ÆÄÀÏÀ» º¹»çÇÏ´Â Áß..." -ForegroundColor Yellow
 Copy-Item "$SourcePath\*" -Destination $IISPath -Recurse -Force
 
-# AuthProvider DLL ë³µì‚¬ (IIS ì‹œìŠ¤í…œ ë””ë ‰í† ë¦¬)
+# AuthProvider DLL º¹»ç (IIS ½Ã½ºÅÛ µğ·ºÅä¸®)
 $IISSystemPath = "C:\Windows\System32\inetsrv"
 if (Test-Path $IISSystemPath) {
-    # ê¸°ì¡´ DLL ë°±ì—…
+    # ±âÁ¸ DLL ¹é¾÷
     $authProviderDlls = @(
         "IIS.Ftp.SimpleAuth.Provider.dll",
         "IIS.Ftp.SimpleAuth.Core.dll",
@@ -75,23 +75,23 @@ if (Test-Path $IISSystemPath) {
             if (Test-Path $targetDll) {
                 $backupDll = Join-Path $BackupPath "$dll.backup"
                 Copy-Item $targetDll -Destination $backupDll -Force
-                Write-Host "ê¸°ì¡´ $dllì„ ë°±ì—…í–ˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+                Write-Host "±âÁ¸ $dllÀ» ¹é¾÷Çß½À´Ï´Ù." -ForegroundColor Yellow
             }
             
             Copy-Item $sourceDll -Destination $targetDll -Force
-            Write-Host "$dllì„ IIS ì‹œìŠ¤í…œ ë””ë ‰í† ë¦¬ì— ë³µì‚¬í–ˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+            Write-Host "$dllÀ» IIS ½Ã½ºÅÛ µğ·ºÅä¸®¿¡ º¹»çÇß½À´Ï´Ù." -ForegroundColor Yellow
         }
     }
 }
 
-# ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ ìƒì„±
+# »ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸® »ı¼º
 $UserDataPath = "C:\inetpub\ftpusers"
 if (!(Test-Path $UserDataPath)) {
     New-Item -ItemType Directory -Path $UserDataPath -Force
-    Write-Host "ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ë¥¼ ìƒì„±í–ˆìŠµë‹ˆë‹¤: $UserDataPath" -ForegroundColor Yellow
+    Write-Host "»ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸®¸¦ »ı¼ºÇß½À´Ï´Ù: $UserDataPath" -ForegroundColor Yellow
 }
 
-# ìƒ˜í”Œ ì‚¬ìš©ì íŒŒì¼ ìƒì„±
+# »ùÇÃ »ç¿ëÀÚ ÆÄÀÏ »ı¼º
 $SampleUsersPath = "$UserDataPath\users.json"
 if (!(Test-Path $SampleUsersPath)) {
     $sampleUsers = @{
@@ -116,36 +116,36 @@ if (!(Test-Path $SampleUsersPath)) {
     }
     
     $sampleUsers | ConvertTo-Json -Depth 10 | Out-File -FilePath $SampleUsersPath -Encoding UTF8
-    Write-Host "ìƒ˜í”Œ ì‚¬ìš©ì íŒŒì¼ì„ ìƒì„±í–ˆìŠµë‹ˆë‹¤: $SampleUsersPath" -ForegroundColor Yellow
+    Write-Host "»ùÇÃ »ç¿ëÀÚ ÆÄÀÏÀ» »ı¼ºÇß½À´Ï´Ù: $SampleUsersPath" -ForegroundColor Yellow
 }
 
-# IIS ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ ìƒì„± (ì„ íƒì‚¬í•­)
+# IIS ¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç® »ı¼º (¼±ÅÃ»çÇ×)
 if ($CreateAppPool) {
     $appPoolName = "ftpauth-pool"
     if (!(Get-IISAppPool -Name $appPoolName -ErrorAction SilentlyContinue)) {
         New-WebAppPool -Name $appPoolName
         Set-ItemProperty -Path "IIS:\AppPools\$appPoolName" -Name "managedRuntimeVersion" -Value "v4.0"
         Set-ItemProperty -Path "IIS:\AppPools\$appPoolName" -Name "processModel.identityType" -Value "ApplicationPoolIdentity"
-        Write-Host "ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ì„ ìƒì„±í–ˆìŠµë‹ˆë‹¤: $appPoolName" -ForegroundColor Yellow
+        Write-Host "¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç®À» »ı¼ºÇß½À´Ï´Ù: $appPoolName" -ForegroundColor Yellow
     }
 }
 
-# IIS ì‚¬ì´íŠ¸ ìƒì„± (ì„ íƒì‚¬í•­)
+# IIS »çÀÌÆ® »ı¼º (¼±ÅÃ»çÇ×)
 if ($CreateSite) {
     $siteName = "ftpauth"
     if (!(Get-Website -Name $siteName -ErrorAction SilentlyContinue)) {
         New-Website -Name $siteName -PhysicalPath $IISPath -Port 8080
-        Write-Host "ì›¹ì‚¬ì´íŠ¸ë¥¼ ìƒì„±í–ˆìŠµë‹ˆë‹¤: $siteName (í¬íŠ¸ 8080)" -ForegroundColor Yellow
+        Write-Host "À¥»çÀÌÆ®¸¦ »ı¼ºÇß½À´Ï´Ù: $siteName (Æ÷Æ® 8080)" -ForegroundColor Yellow
     }
 }
 
-# ê¶Œí•œ ì„¤ì •
+# ±ÇÇÑ ¼³Á¤
 $acl = Get-Acl $UserDataPath
 $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
 $acl.SetAccessRule($accessRule)
 Set-Acl -Path $UserDataPath -AclObject $acl
 
-# ë°°í¬ ì •ë³´ ê¸°ë¡
+# ¹èÆ÷ Á¤º¸ ±â·Ï
 $deploymentInfo = @{
     DeployedAt = Get-Date
     Version = "1.0.0"
@@ -157,8 +157,8 @@ $deploymentInfo = @{
 $deploymentInfoPath = Join-Path $IISPath "deployment-info.json"
 $deploymentInfo | Out-File -FilePath $deploymentInfoPath -Encoding UTF8
 
-Write-Host "ë°°í¬ê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
-Write-Host "ì›¹ ê´€ë¦¬ ì½˜ì†”: http://localhost:8080" -ForegroundColor Cyan
-Write-Host "ê¸°ë³¸ ê´€ë¦¬ì ê³„ì •: admin / admin123" -ForegroundColor Cyan
-Write-Host "ì‚¬ìš©ì ë°ì´í„° ê²½ë¡œ: $UserDataPath" -ForegroundColor Cyan
-Write-Host "ë°°í¬ ì •ë³´: $deploymentInfoPath" -ForegroundColor Cyan
+Write-Host "¹èÆ÷°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
+Write-Host "À¥ °ü¸® ÄÜ¼Ö: http://localhost:8080" -ForegroundColor Cyan
+Write-Host "±âº» °ü¸®ÀÚ °èÁ¤: admin / admin123" -ForegroundColor Cyan
+Write-Host "»ç¿ëÀÚ µ¥ÀÌÅÍ °æ·Î: $UserDataPath" -ForegroundColor Cyan
+Write-Host "¹èÆ÷ Á¤º¸: $deploymentInfoPath" -ForegroundColor Cyan

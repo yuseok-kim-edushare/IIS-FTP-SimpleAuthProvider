@@ -1,58 +1,58 @@
-# PowerShell ì‹¤í–‰ ì •ì±… ì„¤ì • ìŠ¤í¬ë¦½íŠ¸
-# ì´ ìŠ¤í¬ë¦½íŠ¸ëŠ” ë°°í¬ ìŠ¤í¬ë¦½íŠ¸ ì‹¤í–‰ì„ ìœ„í•´ í•„ìš”í•œ ì‹¤í–‰ ì •ì±…ì„ ì„¤ì •í•©ë‹ˆë‹¤.
+# PowerShell ½ÇÇà Á¤Ã¥ ¼³Á¤ ½ºÅ©¸³Æ®
+# ÀÌ ½ºÅ©¸³Æ®´Â ¹èÆ÷ ½ºÅ©¸³Æ® ½ÇÇàÀ» À§ÇØ ÇÊ¿äÇÑ ½ÇÇà Á¤Ã¥À» ¼³Á¤ÇÕ´Ï´Ù.
 
-Write-Host "PowerShell ì‹¤í–‰ ì •ì±…ì„ ì„¤ì •í•©ë‹ˆë‹¤..." -ForegroundColor Green
+Write-Host "PowerShell ½ÇÇà Á¤Ã¥À» ¼³Á¤ÇÕ´Ï´Ù..." -ForegroundColor Green
 
-# ê´€ë¦¬ì ê¶Œí•œ í™•ì¸
+# °ü¸®ÀÚ ±ÇÇÑ È®ÀÎ
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Error "ì´ ìŠ¤í¬ë¦½íŠ¸ëŠ” ê´€ë¦¬ì ê¶Œí•œìœ¼ë¡œ ì‹¤í–‰í•´ì•¼ í•©ë‹ˆë‹¤."
-    Write-Host "PowerShellì„ ê´€ë¦¬ì ê¶Œí•œìœ¼ë¡œ ë‹¤ì‹œ ì‹¤í–‰í•˜ì„¸ìš”." -ForegroundColor Yellow
+    Write-Error "ÀÌ ½ºÅ©¸³Æ®´Â °ü¸®ÀÚ ±ÇÇÑÀ¸·Î ½ÇÇàÇØ¾ß ÇÕ´Ï´Ù."
+    Write-Host "PowerShellÀ» °ü¸®ÀÚ ±ÇÇÑÀ¸·Î ´Ù½Ã ½ÇÇàÇÏ¼¼¿ä." -ForegroundColor Yellow
     exit 1
 }
 
-# í˜„ì¬ ì‹¤í–‰ ì •ì±… í™•ì¸
-Write-Host "`ní˜„ì¬ ì‹¤í–‰ ì •ì±…:" -ForegroundColor Cyan
+# ÇöÀç ½ÇÇà Á¤Ã¥ È®ÀÎ
+Write-Host "`nÇöÀç ½ÇÇà Á¤Ã¥:" -ForegroundColor Cyan
 $currentPolicy = Get-ExecutionPolicy
-Write-Host "  ì‹œìŠ¤í…œ: $currentPolicy" -ForegroundColor Yellow
+Write-Host "  ½Ã½ºÅÛ: $currentPolicy" -ForegroundColor Yellow
 
 $currentUserPolicy = Get-ExecutionPolicy -Scope CurrentUser
-Write-Host "  í˜„ì¬ ì‚¬ìš©ì: $currentUserPolicy" -ForegroundColor Yellow
+Write-Host "  ÇöÀç »ç¿ëÀÚ: $currentUserPolicy" -ForegroundColor Yellow
 
 $localMachinePolicy = Get-ExecutionPolicy -Scope LocalMachine
-Write-Host "  ë¡œì»¬ ë¨¸ì‹ : $localMachinePolicy" -ForegroundColor Yellow
+Write-Host "  ·ÎÄÃ ¸Ó½Å: $localMachinePolicy" -ForegroundColor Yellow
 
-# ê¶Œì¥ ì •ì±… ì„¤ì •
-Write-Host "`nê¶Œì¥ ì‹¤í–‰ ì •ì±…ì„ ì„¤ì •í•©ë‹ˆë‹¤..." -ForegroundColor Cyan
+# ±ÇÀå Á¤Ã¥ ¼³Á¤
+Write-Host "`n±ÇÀå ½ÇÇà Á¤Ã¥À» ¼³Á¤ÇÕ´Ï´Ù..." -ForegroundColor Cyan
 
 try {
-    # í˜„ì¬ ì‚¬ìš©ìì— ëŒ€í•´ RemoteSigned ì •ì±… ì„¤ì •
+    # ÇöÀç »ç¿ëÀÚ¿¡ ´ëÇØ RemoteSigned Á¤Ã¥ ¼³Á¤
     Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser -Force
-    Write-Host "âœ“ í˜„ì¬ ì‚¬ìš©ì ì‹¤í–‰ ì •ì±…ì´ RemoteSignedë¡œ ì„¤ì •ë˜ì—ˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+    Write-Host "? ÇöÀç »ç¿ëÀÚ ½ÇÇà Á¤Ã¥ÀÌ RemoteSigned·Î ¼³Á¤µÇ¾ú½À´Ï´Ù." -ForegroundColor Green
     
-    # ë¡œì»¬ ë¨¸ì‹ ì— ëŒ€í•´ RemoteSigned ì •ì±… ì„¤ì • (ì„ íƒì‚¬í•­)
-    $response = Read-Host "`në¡œì»¬ ë¨¸ì‹  ì „ì²´ì— ëŒ€í•´ì„œë„ RemoteSigned ì •ì±…ì„ ì„¤ì •í•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n)"
+    # ·ÎÄÃ ¸Ó½Å¿¡ ´ëÇØ RemoteSigned Á¤Ã¥ ¼³Á¤ (¼±ÅÃ»çÇ×)
+    $response = Read-Host "`n·ÎÄÃ ¸Ó½Å ÀüÃ¼¿¡ ´ëÇØ¼­µµ RemoteSigned Á¤Ã¥À» ¼³Á¤ÇÏ½Ã°Ú½À´Ï±î? (y/n)"
     if ($response -eq 'y' -or $response -eq 'Y') {
         Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope LocalMachine -Force
-        Write-Host "âœ“ ë¡œì»¬ ë¨¸ì‹  ì‹¤í–‰ ì •ì±…ì´ RemoteSignedë¡œ ì„¤ì •ë˜ì—ˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+        Write-Host "? ·ÎÄÃ ¸Ó½Å ½ÇÇà Á¤Ã¥ÀÌ RemoteSigned·Î ¼³Á¤µÇ¾ú½À´Ï´Ù." -ForegroundColor Green
     }
     
 } catch {
-    Write-Error "ì‹¤í–‰ ì •ì±… ì„¤ì • ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: $($_.Exception.Message)"
+    Write-Error "½ÇÇà Á¤Ã¥ ¼³Á¤ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: $($_.Exception.Message)"
     exit 1
 }
 
-# ì„¤ì • í›„ ì •ì±… í™•ì¸
-Write-Host "`nì„¤ì • í›„ ì‹¤í–‰ ì •ì±…:" -ForegroundColor Cyan
+# ¼³Á¤ ÈÄ Á¤Ã¥ È®ÀÎ
+Write-Host "`n¼³Á¤ ÈÄ ½ÇÇà Á¤Ã¥:" -ForegroundColor Cyan
 $newCurrentUserPolicy = Get-ExecutionPolicy -Scope CurrentUser
-Write-Host "  í˜„ì¬ ì‚¬ìš©ì: $newCurrentUserPolicy" -ForegroundColor Green
+Write-Host "  ÇöÀç »ç¿ëÀÚ: $newCurrentUserPolicy" -ForegroundColor Green
 
 $newLocalMachinePolicy = Get-ExecutionPolicy -Scope LocalMachine
-Write-Host "  ë¡œì»¬ ë¨¸ì‹ : $newLocalMachinePolicy" -ForegroundColor Green
+Write-Host "  ·ÎÄÃ ¸Ó½Å: $newLocalMachinePolicy" -ForegroundColor Green
 
-# ì •ì±… ì„¤ëª…
-Write-Host "`nì‹¤í–‰ ì •ì±… ì„¤ëª…:" -ForegroundColor Cyan
-Write-Host "  RemoteSigned: ë¡œì»¬ ìŠ¤í¬ë¦½íŠ¸ëŠ” ì„œëª… ì—†ì´ ì‹¤í–‰, ì›ê²© ìŠ¤í¬ë¦½íŠ¸ëŠ” ì‹ ë¢°í•  ìˆ˜ ìˆëŠ” ì„œëª… í•„ìš”" -ForegroundColor Gray
-Write-Host "  ì´ ì •ì±…ì€ ë³´ì•ˆê³¼ í¸ì˜ì„±ì˜ ê· í˜•ì„ ì œê³µí•©ë‹ˆë‹¤." -ForegroundColor Gray
+# Á¤Ã¥ ¼³¸í
+Write-Host "`n½ÇÇà Á¤Ã¥ ¼³¸í:" -ForegroundColor Cyan
+Write-Host "  RemoteSigned: ·ÎÄÃ ½ºÅ©¸³Æ®´Â ¼­¸í ¾øÀÌ ½ÇÇà, ¿ø°İ ½ºÅ©¸³Æ®´Â ½Å·ÚÇÒ ¼ö ÀÖ´Â ¼­¸í ÇÊ¿ä" -ForegroundColor Gray
+Write-Host "  ÀÌ Á¤Ã¥Àº º¸¾È°ú ÆíÀÇ¼ºÀÇ ±ÕÇüÀ» Á¦°øÇÕ´Ï´Ù." -ForegroundColor Gray
 
-Write-Host "`nâœ… ì‹¤í–‰ ì •ì±… ì„¤ì •ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
-Write-Host "ì´ì œ ë°°í¬ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì‹¤í–‰í•  ìˆ˜ ìˆìŠµë‹ˆë‹¤." -ForegroundColor Cyan
+Write-Host "`n? ½ÇÇà Á¤Ã¥ ¼³Á¤ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
+Write-Host "ÀÌÁ¦ ¹èÆ÷ ½ºÅ©¸³Æ®¸¦ ½ÇÇàÇÒ ¼ö ÀÖ½À´Ï´Ù." -ForegroundColor Cyan

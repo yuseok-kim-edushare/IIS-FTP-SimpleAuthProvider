@@ -1,4 +1,4 @@
-# IIS FTP SimpleAuthProvider ë°°í¬ ìƒíƒœ í™•ì¸ ìŠ¤í¬ë¦½íŠ¸
+# IIS FTP SimpleAuthProvider ¹èÆ÷ »óÅÂ È®ÀÎ ½ºÅ©¸³Æ®
 param(
     [string]$IISPath = "C:\inetpub\wwwroot\ftpauth",
     [string]$BackupPath = "C:\inetpub\backup\ftpauth",
@@ -6,78 +6,78 @@ param(
     [switch]$Detailed
 )
 
-Write-Host "IIS FTP SimpleAuthProvider ë°°í¬ ìƒíƒœë¥¼ í™•ì¸í•©ë‹ˆë‹¤..." -ForegroundColor Cyan
+Write-Host "IIS FTP SimpleAuthProvider ¹èÆ÷ »óÅÂ¸¦ È®ÀÎÇÕ´Ï´Ù..." -ForegroundColor Cyan
 
-# ê´€ë¦¬ì ê¶Œí•œ í™•ì¸
+# °ü¸®ÀÚ ±ÇÇÑ È®ÀÎ
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Warning "ê´€ë¦¬ì ê¶Œí•œì´ ì—†ìŠµë‹ˆë‹¤. ì¼ë¶€ ì •ë³´ë¥¼ í™•ì¸í•  ìˆ˜ ì—†ì„ ìˆ˜ ìˆìŠµë‹ˆë‹¤."
+    Write-Warning "°ü¸®ÀÚ ±ÇÇÑÀÌ ¾ø½À´Ï´Ù. ÀÏºÎ Á¤º¸¸¦ È®ÀÎÇÒ ¼ö ¾øÀ» ¼ö ÀÖ½À´Ï´Ù."
 }
 
-# IIS ê¸°ëŠ¥ í™•ì¸
+# IIS ±â´É È®ÀÎ
 try {
     Import-Module WebAdministration
     $iisAvailable = $true
 } catch {
     $iisAvailable = $false
-    Write-Warning "IIS ê´€ë¦¬ ëª¨ë“ˆì„ ë¡œë“œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+    Write-Warning "IIS °ü¸® ¸ğµâÀ» ·ÎµåÇÒ ¼ö ¾ø½À´Ï´Ù."
 }
 
-# ì›¹ ì• í”Œë¦¬ì¼€ì´ì…˜ ìƒíƒœ í™•ì¸
-Write-Host "`n=== ì›¹ ì• í”Œë¦¬ì¼€ì´ì…˜ ìƒíƒœ ===" -ForegroundColor Green
+# À¥ ¾ÖÇÃ¸®ÄÉÀÌ¼Ç »óÅÂ È®ÀÎ
+Write-Host "`n=== À¥ ¾ÖÇÃ¸®ÄÉÀÌ¼Ç »óÅÂ ===" -ForegroundColor Green
 if (Test-Path $IISPath) {
-    Write-Host "âœ“ ì›¹ ì• í”Œë¦¬ì¼€ì´ì…˜ ë””ë ‰í† ë¦¬ê°€ ì¡´ì¬í•©ë‹ˆë‹¤: $IISPath" -ForegroundColor Green
+    Write-Host "? À¥ ¾ÖÇÃ¸®ÄÉÀÌ¼Ç µğ·ºÅä¸®°¡ Á¸ÀçÇÕ´Ï´Ù: $IISPath" -ForegroundColor Green
     
-    # ë°°í¬ ì •ë³´ í™•ì¸
+    # ¹èÆ÷ Á¤º¸ È®ÀÎ
     $deploymentInfoPath = Join-Path $IISPath "deployment-info.json"
     if (Test-Path $deploymentInfoPath) {
         try {
             $deploymentInfo = Get-Content $deploymentInfoPath | ConvertFrom-Json
-            Write-Host "  ë°°í¬ ì‹œê°„: $($deploymentInfo.DeployedAt)" -ForegroundColor Cyan
-            Write-Host "  ë²„ì „: $($deploymentInfo.Version)" -ForegroundColor Cyan
-            Write-Host "  ì†ŒìŠ¤ ê²½ë¡œ: $($deploymentInfo.SourcePath)" -ForegroundColor Cyan
+            Write-Host "  ¹èÆ÷ ½Ã°£: $($deploymentInfo.DeployedAt)" -ForegroundColor Cyan
+            Write-Host "  ¹öÀü: $($deploymentInfo.Version)" -ForegroundColor Cyan
+            Write-Host "  ¼Ò½º °æ·Î: $($deploymentInfo.SourcePath)" -ForegroundColor Cyan
         } catch {
-            Write-Warning "ë°°í¬ ì •ë³´ë¥¼ ì½ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+            Write-Warning "¹èÆ÷ Á¤º¸¸¦ ÀĞÀ» ¼ö ¾ø½À´Ï´Ù."
         }
     } else {
-        Write-Warning "ë°°í¬ ì •ë³´ íŒŒì¼ì´ ì—†ìŠµë‹ˆë‹¤."
+        Write-Warning "¹èÆ÷ Á¤º¸ ÆÄÀÏÀÌ ¾ø½À´Ï´Ù."
     }
     
-    # ì£¼ìš” íŒŒì¼ í™•ì¸
+    # ÁÖ¿ä ÆÄÀÏ È®ÀÎ
     $requiredFiles = @(
         "ManagementWeb.dll",
         "IIS.Ftp.SimpleAuth.Core.dll",
         "Web.config"
     )
     
-    Write-Host "`n  ì£¼ìš” íŒŒì¼ ìƒíƒœ:" -ForegroundColor Yellow
+    Write-Host "`n  ÁÖ¿ä ÆÄÀÏ »óÅÂ:" -ForegroundColor Yellow
     foreach ($file in $requiredFiles) {
         $filePath = Join-Path $IISPath $file
         if (Test-Path $filePath) {
             $fileInfo = Get-Item $filePath
-            Write-Host "    âœ“ $file ($($fileInfo.Length) bytes, $($fileInfo.LastWriteTime))" -ForegroundColor Green
+            Write-Host "    ? $file ($($fileInfo.Length) bytes, $($fileInfo.LastWriteTime))" -ForegroundColor Green
         } else {
-            Write-Host "    âœ— $file (ëˆ„ë½)" -ForegroundColor Red
+            Write-Host "    ? $file (´©¶ô)" -ForegroundColor Red
         }
     }
     
     if ($Detailed) {
-        # ì „ì²´ íŒŒì¼ ëª©ë¡
-        Write-Host "`n  ì „ì²´ íŒŒì¼ ëª©ë¡:" -ForegroundColor Yellow
+        # ÀüÃ¼ ÆÄÀÏ ¸ñ·Ï
+        Write-Host "`n  ÀüÃ¼ ÆÄÀÏ ¸ñ·Ï:" -ForegroundColor Yellow
         Get-ChildItem $IISPath -Recurse | ForEach-Object {
             $relativePath = $_.FullName.Replace($IISPath, "").TrimStart("\")
             if ($_.PSIsContainer) {
-                Write-Host "    ğŸ“ $relativePath" -ForegroundColor Blue
+                Write-Host "    ? $relativePath" -ForegroundColor Blue
             } else {
-                Write-Host "    ğŸ“„ $relativePath ($($_.Length) bytes)" -ForegroundColor Gray
+                Write-Host "    ? $relativePath ($($_.Length) bytes)" -ForegroundColor Gray
             }
         }
     }
 } else {
-    Write-Host "âœ— ì›¹ ì• í”Œë¦¬ì¼€ì´ì…˜ ë””ë ‰í† ë¦¬ê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: $IISPath" -ForegroundColor Red
+    Write-Host "? À¥ ¾ÖÇÃ¸®ÄÉÀÌ¼Ç µğ·ºÅä¸®°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: $IISPath" -ForegroundColor Red
 }
 
-# AuthProvider DLL ìƒíƒœ í™•ì¸
-Write-Host "`n=== AuthProvider DLL ìƒíƒœ ===" -ForegroundColor Green
+# AuthProvider DLL »óÅÂ È®ÀÎ
+Write-Host "`n=== AuthProvider DLL »óÅÂ ===" -ForegroundColor Green
 $authProviderDlls = @(
     "IIS.Ftp.SimpleAuth.Provider.dll",
     "IIS.Ftp.SimpleAuth.Core.dll",
@@ -89,114 +89,114 @@ foreach ($dll in $authProviderDlls) {
     $targetDll = Join-Path $IISSystemPath $dll
     if (Test-Path $targetDll) {
         $fileInfo = Get-Item $targetDll
-        Write-Host "  âœ“ $dll ($($fileInfo.Length) bytes, $($fileInfo.LastWriteTime))" -ForegroundColor Green
+        Write-Host "  ? $dll ($($fileInfo.Length) bytes, $($fileInfo.LastWriteTime))" -ForegroundColor Green
     } else {
-        Write-Host "  âœ— $dll (ëˆ„ë½)" -ForegroundColor Red
+        Write-Host "  ? $dll (´©¶ô)" -ForegroundColor Red
     }
 }
 
-# IIS ì‚¬ì´íŠ¸ ë° ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ ìƒíƒœ í™•ì¸
+# IIS »çÀÌÆ® ¹× ¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç® »óÅÂ È®ÀÎ
 if ($iisAvailable) {
-    Write-Host "`n=== IIS êµ¬ì„± ìƒíƒœ ===" -ForegroundColor Green
+    Write-Host "`n=== IIS ±¸¼º »óÅÂ ===" -ForegroundColor Green
     
-    # ì‚¬ì´íŠ¸ ìƒíƒœ
+    # »çÀÌÆ® »óÅÂ
     $siteName = "ftpauth"
     $site = Get-Website -Name $siteName -ErrorAction SilentlyContinue
     if ($site) {
-        Write-Host "âœ“ ì›¹ì‚¬ì´íŠ¸ê°€ ì¡´ì¬í•©ë‹ˆë‹¤: $siteName" -ForegroundColor Green
-        Write-Host "  ìƒíƒœ: $($site.State)" -ForegroundColor Cyan
-        Write-Host "  í¬íŠ¸: $($site.Bindings.Collection[0].BindingInformation)" -ForegroundColor Cyan
-        Write-Host "  ë¬¼ë¦¬ì  ê²½ë¡œ: $($site.PhysicalPath)" -ForegroundColor Cyan
+        Write-Host "? À¥»çÀÌÆ®°¡ Á¸ÀçÇÕ´Ï´Ù: $siteName" -ForegroundColor Green
+        Write-Host "  »óÅÂ: $($site.State)" -ForegroundColor Cyan
+        Write-Host "  Æ÷Æ®: $($site.Bindings.Collection[0].BindingInformation)" -ForegroundColor Cyan
+        Write-Host "  ¹°¸®Àû °æ·Î: $($site.PhysicalPath)" -ForegroundColor Cyan
     } else {
-        Write-Host "âœ— ì›¹ì‚¬ì´íŠ¸ê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: $siteName" -ForegroundColor Red
+        Write-Host "? À¥»çÀÌÆ®°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: $siteName" -ForegroundColor Red
     }
     
-    # ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ ìƒíƒœ
+    # ¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç® »óÅÂ
     $appPoolName = "ftpauth-pool"
     $appPool = Get-IISAppPool -Name $appPoolName -ErrorAction SilentlyContinue
     if ($appPool) {
-        Write-Host "âœ“ ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ì´ ì¡´ì¬í•©ë‹ˆë‹¤: $appPoolName" -ForegroundColor Green
-        Write-Host "  ìƒíƒœ: $($appPool.State)" -ForegroundColor Cyan
-        Write-Host "  .NET ë²„ì „: $($appPool.ManagedRuntimeVersion)" -ForegroundColor Cyan
+        Write-Host "? ¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç®ÀÌ Á¸ÀçÇÕ´Ï´Ù: $appPoolName" -ForegroundColor Green
+        Write-Host "  »óÅÂ: $($appPool.State)" -ForegroundColor Cyan
+        Write-Host "  .NET ¹öÀü: $($appPool.ManagedRuntimeVersion)" -ForegroundColor Cyan
     } else {
-        Write-Host "âœ— ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ì´ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: $appPoolName" -ForegroundColor Red
+        Write-Host "? ¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç®ÀÌ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: $appPoolName" -ForegroundColor Red
     }
 }
 
-# ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ ìƒíƒœ í™•ì¸
-Write-Host "`n=== ì‚¬ìš©ì ë°ì´í„° ìƒíƒœ ===" -ForegroundColor Green
+# »ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸® »óÅÂ È®ÀÎ
+Write-Host "`n=== »ç¿ëÀÚ µ¥ÀÌÅÍ »óÅÂ ===" -ForegroundColor Green
 $UserDataPath = "C:\inetpub\ftpusers"
 if (Test-Path $UserDataPath) {
-    Write-Host "âœ“ ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ê°€ ì¡´ì¬í•©ë‹ˆë‹¤: $UserDataPath" -ForegroundColor Green
+    Write-Host "? »ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸®°¡ Á¸ÀçÇÕ´Ï´Ù: $UserDataPath" -ForegroundColor Green
     
-    # ì‚¬ìš©ì íŒŒì¼ í™•ì¸
+    # »ç¿ëÀÚ ÆÄÀÏ È®ÀÎ
     $usersFile = Join-Path $UserDataPath "users.json"
     if (Test-Path $usersFile) {
         $fileInfo = Get-Item $usersFile
-        Write-Host "  âœ“ users.json ($($fileInfo.Length) bytes, $($fileInfo.LastWriteTime))" -ForegroundColor Green
+        Write-Host "  ? users.json ($($fileInfo.Length) bytes, $($fileInfo.LastWriteTime))" -ForegroundColor Green
     } else {
-        Write-Host "  âœ— users.json (ëˆ„ë½)" -ForegroundColor Red
+        Write-Host "  ? users.json (´©¶ô)" -ForegroundColor Red
     }
     
-    # ë””ë ‰í† ë¦¬ ê¶Œí•œ í™•ì¸
+    # µğ·ºÅä¸® ±ÇÇÑ È®ÀÎ
     try {
         $acl = Get-Acl $UserDataPath
         $iisUsersRule = $acl.Access | Where-Object { $_.IdentityReference -eq "IIS_IUSRS" }
         if ($iisUsersRule) {
-            Write-Host "  âœ“ IIS_IUSRS ê¶Œí•œ: $($iisUsersRule.FileSystemRights)" -ForegroundColor Green
+            Write-Host "  ? IIS_IUSRS ±ÇÇÑ: $($iisUsersRule.FileSystemRights)" -ForegroundColor Green
         } else {
-            Write-Host "  âš  IIS_IUSRS ê¶Œí•œì´ ì„¤ì •ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+            Write-Host "  ? IIS_IUSRS ±ÇÇÑÀÌ ¼³Á¤µÇÁö ¾Ê¾Ò½À´Ï´Ù." -ForegroundColor Yellow
         }
     } catch {
-        Write-Warning "ê¶Œí•œ ì •ë³´ë¥¼ í™•ì¸í•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+        Write-Warning "±ÇÇÑ Á¤º¸¸¦ È®ÀÎÇÒ ¼ö ¾ø½À´Ï´Ù."
     }
 } else {
-    Write-Host "âœ— ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: $UserDataPath" -ForegroundColor Red
+    Write-Host "? »ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸®°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: $UserDataPath" -ForegroundColor Red
 }
 
-# ë°±ì—… ìƒíƒœ í™•ì¸
-Write-Host "`n=== ë°±ì—… ìƒíƒœ ===" -ForegroundColor Green
+# ¹é¾÷ »óÅÂ È®ÀÎ
+Write-Host "`n=== ¹é¾÷ »óÅÂ ===" -ForegroundColor Green
 if (Test-Path $BackupPath) {
     $backups = Get-ChildItem -Path $BackupPath -Directory | Sort-Object CreationTime -Descending
     if ($backups.Count -gt 0) {
-        Write-Host "âœ“ ë°±ì—…ì´ ì¡´ì¬í•©ë‹ˆë‹¤ ($($backups.Count)ê°œ):" -ForegroundColor Green
+        Write-Host "? ¹é¾÷ÀÌ Á¸ÀçÇÕ´Ï´Ù ($($backups.Count)°³):" -ForegroundColor Green
         foreach ($backup in $backups | Select-Object -First 5) {
             $size = (Get-ChildItem $backup.FullName -Recurse | Measure-Object -Property Length -Sum).Sum
             $sizeMB = [math]::Round($size / 1MB, 2)
-            Write-Host "  ğŸ“¦ $($backup.Name) ($sizeMB MB, $($backup.CreationTime))" -ForegroundColor Cyan
+            Write-Host "  ? $($backup.Name) ($sizeMB MB, $($backup.CreationTime))" -ForegroundColor Cyan
         }
         
         if ($backups.Count -gt 5) {
-            Write-Host "  ... ë° $($backups.Count - 5)ê°œì˜ ì¶”ê°€ ë°±ì—…" -ForegroundColor Gray
+            Write-Host "  ... ¹× $($backups.Count - 5)°³ÀÇ Ãß°¡ ¹é¾÷" -ForegroundColor Gray
         }
     } else {
-        Write-Host "âš  ë°±ì—… ë””ë ‰í† ë¦¬ê°€ ë¹„ì–´ìˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+        Write-Host "? ¹é¾÷ µğ·ºÅä¸®°¡ ºñ¾îÀÖ½À´Ï´Ù." -ForegroundColor Yellow
     }
 } else {
-    Write-Host "âœ— ë°±ì—… ë””ë ‰í† ë¦¬ê°€ ì¡´ì¬í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤: $BackupPath" -ForegroundColor Red
+    Write-Host "? ¹é¾÷ µğ·ºÅä¸®°¡ Á¸ÀçÇÏÁö ¾Ê½À´Ï´Ù: $BackupPath" -ForegroundColor Red
 }
 
-# ì‹œìŠ¤í…œ ìš”êµ¬ì‚¬í•­ í™•ì¸
-Write-Host "`n=== ì‹œìŠ¤í…œ ìš”êµ¬ì‚¬í•­ ===" -ForegroundColor Green
+# ½Ã½ºÅÛ ¿ä±¸»çÇ× È®ÀÎ
+Write-Host "`n=== ½Ã½ºÅÛ ¿ä±¸»çÇ× ===" -ForegroundColor Green
 
-# .NET Framework ë²„ì „ í™•ì¸
+# .NET Framework ¹öÀü È®ÀÎ
 $netFrameworkPath = "HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full"
 if (Test-Path $netFrameworkPath) {
     $release = Get-ItemProperty $netFrameworkPath -Name Release
     if ($release.Release -ge 528040) {
-        Write-Host "âœ“ .NET Framework 4.8 ì´ìƒì´ ì„¤ì¹˜ë˜ì–´ ìˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+        Write-Host "? .NET Framework 4.8 ÀÌ»óÀÌ ¼³Ä¡µÇ¾î ÀÖ½À´Ï´Ù." -ForegroundColor Green
     } else {
-        Write-Host "âš  .NET Framework 4.8 ì´ìƒì´ í•„ìš”í•©ë‹ˆë‹¤. (í˜„ì¬: $($release.Release))" -ForegroundColor Yellow
+        Write-Host "? .NET Framework 4.8 ÀÌ»óÀÌ ÇÊ¿äÇÕ´Ï´Ù. (ÇöÀç: $($release.Release))" -ForegroundColor Yellow
     }
 } else {
-    Write-Host "âœ— .NET Framework 4.0 ì´ìƒì´ ì„¤ì¹˜ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤." -ForegroundColor Red
+    Write-Host "? .NET Framework 4.0 ÀÌ»óÀÌ ¼³Ä¡µÇÁö ¾Ê¾Ò½À´Ï´Ù." -ForegroundColor Red
 }
 
-# IIS ì„¤ì¹˜ í™•ì¸
+# IIS ¼³Ä¡ È®ÀÎ
 if (Get-Service -Name "W3SVC" -ErrorAction SilentlyContinue) {
-    Write-Host "âœ“ IISê°€ ì„¤ì¹˜ë˜ì–´ ìˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+    Write-Host "? IIS°¡ ¼³Ä¡µÇ¾î ÀÖ½À´Ï´Ù." -ForegroundColor Green
 } else {
-    Write-Host "âœ— IISê°€ ì„¤ì¹˜ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤." -ForegroundColor Red
+    Write-Host "? IIS°¡ ¼³Ä¡µÇÁö ¾Ê¾Ò½À´Ï´Ù." -ForegroundColor Red
 }
 
-Write-Host "`n=== ìƒíƒœ í™•ì¸ ì™„ë£Œ ===" -ForegroundColor Green
+Write-Host "`n=== »óÅÂ È®ÀÎ ¿Ï·á ===" -ForegroundColor Green

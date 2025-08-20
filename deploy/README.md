@@ -17,7 +17,51 @@
 
 ## 🚀 스크립트 개요
 
-### 1. `deploy-to-iis.ps1` - 메인 배포 스크립트
+### 1. `integrated-deploy.ps1` - 🆕 통합 배포 스크립트 (권장)
+**전체 시스템을 한 번에 배포하고 구성하는 통합 스크립트입니다.**
+
+**주요 기능:**
+- 프로젝트 빌드부터 IIS 구성까지 전체 과정 자동화
+- FTP 커스텀 프로바이더 자동 등록
+- 구성 파일 자동 생성 및 배치
+- 샘플 사용자 데이터 생성
+- 서비스 자동 재시작
+- 10단계 체계적 배포 프로세스
+
+**사용법:**
+```powershell
+# 전체 시스템 통합 배포 (권장)
+.\integrated-deploy.ps1 -CreateAppPool -CreateSite
+
+# 빌드 건너뛰기 (이미 빌드된 경우)
+.\integrated-deploy.ps1 -CreateAppPool -CreateSite -SkipBuild
+
+# 기존 배포 강제 덮어쓰기
+.\integrated-deploy.ps1 -CreateAppPool -CreateSite -Force
+```
+
+### 2. `diagnose-ftp-issues.ps1` - 🆕 문제 진단 스크립트
+**FTP 인증 문제를 체계적으로 진단하고 해결 방법을 제시합니다.**
+
+**주요 기능:**
+- 8단계 체계적 문제 진단
+- 시스템 요구사항, 파일 배포, IIS 구성 등 전면 점검
+- 발견된 문제에 대한 구체적 해결 방안 제시
+- 자동 수정 옵션 (통합 배포 스크립트 연동)
+
+**사용법:**
+```powershell
+# 문제 진단만 수행
+.\diagnose-ftp-issues.ps1
+
+# 문제 진단 후 자동 수정
+.\diagnose-ftp-issues.ps1 -FixIssues
+
+# 상세 정보 포함
+.\diagnose-ftp-issues.ps1 -Verbose
+```
+
+### 3. `deploy-to-iis.ps1` - 메인 배포 스크립트
 IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업데이트합니다.
 
 **주요 기능:**
@@ -39,7 +83,21 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\deploy-to-iis.ps1 -Force
 ```
 
-### 2. `update-deployment.ps1` - 업데이트 스크립트
+### 4. `quick-deploy.ps1` - 빠른 배포 스크립트
+개발/테스트 환경에서 빠른 배포를 위한 간소화된 스크립트입니다.
+
+**주요 기능:**
+- 프로젝트 자동 빌드
+- IIS 배포 자동화
+- 배포 상태 자동 확인
+
+**사용법:**
+```powershell
+# 빠른 배포 실행
+.\quick-deploy.ps1
+```
+
+### 5. `update-deployment.ps1` - 업데이트 스크립트
 기존 배포를 안전하게 업데이트합니다.
 
 **주요 기능:**
@@ -56,7 +114,7 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\update-deployment.ps1 -RollbackOnError
 ```
 
-### 3. `rollback-deployment.ps1` - 배포 철회 스크립트
+### 6. `rollback-deployment.ps1` - 배포 철회 스크립트
 배포를 철회하고 시스템을 이전 상태로 복원합니다.
 
 **주요 기능:**
@@ -77,7 +135,7 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\rollback-deployment.ps1 -Force
 ```
 
-### 4. `check-deployment-status.ps1` - 상태 확인 스크립트
+### 7. `check-deployment-status.ps1` - 상태 확인 스크립트
 현재 배포 상태와 시스템 상태를 확인합니다.
 
 **주요 기능:**
@@ -96,9 +154,24 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\check-deployment-status.ps1 -Detailed
 ```
 
-## 🔧 배포 워크플로우
+## 🔧 개선된 배포 워크플로우
 
-### 초기 배포
+### 🆕 권장 워크플로우 (통합 배포)
+```powershell
+# 1. 문제 진단 (선택사항)
+.\diagnose-ftp-issues.ps1
+
+# 2. 통합 배포 (전체 시스템 구성)
+.\integrated-deploy.ps1 -CreateAppPool -CreateSite
+
+# 3. 배포 상태 확인
+.\check-deployment-status.ps1
+
+# 4. 문제 발생 시 진단 및 자동 수정
+.\diagnose-ftp-issues.ps1 -FixIssues
+```
+
+### 기존 워크플로우
 ```powershell
 # 1. 프로젝트 빌드
 dotnet build --configuration Release
@@ -124,14 +197,15 @@ dotnet build --configuration Release
 
 ### 문제 발생 시
 ```powershell
-# 1. 현재 상태 확인
+# 1. 문제 진단
+.\diagnose-ftp-issues.ps1
+
+# 2. 자동 수정 (권장)
+.\diagnose-ftp-issues.ps1 -FixIssues
+
+# 3. 수동 수정이 필요한 경우
 .\check-deployment-status.ps1
-
-# 2. 배포 철회
 .\rollback-deployment.ps1
-
-# 3. 백업에서 복원 (선택사항)
-# 스크립트가 자동으로 복원 옵션을 제공합니다
 ```
 
 ## 📁 배포 구조
@@ -148,7 +222,8 @@ C:\Windows\System32\inetsrv\         # IIS 시스템 디렉토리
 ├── IIS.Ftp.SimpleAuth.Provider.dll  # FTP 인증 공급자
 ├── IIS.Ftp.SimpleAuth.Core.dll      # 핵심 라이브러리
 ├── WelsonJS.Esent.dll               # ESENT 데이터베이스 지원
-└── Esent.Interop.dll                # ESENT 인터페이스
+├── Esent.Interop.dll                # ESENT 인터페이스
+└── ftpauth.config.json              # 🆕 구성 파일 (기본 위치)
 
 C:\inetpub\ftpusers\                 # 사용자 데이터
 ├── users.json                        # 사용자 정보
@@ -160,6 +235,24 @@ C:\inetpub\backup\ftpauth\           # 백업 디렉토리
 └── [DLL 백업 파일들]
 ```
 
+## 🆕 주요 개선사항
+
+### 1. 통합 배포 스크립트
+- **10단계 체계적 배포**: 빌드부터 IIS 구성까지 전체 과정 자동화
+- **FTP 프로바이더 자동 등록**: 수동 IIS 설정 불필요
+- **구성 파일 자동 생성**: 올바른 위치에 올바른 형식으로 배치
+- **서비스 자동 재시작**: 배포 후 즉시 사용 가능
+
+### 2. 문제 진단 시스템
+- **8단계 체계적 진단**: 시스템 요구사항부터 IIS 구성까지 전면 점검
+- **구체적 해결 방안**: 발견된 문제에 대한 명확한 해결 방법 제시
+- **자동 수정 옵션**: 진단 후 자동으로 문제 해결
+
+### 3. 향상된 오류 처리
+- **DLL 차단 해제**: 인터넷 다운로드로 인한 차단 자동 해제
+- **권한 문제 진단**: IIS_IUSRS 권한 설정 상태 확인
+- **구성 파일 검증**: JSON 형식 및 내용 유효성 검사
+
 ## ⚠️ 주의사항
 
 ### 보안
@@ -168,11 +261,13 @@ C:\inetpub\backup\ftpauth\           # 백업 디렉토리
 - 백업이 자동으로 생성되지만 중요한 데이터는 별도로 백업하세요
 
 ### IIS 설정
-- IIS FTP 사이트에 AuthProvider를 수동으로 등록해야 합니다
+- 🆕 **통합 배포 스크립트 사용 시**: FTP 커스텀 프로바이더가 자동으로 등록됩니다
+- 🆕 **수동 배포 시**: IIS FTP 사이트에 AuthProvider를 수동으로 등록해야 합니다
 - 애플리케이션 풀의 .NET Framework 버전이 4.0으로 설정되어야 합니다
 - IIS_IUSRS 그룹에 사용자 데이터 디렉토리 접근 권한이 필요합니다
 
 ### 문제 해결
+- 🆕 **문제 진단 스크립트**: `diagnose-ftp-issues.ps1`을 먼저 실행하여 문제 파악
 - 스크립트 실행 오류 시 PowerShell 실행 정책을 확인하세요: `Get-ExecutionPolicy`
 - IIS 관리 모듈 로드 실패 시 IIS가 제대로 설치되었는지 확인하세요
 - DLL 복사 실패 시 바이러스 백신 소프트웨어의 간섭을 확인하세요
@@ -208,15 +303,44 @@ $acl.SetAccessRule($accessRule)
 Set-Acl -Path "C:\inetpub\ftpusers" -AclObject $acl
 ```
 
+#### 🆕 4. FTP 인증 실패 (새로 추가)
+```powershell
+# 문제 진단 실행
+.\diagnose-ftp-issues.ps1
+
+# 자동 수정 실행
+.\diagnose-ftp-issues.ps1 -FixIssues
+
+# 이벤트 로그 확인
+Get-EventLog -LogName Application -Source "IIS-FTP-SimpleAuth" -Newest 20
+```
+
+#### 🆕 5. 구성 파일 문제 (새로 추가)
+```powershell
+# 구성 파일 위치 확인
+Test-Path "C:\Windows\System32\inetsrv\ftpauth.config.json"
+
+# 구성 파일 내용 확인
+Get-Content "C:\Windows\System32\inetsrv\ftpauth.config.json" | ConvertFrom-Json
+
+# 통합 배포로 재생성
+.\integrated-deploy.ps1 -CreateAppPool -CreateSite -Force
+```
+
 ## 📞 지원
 
 문제가 발생하거나 추가 도움이 필요한 경우:
-1. `check-deployment-status.ps1`을 실행하여 현재 상태 확인
-2. Windows 이벤트 로그에서 오류 메시지 확인
-3. 프로젝트 이슈 페이지에 문제 보고
+1. 🆕 **`diagnose-ftp-issues.ps1`을 실행하여 문제 진단** (권장)
+2. `check-deployment-status.ps1`을 실행하여 현재 상태 확인
+3. Windows 이벤트 로그에서 오류 메시지 확인
+4. 프로젝트 이슈 페이지에 문제 보고
 
 ## 📝 변경 이력
 
 - **v1.0.0**: 초기 배포 스크립트 생성
 - **v1.1.0**: 업데이트 및 롤백 기능 추가
 - **v1.2.0**: 상태 확인 및 문제 해결 기능 추가
+- **v2.0.0**: 🆕 통합 배포 스크립트 및 문제 진단 시스템 추가
+  - `integrated-deploy.ps1`: 전체 시스템 통합 배포
+  - `diagnose-ftp-issues.ps1`: 체계적 문제 진단 및 자동 수정
+  - 향상된 오류 처리 및 사용자 경험 개선

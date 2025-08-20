@@ -1,57 +1,57 @@
-# IIS FTP SimpleAuthProvider ë¹ ë¥¸ ë°°í¬ ìŠ¤í¬ë¦½íŠ¸
-# ì´ ìŠ¤í¬ë¦½íŠ¸ëŠ” ê°œë°œ/í…ŒìŠ¤íŠ¸ í™˜ê²½ì—ì„œ ë¹ ë¥¸ ë°°í¬ë¥¼ ìœ„í•œ ê²ƒì…ë‹ˆë‹¤.
+# IIS FTP SimpleAuthProvider ºü¸¥ ¹èÆ÷ ½ºÅ©¸³Æ®
+# ÀÌ ½ºÅ©¸³Æ®´Â °³¹ß/Å×½ºÆ® È¯°æ¿¡¼­ ºü¸¥ ¹èÆ÷¸¦ À§ÇÑ °ÍÀÔ´Ï´Ù.
 
-Write-Host "IIS FTP SimpleAuthProvider ë¹ ë¥¸ ë°°í¬ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤..." -ForegroundColor Green
+Write-Host "IIS FTP SimpleAuthProvider ºü¸¥ ¹èÆ÷¸¦ ½ÃÀÛÇÕ´Ï´Ù..." -ForegroundColor Green
 
-# í˜„ì¬ ë””ë ‰í† ë¦¬ í™•ì¸
+# ÇÁ·ÎÁ§Æ® ·çÆ® È®ÀÎ
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $projectRoot = Split-Path -Parent $scriptDir
 
-Write-Host "í”„ë¡œì íŠ¸ ë£¨íŠ¸: $projectRoot" -ForegroundColor Cyan
+Write-Host "ÇÁ·ÎÁ§Æ® ·çÆ®: $projectRoot" -ForegroundColor Cyan
 
-# í”„ë¡œì íŠ¸ ë¹Œë“œ
-Write-Host "`ní”„ë¡œì íŠ¸ë¥¼ ë¹Œë“œí•˜ëŠ” ì¤‘..." -ForegroundColor Yellow
+# ÇÁ·ÎÁ§Æ® ºôµå
+Write-Host "`nÇÁ·ÎÁ§Æ®¸¦ ºôµåÇÏ´Â Áß..." -ForegroundColor Yellow
 Set-Location $projectRoot
 
 try {
     dotnet build --configuration Release
     if ($LASTEXITCODE -ne 0) {
-        Write-Error "ë¹Œë“œì— ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤."
+        Write-Error "ºôµå¿¡ ½ÇÆĞÇß½À´Ï´Ù."
         exit 1
     }
-    Write-Host "âœ“ ë¹Œë“œê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+    Write-Host "? ºôµå°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù." -ForegroundColor Green
 } catch {
-    Write-Error "ë¹Œë“œ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: $($_.Exception.Message)"
+    Write-Error "ºôµå Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: $($_.Exception.Message)"
     exit 1
 }
 
-# ë©”ì¸ ë°°í¬ ìŠ¤í¬ë¦½íŠ¸ ì‹¤í–‰
-Write-Host "`nIISì— ë°°í¬í•˜ëŠ” ì¤‘..." -ForegroundColor Yellow
+# IIS ¹èÆ÷ ½ºÅ©¸³Æ® ½ÇÇà
+Write-Host "`nIIS¿¡ ¹èÆ÷ÇÏ´Â Áß..." -ForegroundColor Yellow
 $deployScript = Join-Path $scriptDir "deploy-to-iis.ps1"
 
 if (Test-Path $deployScript) {
     try {
         & $deployScript -CreateAppPool -CreateSite
-        Write-Host "âœ“ ë°°í¬ê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
+        Write-Host "? ¹èÆ÷°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
     } catch {
-        Write-Error "ë°°í¬ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: $($_.Exception.Message)"
+        Write-Error "¹èÆ÷ Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: $($_.Exception.Message)"
         exit 1
     }
 } else {
-    Write-Error "ë°°í¬ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: $deployScript"
+    Write-Error "¹èÆ÷ ½ºÅ©¸³Æ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù: $deployScript"
     exit 1
 }
 
-# ë°°í¬ ìƒíƒœ í™•ì¸
-Write-Host "`në°°í¬ ìƒíƒœë¥¼ í™•ì¸í•˜ëŠ” ì¤‘..." -ForegroundColor Yellow
+# ¹èÆ÷ »óÅÂ È®ÀÎ
+Write-Host "`n¹èÆ÷ »óÅÂ¸¦ È®ÀÎÇÏ´Â Áß..." -ForegroundColor Yellow
 $statusScript = Join-Path $scriptDir "check-deployment-status.ps1"
 
 if (Test-Path $statusScript) {
     & $statusScript
 } else {
-    Write-Warning "ìƒíƒœ í™•ì¸ ìŠ¤í¬ë¦½íŠ¸ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+    Write-Warning "»óÅÂ È®ÀÎ ½ºÅ©¸³Æ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù."
 }
 
-Write-Host "`nğŸ‰ ë¹ ë¥¸ ë°°í¬ê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
-Write-Host "ì›¹ ê´€ë¦¬ ì½˜ì†”: http://localhost:8080" -ForegroundColor Cyan
-Write-Host "ê¸°ë³¸ ê´€ë¦¬ì ê³„ì •: admin / admin123" -ForegroundColor Cyan
+Write-Host "`n? ºü¸¥ ¹èÆ÷°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
+Write-Host "À¥ °ü¸® ÄÜ¼Ö: http://localhost:8080" -ForegroundColor Cyan
+Write-Host "±âº» °ü¸®ÀÚ °èÁ¤: admin / admin123" -ForegroundColor Cyan

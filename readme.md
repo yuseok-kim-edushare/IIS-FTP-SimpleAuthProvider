@@ -227,7 +227,7 @@ Authentication events are logged to Windows Event Log:
 ### Building from Source
 ```powershell
 # Clone repository
-git clone https://github.com/yourusername/IIS-FTP-SimpleAuthProvider.git
+git clone https://github.com/yuseok-kim-edushare/IIS-FTP-SimpleAuthProvider.git
 cd IIS-FTP-SimpleAuthProvider
 
 # Restore packages and build

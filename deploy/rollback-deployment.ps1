@@ -1,4 +1,4 @@
-# IIS FTP SimpleAuthProvider ë°°í¬ ì² íšŒ ìŠ¤í¬ë¦½íŠ¸
+# IIS FTP SimpleAuthProvider ¹èÆ÷ Ã¶È¸ ½ºÅ©¸³Æ®
 param(
     [string]$IISPath = "C:\inetpub\wwwroot\ftpauth",
     [string]$BackupPath = "C:\inetpub\backup\ftpauth",
@@ -8,73 +8,73 @@ param(
     [switch]$Force
 )
 
-Write-Host "IIS FTP SimpleAuthProvider ë°°í¬ ì² íšŒë¥¼ ì‹œì‘í•©ë‹ˆë‹¤..." -ForegroundColor Yellow
+Write-Host "IIS FTP SimpleAuthProvider ¹èÆ÷ Ã¶È¸¸¦ ½ÃÀÛÇÕ´Ï´Ù..." -ForegroundColor Yellow
 
-# ê´€ë¦¬ì ê¶Œí•œ í™•ì¸
+# °ü¸®ÀÚ ±ÇÇÑ È®ÀÎ
 if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Error "ì´ ìŠ¤í¬ë¦½íŠ¸ëŠ” ê´€ë¦¬ì ê¶Œí•œìœ¼ë¡œ ì‹¤í–‰í•´ì•¼ í•©ë‹ˆë‹¤."
+    Write-Error "ÀÌ ½ºÅ©¸³Æ®´Â °ü¸®ÀÚ ±ÇÇÑÀ¸·Î ½ÇÇàÇØ¾ß ÇÕ´Ï´Ù."
     exit 1
 }
 
-# IIS ê¸°ëŠ¥ í™•ì¸
+# IIS ±â´É È®ÀÎ
 try {
     Import-Module WebAdministration
 } catch {
-    Write-Error "IIS ê´€ë¦¬ ëª¨ë“ˆì„ ë¡œë“œí•  ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+    Write-Error "IIS °ü¸® ¸ğµâÀ» ·ÎµåÇÒ ¼ö ¾ø½À´Ï´Ù."
     exit 1
 }
 
-# ë°°í¬ ì •ë³´ í™•ì¸
+# ¹èÆ÷ Á¤º¸ È®ÀÎ
 $deploymentInfoPath = Join-Path $IISPath "deployment-info.json"
 if (Test-Path $deploymentInfoPath) {
     try {
         $deploymentInfo = Get-Content $deploymentInfoPath | ConvertFrom-Json
-        Write-Host "ë°°í¬ ì •ë³´ë¥¼ ë°œê²¬í–ˆìŠµë‹ˆë‹¤:" -ForegroundColor Cyan
-        Write-Host "  ë°°í¬ ì‹œê°„: $($deploymentInfo.DeployedAt)" -ForegroundColor Cyan
-        Write-Host "  ë²„ì „: $($deploymentInfo.Version)" -ForegroundColor Cyan
-        Write-Host "  ì†ŒìŠ¤ ê²½ë¡œ: $($deploymentInfo.SourcePath)" -ForegroundColor Cyan
+        Write-Host "¹èÆ÷ Á¤º¸¸¦ ¹ß°ßÇß½À´Ï´Ù:" -ForegroundColor Cyan
+        Write-Host "  ¹èÆ÷ ½Ã°£: $($deploymentInfo.DeployedAt)" -ForegroundColor Cyan
+        Write-Host "  ¹öÀü: $($deploymentInfo.Version)" -ForegroundColor Cyan
+        Write-Host "  ¼Ò½º °æ·Î: $($deploymentInfo.SourcePath)" -ForegroundColor Cyan
     } catch {
-        Write-Warning "ë°°í¬ ì •ë³´ë¥¼ ì½ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+        Write-Warning "¹èÆ÷ Á¤º¸¸¦ ÀĞÀ» ¼ö ¾ø½À´Ï´Ù."
     }
 }
 
-# ìµœì‹  ë°±ì—… ì°¾ê¸°
+# ÃÖ½Å ¹é¾÷ Ã£±â
 $latestBackup = Get-ChildItem -Path $BackupPath -Directory | Sort-Object CreationTime -Descending | Select-Object -First 1
 if ($latestBackup) {
-    Write-Host "ìµœì‹  ë°±ì—…ì„ ë°œê²¬í–ˆìŠµë‹ˆë‹¤: $($latestBackup.Name)" -ForegroundColor Cyan
-    Write-Host "  ìƒì„± ì‹œê°„: $($latestBackup.CreationTime)" -ForegroundColor Cyan
+    Write-Host "ÃÖ½Å ¹é¾÷À» ¹ß°ßÇß½À´Ï´Ù: $($latestBackup.Name)" -ForegroundColor Cyan
+    Write-Host "  »ı¼º ½Ã°£: $($latestBackup.CreationTime)" -ForegroundColor Cyan
 } else {
-    Write-Warning "ë°±ì—…ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤: $BackupPath"
+    Write-Warning "¹é¾÷À» Ã£À» ¼ö ¾ø½À´Ï´Ù: $BackupPath"
 }
 
-# ì‚¬ìš©ì í™•ì¸
+# »ç¿ëÀÚ È®ÀÎ
 if (!$Force) {
-    $response = Read-Host "ì •ë§ë¡œ ë°°í¬ë¥¼ ì² íšŒí•˜ì‹œê² ìŠµë‹ˆê¹Œ? ì´ ì‘ì—…ì€ ë˜ëŒë¦´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤. (yes/no)"
+    $response = Read-Host "Á¤¸»·Î ¹èÆ÷¸¦ Ã¶È¸ÇÏ½Ã°Ú½À´Ï±î? ÀÌ ÀÛ¾÷Àº µÇµ¹¸± ¼ö ¾ø½À´Ï´Ù. (yes/no)"
     if ($response -ne "yes") {
-        Write-Host "ë°°í¬ ì² íšŒê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+        Write-Host "¹èÆ÷ Ã¶È¸°¡ Ãë¼ÒµÇ¾ú½À´Ï´Ù." -ForegroundColor Green
         exit 0
     }
 }
 
-# IIS ì‚¬ì´íŠ¸ ì œê±° (ì„ íƒì‚¬í•­)
+# IIS »çÀÌÆ® Á¦°Å (¼±ÅÃ»çÇ×)
 if ($RemoveSite) {
     $siteName = "ftpauth"
     if (Get-Website -Name $siteName -ErrorAction SilentlyContinue) {
         Remove-Website -Name $siteName
-        Write-Host "ì›¹ì‚¬ì´íŠ¸ë¥¼ ì œê±°í–ˆìŠµë‹ˆë‹¤: $siteName" -ForegroundColor Yellow
+        Write-Host "À¥»çÀÌÆ®¸¦ Á¦°ÅÇß½À´Ï´Ù: $siteName" -ForegroundColor Yellow
     }
 }
 
-# IIS ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ ì œê±° (ì„ íƒì‚¬í•­)
+# IIS ¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç® Á¦°Å (¼±ÅÃ»çÇ×)
 if ($RemoveAppPool) {
     $appPoolName = "ftpauth-pool"
     if (Get-IISAppPool -Name $appPoolName -ErrorAction SilentlyContinue) {
         Remove-WebAppPool -Name $appPoolName
-        Write-Host "ì• í”Œë¦¬ì¼€ì´ì…˜ í’€ì„ ì œê±°í–ˆìŠµë‹ˆë‹¤: $appPoolName" -ForegroundColor Yellow
+        Write-Host "¾ÖÇÃ¸®ÄÉÀÌ¼Ç Ç®À» Á¦°ÅÇß½À´Ï´Ù: $appPoolName" -ForegroundColor Yellow
     }
 }
 
-# AuthProvider DLL ì œê±°
+# AuthProvider DLL Á¦°Å
 $authProviderDlls = @(
     "IIS.Ftp.SimpleAuth.Provider.dll",
     "IIS.Ftp.SimpleAuth.Core.dll",
@@ -87,43 +87,43 @@ foreach ($dll in $authProviderDlls) {
     $backupDll = Join-Path $BackupPath "$dll.backup"
     
     if (Test-Path $targetDll) {
-        # ë°±ì—…ì—ì„œ ë³µì› ì‹œë„
+        # ¹é¾÷¿¡¼­ º¹¿ø ½Ãµµ
         if (Test-Path $backupDll) {
             Copy-Item $backupDll -Destination $targetDll -Force
-            Write-Host "$dllì„ ë°±ì—…ì—ì„œ ë³µì›í–ˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+            Write-Host "$dllÀ» ¹é¾÷¿¡¼­ º¹¿øÇß½À´Ï´Ù." -ForegroundColor Yellow
         } else {
-            # ë°±ì—…ì´ ì—†ìœ¼ë©´ ì œê±°
+            # ¹é¾÷ÀÌ ¾øÀ¸¸é Á¦°Å
             Remove-Item $targetDll -Force
-            Write-Host "$dllì„ ì œê±°í–ˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+            Write-Host "$dllÀ» Á¦°ÅÇß½À´Ï´Ù." -ForegroundColor Yellow
         }
     }
 }
 
-# ì›¹ ì• í”Œë¦¬ì¼€ì´ì…˜ ë””ë ‰í† ë¦¬ ì œê±°
+# À¥ ¾ÖÇÃ¸®ÄÉÀÌ¼Ç µğ·ºÅä¸® Á¦°Å
 if (Test-Path $IISPath) {
     Remove-Item $IISPath -Recurse -Force
-    Write-Host "ì›¹ ì• í”Œë¦¬ì¼€ì´ì…˜ ë””ë ‰í† ë¦¬ë¥¼ ì œê±°í–ˆìŠµë‹ˆë‹¤: $IISPath" -ForegroundColor Yellow
+    Write-Host "À¥ ¾ÖÇÃ¸®ÄÉÀÌ¼Ç µğ·ºÅä¸®¸¦ Á¦°ÅÇß½À´Ï´Ù: $IISPath" -ForegroundColor Yellow
 }
 
-# ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ ì œê±° (ì„ íƒì‚¬í•­)
+# »ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸® Á¦°Å (¼±ÅÃ»çÇ×)
 $UserDataPath = "C:\inetpub\ftpusers"
 if (Test-Path $UserDataPath) {
-    $response = Read-Host "ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ë„ ì œê±°í•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n)"
+    $response = Read-Host "»ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸®µµ Á¦°ÅÇÏ½Ã°Ú½À´Ï±î? (y/n)"
     if ($response -eq 'y' -or $response -eq 'Y') {
         Remove-Item $UserDataPath -Recurse -Force
-        Write-Host "ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ë¥¼ ì œê±°í–ˆìŠµë‹ˆë‹¤: $UserDataPath" -ForegroundColor Yellow
+        Write-Host "»ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸®¸¦ Á¦°ÅÇß½À´Ï´Ù: $UserDataPath" -ForegroundColor Yellow
     } else {
-        Write-Host "ì‚¬ìš©ì ë°ì´í„° ë””ë ‰í† ë¦¬ëŠ” ìœ ì§€ë©ë‹ˆë‹¤: $UserDataPath" -ForegroundColor Cyan
+        Write-Host "»ç¿ëÀÚ µ¥ÀÌÅÍ µğ·ºÅä¸®´Â À¯ÁöµË´Ï´Ù: $UserDataPath" -ForegroundColor Cyan
     }
 }
 
-Write-Host "ë°°í¬ ì² íšŒê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
+Write-Host "¹èÆ÷ Ã¶È¸°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
 
-# ë³µì› ì˜µì…˜ ì œê³µ
+# º¹¿ø ¿É¼Ç Á¦°ø
 if ($latestBackup) {
-    $response = Read-Host "ë°±ì—…ì—ì„œ ë³µì›í•˜ì‹œê² ìŠµë‹ˆê¹Œ? (y/n)"
+    $response = Read-Host "¹é¾÷¿¡¼­ º¹¿øÇÏ½Ã°Ú½À´Ï±î? (y/n)"
     if ($response -eq 'y' -or $response -eq 'Y') {
-        Write-Host "ë°±ì—…ì—ì„œ ë³µì›ì„ ì‹œì‘í•©ë‹ˆë‹¤..." -ForegroundColor Cyan
+        Write-Host "¹é¾÷¿¡¼­ º¹¿øÀ» ½ÃÀÛÇÕ´Ï´Ù..." -ForegroundColor Cyan
         & "$PSScriptRoot\deploy-to-iis.ps1" -Force
     }
 }

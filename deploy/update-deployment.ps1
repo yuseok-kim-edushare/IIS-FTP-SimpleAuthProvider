@@ -1,4 +1,4 @@
-# IIS FTP SimpleAuthProvider ì—…ë°ì´íŠ¸ ìŠ¤í¬ë¦½íŠ¸
+# IIS FTP SimpleAuthProvider ¾÷µ¥ÀÌÆ® ½ºÅ©¸³Æ®
 param(
     [string]$IISPath = "C:\inetpub\wwwroot\ftpauth",
     [string]$SourcePath = "src\ManagementWeb\bin\Release\net48",
@@ -7,28 +7,28 @@ param(
     [switch]$RollbackOnError
 )
 
-Write-Host "IIS FTP SimpleAuthProvider ì—…ë°ì´íŠ¸ë¥¼ ì‹œì‘í•©ë‹ˆë‹¤..." -ForegroundColor Green
+Write-Host "IIS FTP SimpleAuthProvider ¾÷µ¥ÀÌÆ®¸¦ ½ÃÀÛÇÕ´Ï´Ù..." -ForegroundColor Green
 
-# í˜„ì¬ ë°°í¬ ìƒíƒœ í™•ì¸
+# ÇöÀç ¹èÆ÷ »óÅÂ È®ÀÎ
 if (!(Test-Path $IISPath)) {
-    Write-Error "í˜„ì¬ ë°°í¬ê°€ ë°œê²¬ë˜ì§€ ì•Šì•˜ìŠµë‹ˆë‹¤. ë¨¼ì € ì´ˆê¸° ë°°í¬ë¥¼ ìˆ˜í–‰í•˜ì„¸ìš”."
+    Write-Error "ÇöÀç ¹èÆ÷°¡ ¹ß°ßµÇÁö ¾Ê¾Ò½À´Ï´Ù. ¸ÕÀú ÃÊ±â ¹èÆ÷¸¦ ¼öÇàÇÏ¼¼¿ä."
     exit 1
 }
 
-# ë°°í¬ ì •ë³´ í™•ì¸
+# ¹èÆ÷ Á¤º¸ È®ÀÎ
 $deploymentInfoPath = Join-Path $IISPath "deployment-info.json"
 if (Test-Path $deploymentInfoPath) {
     try {
         $currentDeployment = Get-Content $deploymentInfoPath | ConvertFrom-Json
-        Write-Host "í˜„ì¬ ë°°í¬ ì •ë³´:" -ForegroundColor Cyan
-        Write-Host "  ë²„ì „: $($currentDeployment.Version)" -ForegroundColor Cyan
-        Write-Host "  ë°°í¬ ì‹œê°„: $($currentDeployment.DeployedAt)" -ForegroundColor Cyan
+        Write-Host "ÇöÀç ¹èÆ÷ Á¤º¸:" -ForegroundColor Cyan
+        Write-Host "  ¹öÀü: $($currentDeployment.Version)" -ForegroundColor Cyan
+        Write-Host "  ¹èÆ÷ ½Ã°£: $($currentDeployment.DeployedAt)" -ForegroundColor Cyan
     } catch {
-        Write-Warning "í˜„ì¬ ë°°í¬ ì •ë³´ë¥¼ ì½ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤."
+        Write-Warning "ÇöÀç ¹èÆ÷ Á¤º¸¸¦ ÀĞÀ» ¼ö ¾ø½À´Ï´Ù."
     }
 }
 
-# ë°±ì—… ìƒì„±
+# ¹é¾÷ »ı¼º
 $timestamp = Get-Date -Format "yyyyMMdd_HHmmss"
 $backupPathWithTimestamp = "$BackupPath\$timestamp"
 if (!(Test-Path $BackupPath)) {
@@ -36,14 +36,14 @@ if (!(Test-Path $BackupPath)) {
 }
 
 Copy-Item $IISPath -Destination $backupPathWithTimestamp -Recurse -Force
-Write-Host "í˜„ì¬ ë°°í¬ë¥¼ ë°±ì—…í–ˆìŠµë‹ˆë‹¤: $backupPathWithTimestamp" -ForegroundColor Yellow
+Write-Host "ÇöÀç ¹èÆ÷¸¦ ¹é¾÷Çß½À´Ï´Ù: $backupPathWithTimestamp" -ForegroundColor Yellow
 
 try {
-    # íŒŒì¼ ì—…ë°ì´íŠ¸
-    Write-Host "íŒŒì¼ì„ ì—…ë°ì´íŠ¸í•˜ëŠ” ì¤‘..." -ForegroundColor Yellow
+    # ÆÄÀÏ ¾÷µ¥ÀÌÆ®
+    Write-Host "ÆÄÀÏÀ» ¾÷µ¥ÀÌÆ®ÇÏ´Â Áß..." -ForegroundColor Yellow
     Copy-Item "$SourcePath\*" -Destination $IISPath -Recurse -Force
     
-    # AuthProvider DLL ì—…ë°ì´íŠ¸
+    # AuthProvider DLL ¾÷µ¥ÀÌÆ®
     $IISSystemPath = "C:\Windows\System32\inetsrv"
     $authProviderDlls = @(
         "IIS.Ftp.SimpleAuth.Provider.dll",
@@ -57,18 +57,18 @@ try {
         $targetDll = Join-Path $IISSystemPath $dll
         
         if (Test-Path $sourceDll) {
-            # ê¸°ì¡´ DLL ë°±ì—…
+            # ±âÁ¸ DLL ¹é¾÷
             if (Test-Path $targetDll) {
                 $backupDll = Join-Path $BackupPath "$dll.backup"
                 Copy-Item $targetDll -Destination $backupDll -Force
             }
             
             Copy-Item $sourceDll -Destination $targetDll -Force
-            Write-Host "$dllì„ ì—…ë°ì´íŠ¸í–ˆìŠµë‹ˆë‹¤." -ForegroundColor Yellow
+            Write-Host "$dllÀ» ¾÷µ¥ÀÌÆ®Çß½À´Ï´Ù." -ForegroundColor Yellow
         }
     }
     
-    # ë°°í¬ ì •ë³´ ì—…ë°ì´íŠ¸
+    # ¹èÆ÷ Á¤º¸ ¾÷µ¥ÀÌÆ®
     $newDeploymentInfo = @{
         DeployedAt = Get-Date
         Version = "1.0.1"
@@ -81,16 +81,16 @@ try {
     $deploymentInfoPath = Join-Path $IISPath "deployment-info.json"
     $newDeploymentInfo | Out-File -FilePath $deploymentInfoPath -Encoding UTF8
     
-    Write-Host "ì—…ë°ì´íŠ¸ê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤!" -ForegroundColor Green
+    Write-Host "¾÷µ¥ÀÌÆ®°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù!" -ForegroundColor Green
     
 } catch {
-    Write-Error "ì—…ë°ì´íŠ¸ ì¤‘ ì˜¤ë¥˜ê°€ ë°œìƒí–ˆìŠµë‹ˆë‹¤: $($_.Exception.Message)"
+    Write-Error "¾÷µ¥ÀÌÆ® Áß ¿À·ù°¡ ¹ß»ıÇß½À´Ï´Ù: $($_.Exception.Message)"
     
     if ($RollbackOnError) {
-        Write-Host "ë°±ì—…ì—ì„œ ë³µì›ì„ ì‹œì‘í•©ë‹ˆë‹¤..." -ForegroundColor Yellow
+        Write-Host "¹é¾÷¿¡¼­ º¹¿øÀ» ½ÃÀÛÇÕ´Ï´Ù..." -ForegroundColor Yellow
         Remove-Item $IISPath -Recurse -Force
         Copy-Item $backupPathWithTimestamp -Destination $IISPath -Recurse -Force
-        Write-Host "ë°±ì—…ì—ì„œ ë³µì›ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤." -ForegroundColor Green
+        Write-Host "¹é¾÷¿¡¼­ º¹¿øÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù." -ForegroundColor Green
     }
     
     exit 1
