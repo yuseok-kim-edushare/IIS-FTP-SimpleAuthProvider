@@ -100,8 +100,8 @@ New-NetFirewallRule -DisplayName "IIS FTP Passive" -Direction Inbound -Protocol 
 cd "C:\your-path-to\IIS-FTP-SimpleAuthProvider"
 
 # 의존성 복원 및 빌드
-dotnet restore
-dotnet build --configuration Release
+msbuild IIS-FTP-SimpleAuthProvider.slnx /t:Restore
+msbuild IIS-FTP-SimpleAuthProvider.slnx /p:Configuration=Release
 
 # 빌드 성공 확인
 if ($LASTEXITCODE -eq 0) {

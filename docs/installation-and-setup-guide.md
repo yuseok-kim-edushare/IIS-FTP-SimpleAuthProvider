@@ -52,7 +52,7 @@ Enable-WindowsOptionalFeature -Online -FeatureName IIS-FTPSvc
 cd C:\Users\kgong2\source\repos\Githubs\IIS-FTP-SimpleAuthProvider
 
 # Build all projects in Release mode
-dotnet build --configuration Release
+msbuild IIS-FTP-SimpleAuthProvider.slnx /p:Configuration=Release
 
 # Verify successful build
 if ($LASTEXITCODE -eq 0) {

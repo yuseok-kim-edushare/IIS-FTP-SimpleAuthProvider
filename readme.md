@@ -20,6 +20,9 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 ## Quick Start (5 Steps)
 
 > **📖 For detailed installation and setup instructions, see [Installation & Setup Guide](docs/installation-and-setup-guide.md)**
+> **🏗️ For architecture and design details, see [Architecture Diagrams](docs/architecture%20diagrams.md) and [Codebase Summary](docs/codebase-summary.md)**
+> **📁 For project structure and organization, see [Project Structure](docs/project-structure.md)**
+> **🔧 For technical implementation details, see [Technical Overview](docs/technical-overview.md)**
 > **🖥️ For Windows 11 Pro client setup, see [Windows 11 Pro Client Setup Guide](docs/windows-11-pro-client-setup.md)**
 > **🚀 For automated deployment, see [Deployment Guide](deploy/README.md)**
 
@@ -58,7 +61,7 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 
 4. **Access the web management interface**
    - Open your browser and navigate to: `http://localhost:8080`
-   - Login with admin credentials: `admin` / `admin123`
+   - Login with admin credentials: `admin` / `admin123` (if you want use temp-users.json, password123 is pw)
    - Manage users and permissions through the web UI
 
 5. **Test your FTP connection**
