@@ -78,7 +78,7 @@ jobs:
 
       - name: Restore NuGet packages
         run: |
-          nuget restore IIS-FTP-SimpleAuthProvider.slnx
+          dotnet restore IIS-FTP-SimpleAuthProvider.slnx
 
       - name: Build solution
         run: |
@@ -93,25 +93,25 @@ jobs:
         run: |
           msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="src\ManagementWeb\artifacts" /verbosity:minimal
 
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results-${{ matrix.configuration }}
-          path: |
-            **/TestResults/*.trx
-            **/TestResults/*.html
+      # - name: Upload test results
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: test-results-${{ matrix.configuration }}
+      #     path: |
+      #       **/TestResults/*.trx
+      #       **/TestResults/*.html
 
-      - name: Upload build artifacts
-        if: matrix.configuration == 'Release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-artifacts-${{ matrix.configuration }}
-          path: |
-            src/**/bin/${{ matrix.configuration }}/**/*.dll
-            src/**/bin/${{ matrix.configuration }}/**/*.exe
-            src/**/bin/${{ matrix.configuration }}/**/*.pdb
-            src/ManagementWeb/artifacts/**/*.zip
+      # - name: Upload build artifacts
+      #   if: matrix.configuration == 'Release'
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: build-artifacts-${{ matrix.configuration }}
+      #     path: |
+      #       src/**/bin/${{ matrix.configuration }}/**/*.dll
+      #       src/**/bin/${{ matrix.configuration }}/**/*.exe
+      #       src/**/bin/${{ matrix.configuration }}/**/*.pdb
+      #       src/ManagementWeb/artifacts/**/*.zip
 
     
     
