@@ -63,6 +63,11 @@ jobs:
           fetch-depth: 0
           fetch-tags: 0
 
+      - name: install dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9
+
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.1
 
@@ -80,38 +85,34 @@ jobs:
         run: |
           dotnet restore IIS-FTP-SimpleAuthProvider.slnx
 
-      - name: Build solution
-        run: |
-          msbuild IIS-FTP-SimpleAuthProvider.slnx /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+      # Build and test only projects that are compatible with GitHub Actions environment.
+      # AuthProvider project is skipped due to missing Windows dependencies.
 
-      - name: Run tests
+      - name: Build Core project
         run: |
-          msbuild IIS-FTP-SimpleAuthProvider.slnx /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /t:Test /verbosity:minimal
+          msbuild src\Core\Core.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+
+      - name: Build ManagementWeb project
+        run: |
+          msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+
+      - name: Build ManagementCli project
+        run: |
+          msbuild src\ManagementCli\ManagementCli.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+
+      - name: Run Core tests
+        run: |
+          dotnet test src\Core\Tests\Core.Tests.csproj --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+
+      - name: Run ManagementCli tests
+        run: |
+          dotnet test src\ManagementCli\Tests\ManagementCli.Tests.csproj --configuration ${{ matrix.configuration }} --no-build --verbosity normal
 
       - name: Build ManagementWeb package (Release only)
         if: matrix.configuration == 'Release'
         run: |
           msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="src\ManagementWeb\artifacts" /verbosity:minimal
 
-      # - name: Upload test results
-      #   if: always()
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: test-results-${{ matrix.configuration }}
-      #     path: |
-      #       **/TestResults/*.trx
-      #       **/TestResults/*.html
-
-      # - name: Upload build artifacts
-      #   if: matrix.configuration == 'Release'
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: build-artifacts-${{ matrix.configuration }}
-      #     path: |
-      #       src/**/bin/${{ matrix.configuration }}/**/*.dll
-      #       src/**/bin/${{ matrix.configuration }}/**/*.exe
-      #       src/**/bin/${{ matrix.configuration }}/**/*.pdb
-      #       src/ManagementWeb/artifacts/**/*.zip
-
-    
+      - name: Skip building AuthProvider
+        run: echo "Skipping build for AuthProvider due to reliance on specific Windows components not available in GitHub Actions."
     
