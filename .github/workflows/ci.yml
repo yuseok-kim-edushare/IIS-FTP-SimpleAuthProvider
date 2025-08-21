@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main ]
     paths-ignore:
       - "**/*.md"
       - "**/*.txt"
@@ -21,7 +21,7 @@ on:
       - ".ai/**"
       - "docs/**"
   pull_request:
-    branches: [ main, master ]
+    branches: [ main ]
     paths-ignore:
       - "**/*.md"
       - "**/*.txt"
@@ -39,6 +39,10 @@ on:
       - "**/*.xlsx"
       - ".ai/**"
       - "docs/**"
+
+permissions:
+  contents: write
+  discussions: write
 
 jobs:
   build-and-test:
@@ -90,29 +94,113 @@ jobs:
 
       - name: Build Core project
         run: |
-          msbuild src\Core\Core.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+          msbuild src\Core\Core.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /p:AllowUnsafeBlocks=true /verbosity:minimal
 
       - name: Build ManagementWeb project
         run: |
-          msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+          msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /p:AllowUnsafeBlocks=true /verbosity:minimal
 
       - name: Build ManagementCli project
         run: |
-          msbuild src\ManagementCli\ManagementCli.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
+          msbuild src\ManagementCli\ManagementCli.csproj /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /p:AllowUnsafeBlocks=true /verbosity:minimal
 
       - name: Run Core tests
         run: |
-          dotnet test src\Core\Tests\Core.Tests.csproj --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+          dotnet test tests\Core.Tests\Core.Tests.csproj --configuration ${{ matrix.configuration }} /p:AllowUnsafeBlocks=true --verbosity normal
 
-      - name: Run ManagementCli tests
+      - name: Run ManagementWeb tests
         run: |
-          dotnet test src\ManagementCli\Tests\ManagementCli.Tests.csproj --configuration ${{ matrix.configuration }} --no-build --verbosity normal
+          dotnet test tests\ManagementWeb.Tests\ManagementWeb.Tests.csproj --configuration ${{ matrix.configuration }} /p:AllowUnsafeBlocks=true --verbosity normal
 
       - name: Build ManagementWeb package (Release only)
         if: matrix.configuration == 'Release'
         run: |
-          msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="src\ManagementWeb\artifacts" /verbosity:minimal
+          msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:AllowUnsafeBlocks=true /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="src\ManagementWeb\artifacts" /verbosity:minimal
 
       - name: Skip building AuthProvider
         run: echo "Skipping build for AuthProvider due to reliance on specific Windows components not available in GitHub Actions."
+    
+  release:
+    runs-on: windows-latest
+    needs: build-and-test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build-and-test.result == 'success'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Get latest release version and Generate release notes
+        id: get_latest_release
+        shell: pwsh
+        run: |
+          try {
+            $latest_release = (Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/latest").tag_name
+            Write-Output "Latest release version: $latest_release"
+            echo "latest_release=$latest_release" >> $env:GITHUB_ENV
+            $versionParts = $latest_release.Split('.')
+            $versionParts[-1] = [int]$versionParts[-1] + 1
+            $newVersionString = $versionParts -join '.'
+            echo "new_release=$newVersionString" >> $env:GITHUB_ENV
+            $releaseNotes = "## Changes since " + $latest_release + "`n"
+            $releaseNotes += (git log HEAD ^$latest_release --oneline) -join "`n"
+            $releaseNotes += "`n"
+            $releaseNotes += "### Files modified `n"
+            $releaseNotes += "`n"
+            $releaseNotes += (git diff HEAD ^$latest_release --compact-summary) -join "`n"
+          } catch {
+            Write-Output "No previous releases found, creating initial release"
+            echo "latest_release=0.0.0" >> $env:GITHUB_ENV
+            echo "new_release=0.0.1" >> $env:GITHUB_ENV
+            $releaseNotes = "## Initial release`n"
+            $releaseNotes += "This is the first automated release from CI.`n"
+            $releaseNotes += "`n"
+            $releaseNotes += "### Build Status`n"
+            $releaseNotes += "- ✅ Core project built successfully`n"
+            $releaseNotes += "- ✅ ManagementWeb project built successfully`n"
+            $releaseNotes += "- ✅ ManagementCli project built successfully`n"
+            $releaseNotes += "- ✅ All tests passed`n"
+            $releaseNotes += "`n"
+            $releaseNotes += "### Note for users`n"
+            $releaseNotes += "This release contains source code only. Users must build the project on their target server environment.`n"
+          }
+          $releaseNotes | Out-File -FilePath releaseNotes.txt -Encoding utf8
+          $releaseNotesContent = Get-Content -Path releaseNotes.txt -Raw
+          echo "release_notes<<EOF" >> $env:GITHUB_ENV
+          echo "$releaseNotesContent" >> $env:GITHUB_ENV
+          echo "EOF" >> $env:GITHUB_ENV
+
+      - name: Check for explicit version in commit message
+        shell: pwsh
+        run: |
+          $latestCommitMessage = (git log -1 --pretty=%B)
+          foreach ($line in $latestCommitMessage) {
+            if ($line -match "Update Version to (\d+\.\d+\.\d+)") {
+              $messageParts = $line -split ' '
+              $lastPart = $messageParts[-1]
+              echo "new_release=$lastPart" >> $env:GITHUB_ENV
+              Write-Output "Found explicit version in commit message: $lastPart"
+            }
+          }
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.new_release }}
+          name: ${{ env.new_release }}
+          body: |
+            ${{ env.release_notes }}
+            
+            ---
+            
+            **Important:** This release contains source code only. 
+            Users must build the project on their target server environment for deployment.
+            
+            ### Build Instructions
+            1. Clone this repository
+            2. Follow deployment instructions in the documentation
+          draft: false
+          prerelease: false
     
