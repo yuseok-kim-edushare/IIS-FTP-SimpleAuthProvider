@@ -8,5 +8,54 @@
   <Folder Name="/tests/">
     <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" />
     <Project Path="tests/Core.Tests/Core.Tests.csproj" />
+    <Project Path="tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj" />
   </Folder>
+  
+  <!-- Solution configurations for mixed builds -->
+  <Configuration Name="Debug" />
+  <Configuration Name="Release" />
+  <Configuration Name="Debug.Pack" />
+  <Configuration Name="Release.Pack" />
+  
+  <!-- Project configurations -->
+  <ProjectConfiguration Name="Debug|Any CPU">
+    <Project Path="src/AuthProvider/AuthProvider.csproj" Build="true" />
+    <Project Path="src/Core/Core.csproj" Build="true" />
+    <Project Path="src/ManagementCli/ManagementCli.csproj" Build="true" />
+    <Project Path="src/ManagementWeb/ManagementWeb.csproj" Build="true" />
+    <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" Build="true" />
+    <Project Path="tests/Core.Tests/Core.Tests.csproj" Build="true" />
+    <Project Path="tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj" Build="true" />
+  </ProjectConfiguration>
+  
+  <ProjectConfiguration Name="Release|Any CPU">
+    <Project Path="src/AuthProvider/AuthProvider.csproj" Build="true" />
+    <Project Path="src/Core/Core.csproj" Build="true" />
+    <Project Path="src/ManagementCli/ManagementCli.csproj" Build="true" />
+    <Project Path="src/ManagementWeb/ManagementWeb.csproj" Build="true" />
+    <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" Build="true" />
+    <Project Path="tests/Core.Tests/Core.Tests.csproj" Build="true" />
+    <Project Path="tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj" Build="true" />
+  </ProjectConfiguration>
+  
+  <!-- Pack configurations: exclude SystemWeb for dotnet CLI -->
+  <ProjectConfiguration Name="Debug.Pack|Any CPU">
+    <Project Path="src/AuthProvider/AuthProvider.csproj" Build="true" />
+    <Project Path="src/Core/Core.csproj" Build="true" />
+    <Project Path="src/ManagementCli/ManagementCli.csproj" Build="true" />
+    <Project Path="src/ManagementWeb/ManagementWeb.csproj" Build="false" />
+    <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" Build="true" />
+    <Project Path="tests/Core.Tests/Core.Tests.csproj" Build="true" />
+    <Project Path="tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj" Build="true" />
+  </ProjectConfiguration>
+  
+  <ProjectConfiguration Name="Release.Pack|Any CPU">
+    <Project Path="src/AuthProvider/AuthProvider.csproj" Build="true" />
+    <Project Path="src/Core/Core.csproj" Build="true" />
+    <Project Path="src/ManagementCli/ManagementCli.csproj" Build="true" />
+    <Project Path="src/ManagementWeb/ManagementWeb.csproj" Build="false" />
+    <Project Path="tests/AuthProvider.Tests/AuthProvider.Tests.csproj" Build="true" />
+    <Project Path="tests/Core.Tests/Core.Tests.csproj" Build="true" />
+    <Project Path="tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj" Build="true" />
+  </ProjectConfiguration>
 </Solution>

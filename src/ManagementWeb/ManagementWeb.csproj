@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="MSBuild.SDK.SystemWeb/4.0.104">
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
@@ -12,14 +12,22 @@
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-    <!-- Add these properties for .NET Framework web applications -->
-    <OutputType>Library</OutputType>
-    <UseWPF>false</UseWPF>
-    <UseWindowsForms>false</UseWindowsForms>
-    <UseConsoleApplication>false</UseConsoleApplication>
-    <EnableDefaultContentItems>false</EnableDefaultContentItems>
-    <!-- Ensure NuGet packages are copied to bin folder -->
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <!-- Web application specific properties -->
+    <WebProjectMode>true</WebProjectMode>
+    <UseIIS>true</UseIIS>
+    <!-- IIS packaging properties for deployment -->
+    <DeployOnBuild>true</DeployOnBuild>
+    <WebPublishMethod>Package</WebPublishMethod>
+    <PackageAsSingleFile>true</PackageAsSingleFile>
+    <PackageLocation>$(MSBuildProjectDirectory)\artifacts\</PackageLocation>
+    <!-- Publish properties for IIS deployment -->
+    <PublishUrl>$(MSBuildProjectDirectory)\bin\$(Configuration)\publish\</PublishUrl>
+    <PublishProtocol>FileSystem</PublishProtocol>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <PublishSingleFile>false</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <!-- Fix for Web.config reference issue -->
+    <GenerateBindingRedirectsAction>Overwrite</GenerateBindingRedirectsAction>
   </PropertyGroup>
 
   <ItemGroup>
@@ -50,25 +58,35 @@
     <Reference Include="System.Web.Extensions" />
   </ItemGroup>
 
+  <!-- Web application content items - Fixed Web.config reference -->
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <Content Include="Web.config" />
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </Content>
     <Content Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </Content>
-    <!-- Add explicit content includes for web application -->
-    <Content Include="Web.config" />
     <Content Include="Global.asax" />
+  </ItemGroup>
+
+  <!-- Views and other web content -->
+  <ItemGroup>
     <Content Include="Views\**\*" />
     <Content Include="Content\**\*" />
     <Content Include="Scripts\**\*" />
     <Content Include="App_Start\**\*" />
     <Content Include="Properties\**\*" />
   </ItemGroup>
+
+  <!-- Fix for MSBuild.SDK.SystemWeb Web.config issue -->
+  <Target Name="FixWebConfigReference" BeforeTargets="PrepareForBuild">
+    <ItemGroup>
+      <Content Remove="Web.config;Web.config" />
+      <Content Include="Web.config" />
+    </ItemGroup>
+  </Target>
 
 </Project> 

@@ -43,9 +43,12 @@ on:
 jobs:
   build-and-test:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        configuration: [Release, Debug]
 
     steps:
-      - name: Checkout repository (no submodules in single step)
+      - name: Checkout repository
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
@@ -59,49 +62,56 @@ jobs:
           path: WelsonJS
           fetch-depth: 0
           fetch-tags: 0
-          
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.1
 
-      - name: Get USERPROFILE and set CACHE_PATH
-        id: set_cache_path
-        shell: pwsh
-        run: |
-            $userProfile = [System.Environment]::GetEnvironmentVariable("USERPROFILE")
-            $cachePath = Join-Path $userProfile ".nuget\packages"
-            echo "CACHE_PATH=$cachePath" >> $env:GITHUB_ENV
-    
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
           path: |
             ~/.nuget/packages
-            ${{ env.CACHE_PATH }}
-          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.sln') }}
+            ${{ env.USERPROFILE }}\.nuget\packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj', '**/*.slnx') }}
           restore-keys: |
             ${{ runner.os }}-nuget-
 
-      - name: Restore
+      - name: Restore NuGet packages
         run: |
-          dotnet restore src/Core/Core.csproj
-          dotnet restore src/ManagementWeb/ManagementWeb.csproj
-          dotnet restore src/ManagementCli/ManagementCli.csproj
-          dotnet restore tests/Core.Tests/Core.Tests.csproj
-          dotnet restore tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj
+          nuget restore IIS-FTP-SimpleAuthProvider.slnx
 
-      - name: Build (excluding AuthProvider)
+      - name: Build solution
         run: |
-          dotnet build src/Core/Core.csproj --configuration Release --no-restore
-          dotnet build src/ManagementWeb/ManagementWeb.csproj --configuration Release --no-restore
-          dotnet build src/ManagementCli/ManagementCli.csproj --configuration Release --no-restore
+          msbuild IIS-FTP-SimpleAuthProvider.slnx /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /verbosity:minimal
 
-      - name: Test (exclude AuthProvider tests)
+      - name: Run tests
         run: |
-          dotnet test tests/Core.Tests/Core.Tests.csproj --configuration Release --logger trx
-          dotnet test tests/ManagementWeb.Tests/ManagementWeb.Tests.csproj --configuration Release --logger trx
+          msbuild IIS-FTP-SimpleAuthProvider.slnx /p:Configuration=${{ matrix.configuration }} /p:Platform="Any CPU" /t:Test /verbosity:minimal
+
+      - name: Build ManagementWeb package (Release only)
+        if: matrix.configuration == 'Release'
+        run: |
+          msbuild src\ManagementWeb\ManagementWeb.csproj /p:Configuration=Release /p:Platform="Any CPU" /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:PackageLocation="src\ManagementWeb\artifacts" /verbosity:minimal
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.configuration }}
+          path: |
+            **/TestResults/*.trx
+            **/TestResults/*.html
+
+      - name: Upload build artifacts
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifacts-${{ matrix.configuration }}
+          path: |
+            src/**/bin/${{ matrix.configuration }}/**/*.dll
+            src/**/bin/${{ matrix.configuration }}/**/*.exe
+            src/**/bin/${{ matrix.configuration }}/**/*.pdb
+            src/ManagementWeb/artifacts/**/*.zip
 
     
     

@@ -83,7 +83,28 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\deploy-to-iis.ps1 -Force
 ```
 
-### 4. `quick-deploy.ps1` - 빠른 배포 스크립트
+### 4. `deploy-web-service-local.ps1` - 웹 서비스 로컬 배포 스크립트
+**웹 관리 인터페이스만을 로컬 IIS에 배포하고 테스트합니다.**
+
+**주요 기능:**
+- ManagementWeb 프로젝트 빌드 및 배포
+- IIS 애플리케이션 풀 및 사이트 자동 생성
+- 웹 서비스 테스트 및 상태 확인
+- 개발/테스트 환경에 최적화
+
+**사용법:**
+```powershell
+# 기본 웹 서비스 배포
+.\deploy-web-service-local.ps1
+
+# 커스텀 설정으로 배포
+.\deploy-web-service-local.ps1 -Port 9000 -Configuration Debug
+
+# 배포만 수행 (빌드 및 테스트 건너뛰기)
+.\deploy-web-service-local.ps1 -SkipBuild -SkipTest
+```
+
+### 5. `quick-deploy.ps1` - 빠른 배포 스크립트
 개발/테스트 환경에서 빠른 배포를 위한 간소화된 스크립트입니다.
 
 **주요 기능:**
@@ -97,7 +118,7 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\quick-deploy.ps1
 ```
 
-### 5. `update-deployment.ps1` - 업데이트 스크립트
+### 6. `update-deployment.ps1` - 업데이트 스크립트
 기존 배포를 안전하게 업데이트합니다.
 
 **주요 기능:**
@@ -114,7 +135,7 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\update-deployment.ps1 -RollbackOnError
 ```
 
-### 6. `rollback-deployment.ps1` - 배포 철회 스크립트
+### 7. `rollback-deployment.ps1` - 배포 철회 스크립트
 배포를 철회하고 시스템을 이전 상태로 복원합니다.
 
 **주요 기능:**
@@ -135,7 +156,7 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\rollback-deployment.ps1 -Force
 ```
 
-### 7. `check-deployment-status.ps1` - 상태 확인 스크립트
+### 8. `check-deployment-status.ps1` - 상태 확인 스크립트
 현재 배포 상태와 시스템 상태를 확인합니다.
 
 **주요 기능:**
@@ -154,6 +175,40 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 .\check-deployment-status.ps1 -Detailed
 ```
 
+### 9. `cleanup-web-service-local.ps1` - 웹 서비스 정리 스크립트
+로컬 IIS에서 웹 서비스를 제거하고 정리합니다.
+
+**주요 기능:**
+- IIS 사이트 및 애플리케이션 풀 제거
+- 배포된 파일 정리
+- 로컬 환경 정리
+
+**사용법:**
+```powershell
+# 웹 서비스 정리
+.\cleanup-web-service-local.ps1
+
+# 강제 정리 (확인 없음)
+.\cleanup-web-service-local.ps1 -Force
+```
+
+### 10. `test-build.ps1` - 빌드 테스트 스크립트
+배포 전에 빌드 프로세스를 테스트합니다.
+
+**주요 기능:**
+- 빌드 도구 및 환경 확인
+- 프로젝트 빌드 테스트
+- 배포 전 검증
+
+**사용법:**
+```powershell
+# 빌드 테스트
+.\test-build.ps1
+
+# Debug 구성으로 테스트
+.\test-build.ps1 -Configuration Debug
+```
+
 ## 🔧 개선된 배포 워크플로우
 
 ### 🆕 권장 워크플로우 (통합 배포)
@@ -169,6 +224,21 @@ IIS FTP SimpleAuthProvider를 IIS에 처음 배포하거나 기존 배포를 업
 
 # 4. 문제 발생 시 진단 및 자동 수정
 .\diagnose-ftp-issues.ps1 -FixIssues
+```
+
+### 웹 서비스 전용 워크플로우
+```powershell
+# 1. 빌드 테스트
+.\test-build.ps1
+
+# 2. 웹 서비스 배포
+.\deploy-web-service-local.ps1
+
+# 3. 상태 확인
+.\check-deployment-status.ps1
+
+# 4. 필요시 정리
+.\cleanup-web-service-local.ps1
 ```
 
 ### 기존 워크플로우
@@ -248,10 +318,20 @@ C:\inetpub\backup\ftpauth\           # 백업 디렉토리
 - **구체적 해결 방안**: 발견된 문제에 대한 명확한 해결 방법 제시
 - **자동 수정 옵션**: 진단 후 자동으로 문제 해결
 
-### 3. 향상된 오류 처리
+### 3. 웹 서비스 전용 배포
+- **빌드 테스트**: 배포 전 빌드 프로세스 검증
+- **로컬 환경 최적화**: 개발/테스트 환경에 맞춘 설정
+- **자동 정리**: 필요시 배포된 리소스 정리
+
+### 4. 향상된 오류 처리
 - **DLL 차단 해제**: 인터넷 다운로드로 인한 차단 자동 해제
 - **권한 문제 진단**: IIS_IUSRS 권한 설정 상태 확인
 - **구성 파일 검증**: JSON 형식 및 내용 유효성 검사
+
+### 5. 표준화된 구성
+- **일관된 명명 규칙**: 모든 스크립트에서 `ftpauth` 사용
+- **중앙화된 설정**: `deployment-config.ps1`로 통일된 구성 관리
+- **재사용 가능한 함수**: 공통 기능의 모듈화
 
 ## ⚠️ 주의사항
 
@@ -327,6 +407,21 @@ Get-Content "C:\Windows\System32\inetsrv\ftpauth.config.json" | ConvertFrom-Json
 .\integrated-deploy.ps1 -CreateAppPool -CreateSite -Force
 ```
 
+#### 🆕 6. 웹 서비스 배포 문제 (새로 추가)
+```powershell
+# 빌드 테스트
+.\test-build.ps1
+
+# 웹 서비스 배포
+.\deploy-web-service-local.ps1
+
+# 상태 확인
+.\check-deployment-status.ps1
+
+# 필요시 정리
+.\cleanup-web-service-local.ps1
+```
+
 ## 📞 지원
 
 문제가 발생하거나 추가 도움이 필요한 경우:
@@ -344,3 +439,9 @@ Get-Content "C:\Windows\System32\inetsrv\ftpauth.config.json" | ConvertFrom-Json
   - `integrated-deploy.ps1`: 전체 시스템 통합 배포
   - `diagnose-ftp-issues.ps1`: 체계적 문제 진단 및 자동 수정
   - 향상된 오류 처리 및 사용자 경험 개선
+- **v2.1.0**: 🆕 웹 서비스 전용 배포 및 표준화 개선
+  - `deploy-web-service-local.ps1`: 웹 서비스 전용 배포
+  - `cleanup-web-service-local.ps1`: 웹 서비스 정리
+  - `test-build.ps1`: 빌드 프로세스 테스트
+  - `deployment-config.ps1`: 표준화된 구성 관리
+  - 일관된 명명 규칙 및 경로 표준화

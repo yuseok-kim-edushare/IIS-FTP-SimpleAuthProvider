@@ -9,12 +9,37 @@ $projectRoot = Split-Path -Parent $scriptDir
 
 Write-Host "프로젝트 루트: $projectRoot" -ForegroundColor Cyan
 
+# MSBuild 경로 확인
+Write-Host "`nMSBuild를 확인하는 중..." -ForegroundColor Yellow
+$msbuildPaths = @(
+    "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+    "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe",
+    "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
+    "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+)
+
+$msbuildPath = $null
+foreach ($path in $msbuildPaths) {
+    if (Test-Path $path) {
+        $msbuildPath = $path
+        break
+    }
+}
+
+if (-not $msbuildPath) {
+    Write-Error "MSBuild.exe를 찾을 수 없습니다. Visual Studio Build Tools 또는 Visual Studio를 설치해주세요."
+    Write-Error "다운로드: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022"
+    exit 1
+}
+
+Write-Host "MSBuild 경로: $msbuildPath" -ForegroundColor Green
+
 # 프로젝트 빌드
 Write-Host "`n프로젝트를 빌드하는 중..." -ForegroundColor Yellow
 Set-Location $projectRoot
 
 try {
-    dotnet build --configuration Release
+    & $msbuildPath "IIS-FTP-SimpleAuthProvider.slnx" "/p:Configuration=Release" "/p:Platform=`"Any CPU`"" "/verbosity:minimal"
     if ($LASTEXITCODE -ne 0) {
         Write-Error "빌드에 실패했습니다."
         exit 1

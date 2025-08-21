@@ -21,22 +21,33 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
 
 > **📖 For detailed installation and setup instructions, see [Installation & Setup Guide](docs/installation-and-setup-guide.md)**
 > **🖥️ For Windows 11 Pro client setup, see [Windows 11 Pro Client Setup Guide](docs/windows-11-pro-client-setup.md)**
+> **🚀 For automated deployment, see [Deployment Guide](deploy/README.md)**
 
 1. **Build the solution**
    ```powershell
-   dotnet build
+   # Build all projects
+   .\build-all.ps1
+   
+   # Or build only specific projects
+   .\build-sdk-projects.ps1
    ```
 
-2. **Install the providers to IIS**
+2. **Deploy to IIS (automated)**
    ```powershell
-   # Copy the DLLs to IIS directory
-   Copy-Item "src\AuthProvider\bin\Debug\net48\*.dll" "C:\Windows\System32\inetsrv\"
+   # Navigate to deploy directory
+   cd deploy
+   
+   # Full system deployment (recommended)
+   .\integrated-deploy.ps1 -CreateAppPool -CreateSite
+   
+   # Or web service only
+   .\deploy-web-service-local.ps1
    ```
 
 3. **Create your first user**
    ```powershell
    # Using the CLI tool
-   .\src\ManagementCli\bin\Debug\net48\ftpauth.exe create-user `
+   .\src\ManagementCli\bin\Release\net48\ftpauth.exe create-user `
      -f "C:\inetpub\ftpusers\users.json" `
      -u "john.doe" `
      -p "SecurePassword123!" `
@@ -45,15 +56,12 @@ A secure, lightweight authentication and authorization provider for IIS FTP that
      --read --write
    ```
 
-4. **Configure IIS FTP Site**
-   - Open IIS Manager
-   - Select your FTP site → FTP Authentication
-   - Enable "IIS Manager Authentication"
-   - Select "Custom Providers" and add:
-     - Authentication Provider: `IIS.Ftp.SimpleAuth.Provider.SimpleFtpAuthenticationProvider`
-     - Authorization Provider: `IIS.Ftp.SimpleAuth.Provider.SimpleFtpAuthorizationProvider`
+4. **Access the web management interface**
+   - Open your browser and navigate to: `http://localhost:8080`
+   - Login with admin credentials: `admin` / `admin123`
+   - Manage users and permissions through the web UI
 
-5. **Test your connection**
+5. **Test your FTP connection**
    ```powershell
    # Using Windows FTP client
    ftp ftp://john.doe:SecurePassword123!@localhost
@@ -99,263 +107,225 @@ To use ESENT storage, update your configuration:
 {
   "UserStore": {
     "Type": "Esent",
-    "Path": "C:\\inetpub\\ftpusers\\database",
-    "EnableHotReload": false
+    "Path": "C:\\inetpub\\ftpusers\\users.edb"
   }
 }
 ```
 
-### Configuration Options
+## Management Tools
 
-| Setting | Description | Default |
-|---------|-------------|---------|
-| `UserStore.Type` | Type of user store (Json, SQLite, Esent) | `Json` |
-| `UserStore.Path` | Path to the users JSON file | `C:\inetpub\ftpusers\users.json` |
-| `UserStore.EncryptionKeyEnv` | Environment variable with encryption key | `null` (uses DPAPI) |
-| `UserStore.EnableHotReload` | Auto-reload users when file changes | `true` |
-| `Hashing.Algorithm` | Password hashing algorithm (BCrypt, PBKDF2, Argon2) | `BCrypt` |
-| `Hashing.Iterations` | PBKDF2 iterations for password hashing | `100000` |
-| `Logging.EnableEventLog` | Write to Windows Event Log | `true` |
+### Web Management Interface
 
-## CLI Usage Examples
+Access the web-based user management console at `http://localhost:8080`:
+
+- **User Management**: Create, edit, and delete FTP users
+- **Permission Control**: Set read/write access for specific directories
+- **System Monitoring**: View authentication logs and system health
+- **Real-time Updates**: Changes take effect immediately without restarting IIS
+
+### CLI Management Tool
 
 The `ftpauth.exe` CLI tool provides comprehensive user and encryption management:
 
-### User Management
-
 ```powershell
-# Create a new user
+# User management
 ftpauth create-user -f users.json -u jane.doe -p "Pass123!" -n "Jane Doe" -h "/home/jane"
-
-# Change password
 ftpauth change-password -f users.json -u jane.doe -p "NewPass456!"
-
-# List all users
 ftpauth list-users -f users.json
 
-# Add permission to additional path
+# Permission management
 ftpauth add-permission -f users.json -u jane.doe -p "/shared/documents" --read --write
-
-# Remove a user
 ftpauth remove-user -f users.json -u jane.doe
+
+# Access the web interface
+# Navigate to /ftpauth/ on your IIS server
 ```
-
-## Web Management Interface
-
-The project includes a comprehensive web-based management console for easy user and permission management:
-
-### Features
-- **Dashboard**: System health monitoring and user statistics
-- **User Management**: Create, edit, and delete users through web UI
-- **Permission Management**: Granular folder access control with visual interface
-- **System Monitoring**: Health checks, metrics, and audit logs
-- **Bulk Operations**: Import/export users and bulk permission updates
-
-### Access
-- Navigate to `/ftpauth/` on your IIS server
-- Login with admin credentials configured during setup
-- Manage users and permissions through the intuitive web interface
-
-> **🔧 Setup**: See [Installation & Setup Guide](docs/installation-and-setup-guide.md) for web interface configuration
 
 ### Encryption Management
 
+Manage encryption keys and encrypted user stores:
+
 ```powershell
-# Generate a new encryption key
+# Generate new encryption key
 ftpauth generate-key
-# Or save to file
 ftpauth generate-key -o encryption.key
 
-# Encrypt user file with AES-GCM
-$env:FTP_USERS_KEY = "your-base64-key-here"
+# Encrypt/decrypt user files
 ftpauth encrypt-file -i users.json -o users.enc -k FTP_USERS_KEY
-
-# Decrypt for maintenance
 ftpauth decrypt-file -i users.enc -o users.json -k FTP_USERS_KEY
 
-# Rotate encryption key
-$env:OLD_KEY = "old-base64-key"
-$env:NEW_KEY = "new-base64-key"
+# Rotate encryption keys
 ftpauth rotate-key -f users.enc -o OLD_KEY -n NEW_KEY
 ```
 
-## Security Notes
+## Deployment Options
 
-### Password Hashing
-- Uses BCrypt with work factor 12 by default for battle-tested security
-- Argon2id support (PHC format) for modern memory-hard hashing
-- Auto-detects algorithm for backward compatibility (BCrypt, PBKDF2, Argon2)
-- Legacy PBKDF2-SHA256 support maintained
-- Constant-time comparison prevents timing attacks
+### Automated Deployment (Recommended)
 
-### Encryption at Rest
-- **Option 1: DPAPI** (default) - Windows Data Protection API, machine-specific
-- **Option 2: AES-256-GCM** - 256-bit key from environment variable (`FTP_USERS_KEY`)
-
-### Key Rotation
-Regular key rotation is recommended:
 ```powershell
-# 1. Generate new key
-ftpauth generate-key -o new-key.txt
+# Full system deployment
+cd deploy
+.\integrated-deploy.ps1 -CreateAppPool -CreateSite
 
-# 2. Set environment variables
-$env:OLD_FTP_KEY = "current-key"
-$env:NEW_FTP_KEY = Get-Content new-key.txt
+# Web service only
+.\deploy-web-service-local.ps1
 
-# 3. Rotate
-ftpauth rotate-key -f users.enc -o OLD_FTP_KEY -n NEW_FTP_KEY
-
-# 4. Update configuration to use NEW_FTP_KEY
+# Quick deployment
+.\quick-deploy.ps1
 ```
 
-### Audit Logging
-Authentication events are logged to Windows Event Log:
-- Source: `IIS-FTP-SimpleAuth`
-- Success/failure events with session ID and client IP
-- Configure verbosity in `ftpauth.config.json`
+### Manual Deployment
 
-## Documentation
-
-- **[Installation & Setup Guide](docs/installation-and-setup-guide.md)** - Complete step-by-step installation and configuration
-- **[Windows 11 Pro Client Setup Guide](docs/windows-11-pro-client-setup.md)** - Windows 11 Pro 클라이언트 환경에서 실행하기 위한 설정 가이드
-- **[Design Documentation](docs/design.md)** - Architecture and design decisions
-- **[Web Management Console](docs/Web-Management-Console-Summary.md)** - Web UI features and usage
-- **[Improvement Roadmap](docs/improvement-roadmap.md)** - Future development plans
-
-## Development
-
-### Building from Source
 ```powershell
-# Clone repository
-git clone https://github.com/yuseok-kim-edushare/IIS-FTP-SimpleAuthProvider.git
-cd IIS-FTP-SimpleAuthProvider
+# Build the solution
+.\build-all.ps1
 
-# Restore packages and build
-dotnet restore
-dotnet build
+# Deploy to IIS
+.\deploy\deploy-to-iis.ps1 -CreateAppPool -CreateSite
+
+# Check deployment status
+.\deploy\check-deployment-status.ps1
+```
+
+### Troubleshooting
+
+```powershell
+# Diagnose issues
+.\deploy\diagnose-ftp-issues.ps1
+
+# Auto-fix common problems
+.\deploy\diagnose-ftp-issues.ps1 -FixIssues
+
+# Check deployment status
+.\deploy\check-deployment-status.ps1
+```
+
+## Project Structure
+
+```
+IIS-FTP-SimpleAuthProvider/
+├── src/
+│   ├── AuthProvider/          # IIS FTP provider implementations
+│   ├── Core/                  # Core business logic and security
+│   ├── ManagementCli/         # Command-line management tool
+│   └── ManagementWeb/         # Web management interface
+├── tests/                     # Test projects
+├── deploy/                    # Deployment scripts and guides
+├── docs/                      # Documentation
+├── build-all.ps1             # Master build script
+└── IIS-FTP-SimpleAuthProvider.slnx
+```
+
+## Build and Development
+
+### Prerequisites
+
+- **Visual Studio 2022** or **Build Tools** (for MSBuild)
+- **IIS** with FTP Server role
+- **PowerShell 5.1+**
+
+### Build Commands
+
+```powershell
+# Build everything
+.\build-all.ps1
+
+# Build only SDK-style projects
+.\build-sdk-projects.ps1
+
+# Build only SystemWeb project
+.\build-systemweb.ps1
+
+# Build with custom configuration
+.\build-all.ps1 -Configuration Debug
+```
+
+### Development Workflow
+
+```powershell
+# Daily development
+.\build-all.ps1 -Configuration Debug
+
+# Quick iteration (SDK projects only)
+.\build-sdk-projects.ps1 -Configuration Debug
+
+# Full build including web project
+.\build-all.ps1 -Configuration Debug
 
 # Run tests
-dotnet test
+msbuild IIS-FTP-SimpleAuthProvider.slnx /t:Test /p:Configuration=Debug
 ```
 
-### Project Structure
-```
-/src
-  /AuthProvider     → IIS-facing provider classes
-  /Core            → Domain logic, crypto, user stores
-  /ManagementCli   → Command-line management tool
-/tests
-  /AuthProvider.Tests
-  /Core.Tests
-```
+## Security Features
+
+### Password Hashing
+
+- **BCrypt** (default): Industry-standard password hashing with configurable work factor
+- **PBKDF2**: Legacy support with configurable iterations
+- **Argon2**: Future support for memory-hard hashing algorithms
+
+### Encryption at Rest
+
+- **DPAPI**: Windows Data Protection API (default, no key management required)
+- **AES-256-GCM**: Strong encryption with environment variable keys
+- **Key Rotation**: Seamless encryption key updates
+
+### Audit and Monitoring
+
+- **Windows Event Log**: Native Windows logging integration
+- **Authentication Metrics**: Success/failure rate monitoring
+- **Prometheus Export**: Metrics for monitoring systems
+- **Real-time Logging**: Immediate visibility into authentication events
 
 ## Troubleshooting
 
-### Event Log Access Denied
-If you see "Failed to initialize EventLog", run the CLI as administrator once to create the event source:
-```powershell
-# Run as Administrator
-ftpauth list-users -f dummy.json
-```
+### Common Issues
 
-### Authentication Failures
-1. Check Windows Event Log: `Event Viewer → Applications → IIS-FTP-SimpleAuth`
-2. Verify user exists: `ftpauth list-users -f users.json`
-3. Test password locally: Create a test user and verify
+1. **Build failures**
+   ```powershell
+   # Check MSBuild availability
+   msbuild /version
+   
+   # Clean and rebuild
+   msbuild IIS-FTP-SimpleAuthProvider.slnx /t:Clean
+   msbuild IIS-FTP-SimpleAuthProvider.slnx
+   ```
 
-### Hot-Reload Not Working
-- Ensure the IIS app pool identity has read access to the user file directory
-- Check that `EnableHotReload` is `true` in configuration
+2. **IIS configuration issues**
+   ```powershell
+   # Check IIS status
+   Get-Service -Name "W3SVC", "FTPSVC"
+   
+   # Restart IIS
+   iisreset /restart
+   ```
+
+3. **Permission errors**
+   ```powershell
+   # Check deployment status
+   .\deploy\check-deployment-status.ps1
+   
+   # Diagnose issues
+   .\deploy\diagnose-ftp-issues.ps1
+   ```
+
+### Getting Help
+
+- **Check deployment status**: `.\deploy\check-deployment-status.ps1`
+- **Diagnose issues**: `.\deploy\diagnose-ftp-issues.ps1`
+- **Review logs**: Windows Event Viewer → Applications → IIS-FTP-SimpleAuth
+- **Documentation**: See [docs/](docs/) folder for detailed guides
 
 ## Contributing
 
-Contributions are welcome! We've made it easy to get started with comprehensive templates and guidelines.
-
-### 🚀 Quick Start for Contributors
-1. **Fork the repository** and create a feature branch
-2. **Choose the right template** when creating issues or PRs
-3. **Follow our guidelines** for code quality and testing
-4. **Submit your contribution** with detailed information
-
-### 📋 Issue and PR Templates
-We provide structured templates to help you contribute effectively:
-
-#### 🐛 **Bug Reports**
-Use our [Bug Report template](.github/ISSUE_TEMPLATE/bug_report.yml) when you encounter issues. The template includes:
-- Step-by-step reproduction instructions
-- Environment details and error logs
-- GenAI-friendly prompts for comprehensive reporting
-
-#### ✨ **Feature Requests** 
-Use our [Feature Request template](.github/ISSUE_TEMPLATE/feature_request.yml) to suggest enhancements. Include:
-- Clear motivation and use cases
-- Detailed implementation ideas
-- Acceptance criteria and alternatives considered
-
-#### 📚 **Documentation Issues**
-Use our [Documentation Request template](.github/ISSUE_TEMPLATE/documentation.yml) for docs improvements:
-- Identify missing or unclear content
-- Suggest specific improvements
-- Help us prioritize documentation needs
-
-#### 🔄 **Pull Requests**
-Our [PR template](.github/PULL_REQUEST_TEMPLATE.md) guides you through:
-- Comprehensive change descriptions
-- Testing instructions and security considerations
-- Code quality checklists and deployment notes
-
-### 🤖 GenAI/Copilot Friendly
-All templates include specific prompts and examples designed to work well with AI coding assistants like GitHub Copilot, making it easier to:
-- Generate complete issue reports
-- Create detailed PR descriptions
-- Follow best practices automatically
-
-### 📖 Detailed Guidelines
-See [CONTRIBUTING](CONTRIBUTING) for comprehensive contributor guidelines including:
-- Development setup and building from source
-- Code style and quality standards
-- Testing requirements and procedures
+See [CONTRIBUTING](CONTRIBUTING) for development guidelines and contribution information.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [license](license) file for details.
 
-## Third-Party Components
+## Support
 
-### WelsonJS.Esent
-
-This project includes the WelsonJS.Esent library for ESENT database support:
-
-- **Project**: [WelsonJS.Esent](https://github.com/gnh1201/welsonjs/tree/master/WelsonJS.Toolkit/WelsonJS.Esent)
-- **License**: MIT License
-- **Copyright**: 2025 Namhyeon Go, Catswords OSS and WelsonJS Contributors
-- **Description**: Enable ESENT database engine functionality
-
-The WelsonJS.Esent library is included as a git submodule and is used to provide native Windows ESENT database support without requiring external database dependencies.
-
-### Bcrypt.NET
-
-This project includes the Bcrypt.NET library for BCrypt password hashing:
-
-- **Project**: [Bcrypt.NET](https://github.com/BcryptNet/Bcrypt.NET)
-- **License**: MIT License
-- **Copyright**: 2021 Chris McKee and Bcrypt.NET Contributors
-- **Description**: Provides BCrypt password hashing functionality
-
-The Bcrypt.NET library is included by PackageReference in the project.
-
-### Konscious.Security.Cryptography
-
-This project includes the Konscious.Security.Cryptography library for Argon2 password hashing:
-
-- **Project**: [Konscious.Security.Cryptography](https://github.com/kmaragon/Konscious.Security.Cryptography)
-- **License**: MIT License
-- **Copyright**: 2017 Keef Aragon
-- **Description**: Provides Argon2 password hashing functionality
-
-## Acknowledgments
-
-- Built for IIS FTP Server extensibility model
-- Uses BCrypt P/Invoke for AES-GCM on .NET Framework
-- ESENT database support provided by WelsonJS.Esent (MIT License)
-- Inspired by the need for simple, secure FTP authentication without AD
+- **GitHub Issues**: Report bugs and request features
+- **Documentation**: Comprehensive guides in the [docs/](docs/) folder
+- **Deployment**: Automated scripts in the [deploy/](deploy/) folder

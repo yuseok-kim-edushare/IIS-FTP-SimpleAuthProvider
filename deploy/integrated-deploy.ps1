@@ -1,48 +1,70 @@
-# IIS FTP SimpleAuthProvider 통합 배포 및 구성 스크립트
-# 이 스크립트는 전체 시스템을 한 번에 배포하고 구성합니다.
+# IIS FTP SimpleAuthProvider 통합 배포 스크립트
+# 이 스크립트는 전체 시스템을 한 번에 배포합니다.
 
 param(
-    [string]$IISPath = "C:\inetpub\wwwroot\ftpauth",
-    [string]$SourcePath = "src\ManagementWeb\bin\Release\net48",
-    [string]$AuthProviderPath = "src\AuthProvider\bin\Release\net48",
-    [string]$BackupPath = "C:\inetpub\backup\ftpauth",
-    [string]$UserDataPath = "C:\inetpub\ftpusers",
-    [switch]$CreateAppPool,
-    [switch]$CreateSite,
+    [switch]$SkipBuild,
     [switch]$Force,
-    [switch]$SkipBuild
+    [switch]$CreateAppPool,
+    [switch]$CreateSite
 )
 
-Write-Host "IIS FTP SimpleAuthProvider 통합 배포를 시작합니다..." -ForegroundColor Green
-Write-Host "==================================================" -ForegroundColor Cyan
+# Set error action preference
+$ErrorActionPreference = "Stop"
 
-# 관리자 권한 확인
-if (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
-    Write-Error "이 스크립트는 관리자 권한으로 실행해야 합니다."
-    exit 1
-}
+# Configuration variables
+$ProjectRoot = Split-Path -Parent $PSScriptRoot
+$IISPath = "C:\inetpub\wwwroot\ftpauth"
+$BackupPath = "C:\inetpub\backup\ftpauth"
+$UserDataPath = "C:\inetpub\ftpusers"
+$SourcePath = "src\ManagementWeb\bin\Release\net48"
+$AuthProviderPath = "src\AuthProvider\bin\Release\net48"
 
-# IIS 기능 확인
-try {
-    Import-Module WebAdministration
-    Write-Host "? IIS 관리 모듈 로드 성공" -ForegroundColor Green
-} catch {
-    Write-Error "IIS 관리 모듈을 로드할 수 없습니다. IIS가 설치되어 있는지 확인하세요."
-    exit 1
-}
+# Colors for output
+$Host.UI.RawUI.ForegroundColor = "White"
+function Write-Info { param($Message) Write-Host "[INFO] $Message" -ForegroundColor Cyan }
+function Write-Success { param($Message) Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
+function Write-Warning { param($Message) Write-Host "[WARNING] $Message" -ForegroundColor Yellow }
+function Write-Error { param($Message) Write-Host "[ERROR] $Message" -ForegroundColor Red }
+
+Write-Info "=== IIS FTP SimpleAuthProvider 통합 배포 스크립트 ==="
+Write-Info "이 스크립트는 전체 시스템을 배포합니다."
+Write-Info ""
 
 # 1단계: 프로젝트 빌드
-if (-not $SkipBuild) {
+if (!$SkipBuild) {
     Write-Host "`n=== 1단계: 프로젝트 빌드 ===" -ForegroundColor Yellow
-    $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
-    $projectRoot = Split-Path -Parent $scriptDir
+    
+    # MSBuild 경로 확인
+    Write-Host "MSBuild를 확인하는 중..." -ForegroundColor Yellow
+    $msbuildPaths = @(
+        "C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files\Microsoft Visual Studio\2022\Professional\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe",
+        "C:\Program Files\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe"
+    )
+
+    $msbuildPath = $null
+    foreach ($path in $msbuildPaths) {
+        if (Test-Path $path) {
+            $msbuildPath = $path
+            break
+        }
+    }
+
+    if (-not $msbuildPath) {
+        Write-Error "MSBuild.exe를 찾을 수 없습니다. Visual Studio Build Tools 또는 Visual Studio를 설치해주세요."
+        Write-Error "다운로드: https://visualstudio.microsoft.com/downloads/#build-tools-for-visual-studio-2022"
+        exit 1
+    }
+
+    Write-Host "MSBuild 경로: $msbuildPath" -ForegroundColor Green
     
     Set-Location $projectRoot
     Write-Host "프로젝트 루트: $projectRoot" -ForegroundColor Cyan
     
     try {
         Write-Host "프로젝트를 빌드하는 중..." -ForegroundColor Yellow
-        dotnet build --configuration Release
+        & $msbuildPath "IIS-FTP-SimpleAuthProvider.slnx" "/p:Configuration=Release" "/p:Platform=`"Any CPU`"" "/verbosity:minimal"
         if ($LASTEXITCODE -ne 0) {
             Write-Error "빌드에 실패했습니다."
             exit 1
@@ -145,24 +167,20 @@ $config = @{
         LogFailures = $true
         LogSuccesses = $false
     }
-    Metrics = @{
-        Enabled = $true
-        MetricsFilePath = "C:\inetpub\ftpmetrics\ftp_metrics.prom"
-        ExportIntervalSeconds = 60
-    }
 }
 
-$config | ConvertTo-Json -Depth 10 | Out-File -FilePath $configPath -Encoding UTF8
+$configJson = $config | ConvertTo-Json -Depth 10
+Set-Content -Path $configPath -Value $configJson -Encoding UTF8
 Write-Host "? 구성 파일을 생성했습니다: $configPath" -ForegroundColor Green
 
-# 샘플 사용자 파일 생성
-$SampleUsersPath = "$UserDataPath\users.json"
-if (!(Test-Path $SampleUsersPath)) {
-    $sampleUsers = @{
+# 기본 사용자 파일 생성
+$usersPath = "$UserDataPath\users.json"
+if (!(Test-Path $usersPath)) {
+    $defaultUsers = @{
         Users = @(
             @{
                 Username = "admin"
-                PasswordHash = "$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4J/8Kq8QqG"
+                PasswordHash = "$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi" # "password"
                 DisplayName = "Administrator"
                 HomeDirectory = "/"
                 Permissions = @(
@@ -170,128 +188,82 @@ if (!(Test-Path $SampleUsersPath)) {
                         Path = "/"
                         Read = $true
                         Write = $true
-                        Delete = $true
                     }
                 )
                 IsActive = $true
-                Created = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssZ")
+                CreatedAt = (Get-Date).ToString("yyyy-MM-ddTHH:mm:ssZ")
             }
         )
     }
     
-    $sampleUsers | ConvertTo-Json -Depth 10 | Out-File -FilePath $SampleUsersPath -Encoding UTF8
-    Write-Host "? 샘플 사용자 파일을 생성했습니다: $SampleUsersPath" -ForegroundColor Green
+    $usersJson = $defaultUsers | ConvertTo-Json -Depth 10
+    Set-Content -Path $usersPath -Value $usersJson -Encoding UTF8
+    Write-Host "? 기본 사용자 파일을 생성했습니다: $usersPath" -ForegroundColor Green
 }
 
-# 6단계: IIS 애플리케이션 풀 및 사이트 생성
+# 6단계: IIS 구성
 Write-Host "`n=== 6단계: IIS 구성 ===" -ForegroundColor Yellow
+
+# IIS 모듈 가져오기
+try {
+    Import-Module WebAdministration -ErrorAction Stop
+    Write-Success "IIS WebAdministration 모듈을 가져왔습니다."
+} catch {
+    Write-Error "IIS WebAdministration 모듈을 가져올 수 없습니다: $($_.Exception.Message)"
+    Write-Error "IIS가 제대로 설치되지 않았거나 구성되지 않았습니다."
+    exit 1
+}
+
+# 애플리케이션 풀 생성
 if ($CreateAppPool) {
     $appPoolName = "ftpauth-pool"
-    if (!(Get-IISAppPool -Name $appPoolName -ErrorAction SilentlyContinue)) {
+    if (!(Test-Path "IIS:\AppPools\$appPoolName")) {
         New-WebAppPool -Name $appPoolName
-        Set-ItemProperty -Path "IIS:\AppPools\$appPoolName" -Name "managedRuntimeVersion" -Value "v4.0"
-        Set-ItemProperty -Path "IIS:\AppPools\$appPoolName" -Name "processModel.identityType" -Value "ApplicationPoolIdentity"
+        Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name "managedRuntimeVersion" -Value "v4.0"
+        Set-ItemProperty "IIS:\AppPools\$appPoolName" -Name "processModel" -Value @{identityType="ApplicationPoolIdentity"}
         Write-Host "? 애플리케이션 풀을 생성했습니다: $appPoolName" -ForegroundColor Green
+    } else {
+        Write-Host "애플리케이션 풀이 이미 존재합니다: $appPoolName" -ForegroundColor Cyan
     }
 }
 
+# 웹사이트 생성
 if ($CreateSite) {
     $siteName = "ftpauth"
-    if (!(Get-Website -Name $siteName -ErrorAction SilentlyContinue)) {
-        New-Website -Name $siteName -PhysicalPath $IISPath -Port 8080
+    if (!(Test-Path "IIS:\Sites\$siteName")) {
+        New-Website -Name $siteName -Port 8080 -PhysicalPath $IISPath -ApplicationPool $appPoolName
         Write-Host "? 웹사이트를 생성했습니다: $siteName (포트 8080)" -ForegroundColor Green
+    } else {
+        Write-Host "웹사이트가 이미 존재합니다: $siteName" -ForegroundColor Cyan
+        # 물리적 경로와 애플리케이션 풀 업데이트
+        Set-ItemProperty "IIS:\Sites\$siteName" -Name "physicalPath" -Value $IISPath
+        if ($CreateAppPool) {
+            Set-ItemProperty "IIS:\Sites\$siteName" -Name "applicationPool" -Value $appPoolName
+        }
+        Write-Host "웹사이트를 업데이트했습니다." -ForegroundColor Cyan
     }
 }
 
-# 7단계: IIS FTP 커스텀 프로바이더 등록
-Write-Host "`n=== 7단계: IIS FTP 커스텀 프로바이더 등록 ===" -ForegroundColor Yellow
-try {
-    # 커스텀 인증 활성화
-    Set-WebConfigurationProperty -Filter "system.ftpServer/security/authentication/customAuthentication" -Name "enabled" -Value $true
-    
-    # 커스텀 인증 프로바이더 추가
-    Add-WebConfigurationProperty -Filter "system.ftpServer/security/authentication/customAuthentication/providers" -Name "." -Value @{
-        name = "SimpleAuth"
-        enabled = $true
-        type = "IIS.Ftp.SimpleAuth.Provider.SimpleFtpAuthenticationProvider"
-    }
-    
-    # 커스텀 권한 활성화
-    Set-WebConfigurationProperty -Filter "system.ftpServer/security/authorization/customAuthorization" -Name "enabled" -Value $true
-    
-    # 커스텀 권한 프로바이더 추가
-    Add-WebConfigurationProperty -Filter "system.ftpServer/security/authorization/customAuthorization" -Name "." -Value @{
-        name = "SimpleAuth"
-        enabled = $true
-        type = "IIS.Ftp.SimpleAuth.Provider.SimpleFtpAuthorizationProvider"
-    }
-    
-    Write-Host "? IIS FTP 커스텀 프로바이더 등록 완료" -ForegroundColor Green
-} catch {
-    Write-Warning "IIS FTP 커스텀 프로바이더 등록 중 오류가 발생했습니다: $($_.Exception.Message)" -ForegroundColor Yellow
-    Write-Host "수동으로 등록해야 할 수 있습니다." -ForegroundColor Yellow
+# 7단계: 배포 완료
+Write-Host "`n=== 7단계: 배포 완료 ===" -ForegroundColor Yellow
+Write-Host "? IIS FTP SimpleAuthProvider 배포가 완료되었습니다!" -ForegroundColor Green
+Write-Host ""
+Write-Host "배포된 구성 요소:" -ForegroundColor Cyan
+Write-Host "- 웹 관리 콘솔: $IISPath" -ForegroundColor White
+Write-Host "- AuthProvider DLL: $IISSystemPath" -ForegroundColor White
+Write-Host "- 사용자 데이터: $UserDataPath" -ForegroundColor White
+Write-Host "- 구성 파일: $configPath" -ForegroundColor White
+
+if ($CreateSite) {
+    Write-Host ""
+    Write-Host "웹 관리 콘솔에 접근하려면:" -ForegroundColor Cyan
+    Write-Host "http://localhost:8080" -ForegroundColor White
+    Write-Host "기본 관리자 계정: admin / password" -ForegroundColor White
 }
 
-# 8단계: 권한 설정
-Write-Host "`n=== 8단계: 권한 설정 ===" -ForegroundColor Yellow
-try {
-    $acl = Get-Acl $UserDataPath
-    $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule("IIS_IUSRS", "Modify", "ContainerInherit,ObjectInherit", "None", "Allow")
-    $acl.SetAccessRule($accessRule)
-    Set-Acl -Path $UserDataPath -AclObject $acl
-    Write-Host "? IIS_IUSRS 권한 설정 완료" -ForegroundColor Green
-} catch {
-    Write-Warning "권한 설정 중 오류가 발생했습니다: $($_.Exception.Message)" -ForegroundColor Yellow
-}
-
-# 9단계: 배포 정보 기록
-Write-Host "`n=== 9단계: 배포 정보 기록 ===" -ForegroundColor Yellow
-$deploymentInfo = @{
-    DeployedAt = Get-Date
-    Version = "1.0.0"
-    SourcePath = $SourcePath
-    AuthProviderPath = $AuthProviderPath
-    BackupPath = $BackupPath
-    ConfigPath = $configPath
-    UserDataPath = $UserDataPath
-} | ConvertTo-Json
-
-$deploymentInfoPath = Join-Path $IISPath "deployment-info.json"
-$deploymentInfo | Out-File -FilePath $deploymentInfoPath -Encoding UTF8
-Write-Host "? 배포 정보를 기록했습니다." -ForegroundColor Green
-
-# 10단계: 서비스 재시작
-Write-Host "`n=== 10단계: 서비스 재시작 ===" -ForegroundColor Yellow
-try {
-    Write-Host "IIS를 재시작하는 중..." -ForegroundColor Yellow
-    iisreset /restart
-    Write-Host "? IIS 재시작 완료" -ForegroundColor Green
-    
-    Write-Host "FTP 서비스를 재시작하는 중..." -ForegroundColor Yellow
-    Restart-Service FTPSVC -Force
-    Write-Host "? FTP 서비스 재시작 완료" -ForegroundColor Green
-} catch {
-    Write-Warning "서비스 재시작 중 오류가 발생했습니다: $($_.Exception.Message)" -ForegroundColor Yellow
-}
-
-Write-Host "`n==================================================" -ForegroundColor Cyan
-Write-Host "? IIS FTP SimpleAuthProvider 통합 배포가 완료되었습니다!" -ForegroundColor Green
-Write-Host "==================================================" -ForegroundColor Cyan
-
-Write-Host "`n? 배포 요약:" -ForegroundColor Yellow
-Write-Host "  웹 관리 콘솔: http://localhost:8080" -ForegroundColor Cyan
-Write-Host "  기본 관리자 계정: admin / admin123" -ForegroundColor Cyan
-Write-Host "  사용자 데이터 경로: $UserDataPath" -ForegroundColor Cyan
-Write-Host "  구성 파일: $configPath" -ForegroundColor Cyan
-Write-Host "  배포 정보: $deploymentInfoPath" -ForegroundColor Cyan
-
-Write-Host "`n? 다음 단계:" -ForegroundColor Yellow
-Write-Host "  1. 웹 관리 콘솔에 접속하여 시스템 상태 확인" -ForegroundColor White
-Write-Host "  2. FTP 클라이언트로 연결 테스트" -ForegroundColor White
-Write-Host "  3. 이벤트 로그에서 오류 메시지 확인" -ForegroundColor White
-Write-Host "  4. 필요시 암호화 키 환경 변수 설정" -ForegroundColor White
-
-Write-Host "`n? 문제 해결:" -ForegroundColor Yellow
-Write-Host "  - 이벤트 로그 확인: Get-EventLog -LogName Application -Source 'IIS-FTP-SimpleAuth'" -ForegroundColor White
-Write-Host "  - 배포 상태 확인: .\deploy\check-deployment-status.ps1" -ForegroundColor White
-Write-Host "  - 수동 구성: IIS Manager에서 FTP 사이트 설정 확인" -ForegroundColor White
+Write-Host ""
+Write-Host "다음 단계:" -ForegroundColor Cyan
+Write-Host "1. IIS에서 FTP 사이트를 구성하세요" -ForegroundColor White
+Write-Host "2. FTP 인증 공급자를 설정하세요" -ForegroundColor White
+Write-Host "3. 사용자 계정을 관리하세요" -ForegroundColor White
+Write-Host "4. FTP 연결을 테스트하세요" -ForegroundColor White
