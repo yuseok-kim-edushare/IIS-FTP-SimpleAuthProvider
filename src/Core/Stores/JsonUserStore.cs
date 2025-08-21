@@ -53,8 +53,26 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
 
         private void Load()
         {
+            // Debug logging to file
+            try
+            {
+                System.IO.Directory.CreateDirectory(@"C:\temp");
+                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                    $"{DateTime.Now}: JsonUserStore.Load() - Attempting to load from: {_filePath}\n");
+                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                    $"{DateTime.Now}: File exists check: {File.Exists(_filePath)}\n");
+            }
+            catch { }
+
             if (!File.Exists(_filePath))
             {
+                try
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: User file not found: {_filePath}. Starting with empty store.\n");
+                }
+                catch { }
+                
                 _cache = ImmutableDictionary<string, User>.Empty;
                 _auditLogger?.LogConfigurationChange("JsonUserStore", $"User file not found: {_filePath}. Starting with empty store.");
                 return;
@@ -63,12 +81,34 @@ namespace IIS.Ftp.SimpleAuth.Core.Stores
             try
             {
                 var json = File.ReadAllText(_filePath, Encoding.UTF8);
+                
+                try
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Successfully read file, JSON length: {json.Length}\n");
+                }
+                catch { }
+                
                 var users = JsonSerializer.Deserialize<List<User>>(json, _jsonOptions) ?? new List<User>();
                 var newCache = users.ToImmutableDictionary(u => u.UserId, StringComparer.OrdinalIgnoreCase);
+                
+                try
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Parsed {users.Count} users from JSON. User IDs: [{string.Join(", ", users.Select(u => u.UserId))}]\n");
+                }
+                catch { }
                 
                 // Atomic cache replacement
                 var oldCount = _cache.Count;
                 Interlocked.Exchange(ref _cache, newCache);
+                
+                try
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Cache updated - Loaded {newCache.Count} users from {_filePath} (previously {oldCount})\n");
+                }
+                catch { }
                 
                 _auditLogger?.LogConfigurationChange("JsonUserStore", 
                     $"Loaded {newCache.Count} users from {_filePath} (previously {oldCount})");

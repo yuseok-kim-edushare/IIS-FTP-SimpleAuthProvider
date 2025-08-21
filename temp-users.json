@@ -1,0 +1,16 @@
+[
+  {
+    "UserId": "admin",
+    "DisplayName": "Administrator",
+    "Salt": "",
+    "PasswordHash": "$2a$12$qYsjHuzT1xN4AXAm9ce5Ye3x8FVmqZ6exN3tg316v5mTxzYICqyZK",
+    "HomeDirectory": "C:\\inetpub\\ftproot\\users\\admin",
+    "Permissions": [
+      {
+        "Path": "/",
+        "CanRead": true,
+        "CanWrite": true
+      }
+    ]
+  }
+]

@@ -5,7 +5,7 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Linq;
-using IIS.FTP.Core.Monitoring;
+using IIS.Ftp.SimpleAuth.Core.Monitoring;
 
 namespace IIS.Ftp.SimpleAuth.Core.Monitoring
 {
@@ -23,11 +23,26 @@ namespace IIS.Ftp.SimpleAuth.Core.Monitoring
         {
             _metricsFilePath = metricsFilePath ?? throw new ArgumentNullException(nameof(metricsFilePath));
             
+            // Validate export interval
+            if (exportInterval <= TimeSpan.Zero)
+            {
+                throw new ArgumentException("Export interval must be greater than zero", nameof(exportInterval));
+            }
+            
             // Ensure directory exists
             var directory = Path.GetDirectoryName(_metricsFilePath);
             if (!string.IsNullOrEmpty(directory))
             {
-                Directory.CreateDirectory(directory);
+                try
+                {
+                    Directory.CreateDirectory(directory);
+                }
+                catch (Exception ex)
+                {
+                    // Log error but don't throw - use default path if directory creation fails
+                    System.Diagnostics.Debug.WriteLine($"Failed to create metrics directory: {ex.Message}");
+                    _metricsFilePath = Path.Combine(Path.GetTempPath(), "ftp_metrics.prom");
+                }
             }
 
             // Set up timer to export metrics periodically

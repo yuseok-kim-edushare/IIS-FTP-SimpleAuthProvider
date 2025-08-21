@@ -19,9 +19,22 @@ namespace IIS.FTP.ManagementWeb.Controllers
             _applicationServices = applicationServices ?? throw new ArgumentNullException(nameof(applicationServices));
         }
 
+        // Parameterless constructor for Unity IoC container fallback
+        public UsersController()
+        {
+            // This constructor is used when Unity IoC container fails to resolve dependencies
+            // Note: _applicationServices will be null in this case, so methods should handle it gracefully
+        }
+
         // GET: /Users
         public async Task<ActionResult> Index(string search, int page = 1)
         {
+            // Check if Unity IoC container failed to inject dependencies
+            if (_applicationServices == null)
+            {
+                return Content("System configuration error. Please contact administrator.", "text/plain");
+            }
+
             var allUsers = await _applicationServices.GetAllUsersAsync();
             
             // Apply search filter

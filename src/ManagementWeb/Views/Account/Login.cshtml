@@ -51,7 +51,7 @@
             animation: float 20s ease-in-out infinite;
         }
         
-        @keyframes float {
+        @@keyframes float {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-20px); }
         }
@@ -93,7 +93,7 @@
             {
                 @Html.AntiForgeryToken()
                 
-                @if (!ViewData.ModelState.IsValid)
+                if (!ViewData.ModelState.IsValid)
                 {
                     <div class="bg-red-500/20 border border-red-300/30 backdrop-blur-sm text-white p-3 rounded-xl mb-4">
                         <div class="flex items-center">

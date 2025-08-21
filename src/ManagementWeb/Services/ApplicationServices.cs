@@ -1,7 +1,7 @@
 using IIS.Ftp.SimpleAuth.Core.Configuration;
 using IIS.Ftp.SimpleAuth.Core.Domain;
-using IIS.FTP.Core.Logging;
-using IIS.FTP.Core.Monitoring;
+using IIS.Ftp.SimpleAuth.Core.Logging;
+using IIS.Ftp.SimpleAuth.Core.Monitoring;
 using IIS.Ftp.SimpleAuth.Core.Security;
 using IIS.Ftp.SimpleAuth.Core.Stores;
 using IIS.Ftp.SimpleAuth.Core.Tools;
@@ -21,7 +21,7 @@ namespace IIS.FTP.ManagementWeb.Services
         Task<bool> UpdateUserAsync(User user);
         Task<bool> DeleteUserAsync(string userId);
         Task<bool> ChangePasswordAsync(string userId, string currentPassword, string newPassword);
-        Task<IEnumerable<IIS.FTP.Core.Logging.AuditEntry>> GetRecentAuditEntriesAsync(int count = 10);
+        Task<IEnumerable<IIS.Ftp.SimpleAuth.Core.Logging.AuditEntry>> GetRecentAuditEntriesAsync(int count = 10);
         Task<SystemHealth> GetSystemHealthAsync();
     }
 
@@ -50,27 +50,94 @@ namespace IIS.FTP.ManagementWeb.Services
             _userManager = new UserManagerService(userStore, passwordHasher);
         }
 
+        // Parameterless constructor for Unity IoC container fallback
+        public ApplicationServices()
+        {
+            // This constructor is used when Unity IoC container fails to resolve dependencies
+            // Note: All dependencies will be null in this case, so methods should handle it gracefully
+        }
+
         public async Task<bool> ValidateUserAsync(string userId, string password)
         {
+            // Debug logging to file
             try
             {
+                System.IO.Directory.CreateDirectory(@"C:\temp");
+                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                    $"{DateTime.Now}: ApplicationServices.ValidateUserAsync called - UserId: {userId}, Dependencies: UserStore={_userStore != null}, AuditLogger={_auditLogger != null}, MetricsCollector={_metricsCollector != null}\n");
+            }
+            catch { }
+
+            // Check if Unity IoC container failed to inject dependencies
+            if (_userStore == null || _auditLogger == null || _metricsCollector == null)
+            {
+                try
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: ApplicationServices dependencies not initialized - UserStore={_userStore != null}, AuditLogger={_auditLogger != null}, MetricsCollector={_metricsCollector != null}\n");
+                }
+                catch { }
+                return false;
+            }
+
+            try
+            {
+                // First check if user exists
+                try
+                {
+                    var user = await _userStore.FindAsync(userId);
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: UserStore.FindAsync({userId}) result: {(user != null ? "User found" : "User NOT found")}\n");
+                    
+                    if (user != null)
+                    {
+                        System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                            $"{DateTime.Now}: User details - UserId: {user.UserId}, DisplayName: {user.DisplayName}, PasswordHash length: {user.PasswordHash?.Length ?? 0}\n");
+                    }
+                }
+                catch (Exception findEx)
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Exception in FindAsync: {findEx.Message}\n");
+                }
+
+                // Now validate password
+                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                    $"{DateTime.Now}: Calling UserStore.ValidateAsync with password length: {password?.Length ?? 0}\n");
+                    
                 var result = await _userStore.ValidateAsync(userId, password);
+                
+                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                    $"{DateTime.Now}: UserStore.ValidateAsync result for {userId}: {result}\n");
                 
                 if (result)
                 {
                     await _auditLogger.LogAuthenticationAsync(userId, true, "Web UI login");
                     _metricsCollector.IncrementAuthSuccess();
+                    
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Authentication successful, logged to audit\n");
                 }
                 else
                 {
                     await _auditLogger.LogAuthenticationAsync(userId, false, "Web UI login failed");
                     _metricsCollector.IncrementAuthFailure();
+                    
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Authentication failed, logged to audit\n");
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
+                try
+                {
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Exception in ValidateUserAsync for {userId}: {ex.GetType().Name} - {ex.Message}\nStack: {ex.StackTrace}\n");
+                }
+                catch { }
+                
                 await _auditLogger.LogErrorAsync($"Error validating user {userId}: {ex.Message}");
                 _metricsCollector.IncrementAuthFailure();
                 throw;
@@ -79,11 +146,21 @@ namespace IIS.FTP.ManagementWeb.Services
 
         public async Task<User> GetUserAsync(string userId)
         {
+            if (_userStore == null)
+            {
+                System.Diagnostics.Debug.WriteLine("UserStore not initialized - returning null");
+                return null;
+            }
             return await _userStore.FindAsync(userId);
         }
 
         public async Task<IEnumerable<User>> GetAllUsersAsync()
         {
+            if (_userStore == null)
+            {
+                System.Diagnostics.Debug.WriteLine("UserStore not initialized - returning empty list");
+                return Enumerable.Empty<User>();
+            }
             return await _userStore.GetAllUsersAsync();
         }
 
@@ -171,7 +248,7 @@ namespace IIS.FTP.ManagementWeb.Services
             }
         }
 
-        public async Task<IEnumerable<IIS.FTP.Core.Logging.AuditEntry>> GetRecentAuditEntriesAsync(int count = 10)
+        public async Task<IEnumerable<IIS.Ftp.SimpleAuth.Core.Logging.AuditEntry>> GetRecentAuditEntriesAsync(int count = 10)
         {
             return await _auditLogger.GetRecentEntriesAsync(count);
         }

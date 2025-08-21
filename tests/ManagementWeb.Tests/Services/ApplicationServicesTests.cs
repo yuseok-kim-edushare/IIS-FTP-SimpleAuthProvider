@@ -1,6 +1,6 @@
 using IIS.FTP.ManagementWeb.Services;
-using IIS.FTP.Core.Logging;
-using IIS.FTP.Core.Monitoring;
+using IIS.Ftp.SimpleAuth.Core.Logging;
+using IIS.Ftp.SimpleAuth.Core.Monitoring;
 using IIS.Ftp.SimpleAuth.Core.Configuration;
 using IIS.Ftp.SimpleAuth.Core.Security;
 using IIS.Ftp.SimpleAuth.Core.Stores;

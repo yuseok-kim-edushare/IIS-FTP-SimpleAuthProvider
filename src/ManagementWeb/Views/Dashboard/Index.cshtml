@@ -217,7 +217,7 @@
                                     var total = Model.SystemHealth.AuthSuccessCount + Model.SystemHealth.AuthFailureCount;
                                     var rate = total > 0 ? (Model.SystemHealth.AuthSuccessCount * 100.0 / total).ToString("F1") : "0.0";
                                 }
-                                @Model.SystemHealth.AuthSuccessRate%
+                                @rate%
                             </span>
                         </div>
                         <div class="flex justify-between items-center">

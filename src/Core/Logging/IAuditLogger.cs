@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace IIS.FTP.Core.Logging
+namespace IIS.Ftp.SimpleAuth.Core.Logging
 {
     /// <summary>
     /// Interface for audit logging functionality.

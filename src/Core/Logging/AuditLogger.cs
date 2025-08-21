@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using IIS.Ftp.SimpleAuth.Core.Configuration;
 using System.IO;
-using IIS.FTP.Core.Logging;
+using IIS.Ftp.SimpleAuth.Core.Logging;
 using System.Collections.Concurrent;
 
 namespace IIS.Ftp.SimpleAuth.Core.Logging

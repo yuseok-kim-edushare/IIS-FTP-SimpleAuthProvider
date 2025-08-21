@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace IIS.FTP.Core.Monitoring
+namespace IIS.Ftp.SimpleAuth.Core.Monitoring
 {
     /// <summary>
     /// Interface for collecting and managing metrics.

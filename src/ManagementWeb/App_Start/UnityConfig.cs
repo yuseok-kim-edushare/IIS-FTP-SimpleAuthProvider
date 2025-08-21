@@ -1,8 +1,8 @@
 using IIS.Ftp.SimpleAuth.Core.Configuration;
 using IIS.Ftp.SimpleAuth.Core.Stores;
 using IIS.Ftp.SimpleAuth.Core.Security;
-using IIS.FTP.Core.Logging;
-using IIS.FTP.Core.Monitoring;
+using IIS.Ftp.SimpleAuth.Core.Logging;
+using IIS.Ftp.SimpleAuth.Core.Monitoring;
 using IIS.FTP.ManagementWeb.Services;
 using System;
 using System.Configuration;
@@ -17,35 +17,57 @@ namespace IIS.FTP.ManagementWeb
         public static void RegisterComponents()
         {
             var container = new UnityContainer();
-
-            // Register your types here
             ConfigureContainer(container);
-
             DependencyResolver.SetResolver(new UnityDependencyResolver(container));
         }
 
         private static void ConfigureContainer(IUnityContainer container)
         {
-            // Load configuration
-            var config = LoadConfiguration();
-            container.RegisterInstance<AuthProviderConfig>(config);
+            try
+            {
+                // Load configuration
+                var config = LoadConfiguration();
+                container.RegisterInstance<AuthProviderConfig>(config);
+                
+                // Debug logging to file
+                
+                try
+                {
+                    System.IO.Directory.CreateDirectory(@"C:\temp");
+                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                        $"{DateTime.Now}: Unity Configuration - UserStore.Type: {config.UserStore.Type}, Path: {config.UserStore.Path}, EncryptionKey: {config.UserStore.EncryptionKeyEnv}\n");
+                }
+                catch { }
 
-            // Register Core services
-            // Configure password hasher: default BCrypt; allow PBKDF2 via appSettings
-            var algorithm = config.Hashing.Algorithm ?? "BCrypt";
-            var iterations = config.Hashing.Iterations;
-            var bcryptCost = 12; // could be moved to config later
-            // Argon2 defaults (can become part of config later)
-            var argonMemory = 32768; var argonIters = 3; var argonParallel = 2;
-            container.RegisterFactory<IPasswordHasher>(_ => new PasswordHasherService(algorithm, iterations, bcryptCost, argonMemory, argonIters, argonParallel));
-            container.RegisterFactory<IAuditLogger>(_ => new IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger(config.Logging));
-            container.RegisterFactory<IMetricsCollector>(_ => new IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector(config.Metrics.MetricsFilePath, TimeSpan.FromSeconds(config.Metrics.ExportIntervalSeconds)));
+                // Register Core services with simplified approach
+                container.RegisterType<IPasswordHasher, PasswordHasherService>();
+                container.RegisterType<IAuditLogger, IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger>();
+                
+                // Simplified metrics registration
+                if (config.Metrics.Enabled)
+                {
+                    container.RegisterFactory<IMetricsCollector>(_ => new IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector(
+                        config.Metrics.MetricsFilePath ?? @"C:\inetpub\ftpmetrics\ftp_metrics.prom", 
+                        TimeSpan.FromSeconds(config.Metrics.ExportIntervalSeconds > 0 ? config.Metrics.ExportIntervalSeconds : 60)
+                    ));
+                }
+                else
+                {
+                    container.RegisterType<IMetricsCollector, IIS.Ftp.SimpleAuth.Core.Monitoring.NoOpMetricsCollector>();
+                }
 
-            // Register user store based on configuration
-            RegisterUserStore(container, config);
+                // Simplified user store registration
+                RegisterUserStore(container, config);
 
-            // Register application services
-            container.RegisterType<IApplicationServices, ApplicationServices>();
+                // Register application services
+                container.RegisterType<IApplicationServices, ApplicationServices>();
+            }
+            catch (Exception ex)
+            {
+                // Log the error but don't throw - this allows the application to start
+                System.Diagnostics.Debug.WriteLine($"Unity configuration error: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            }
         }
 
         private static AuthProviderConfig LoadConfiguration()
@@ -56,12 +78,28 @@ namespace IIS.FTP.ManagementWeb
                 {
                     Type = ConfigurationManager.AppSettings["UserStore:Type"] ?? "Json",
                     Path = ConfigurationManager.AppSettings["UserStore:Path"] ?? @"C:\inetpub\ftpusers\users.enc",
-                    EncryptionKeyEnv = ConfigurationManager.AppSettings["UserStore:EncryptionKeyEnv"] ?? "FTP_USERS_KEY"
+                    EncryptionKeyEnv = ConfigurationManager.AppSettings["UserStore:EncryptionKeyEnv"] ?? "FTP_USERS_KEY",
+                    EnableHotReload = bool.Parse(ConfigurationManager.AppSettings["UserStore:EnableHotReload"] ?? "true")
                 },
                 Hashing = new HashingConfig
                 {
                     Algorithm = ConfigurationManager.AppSettings["Hashing:Algorithm"] ?? "PBKDF2",
                     Iterations = int.Parse(ConfigurationManager.AppSettings["Hashing:Iterations"] ?? "100000")
+                },
+                Logging = new LoggingConfig
+                {
+                    EnableEventLog = bool.Parse(ConfigurationManager.AppSettings["Logging:EnableEventLog"] ?? "true"),
+                    EventLogSource = ConfigurationManager.AppSettings["Logging:EventLogSource"] ?? "IIS-FTP-SimpleAuth",
+                    LogFailures = bool.Parse(ConfigurationManager.AppSettings["Logging:LogFailures"] ?? "true"),
+                    LogSuccesses = bool.Parse(ConfigurationManager.AppSettings["Logging:LogSuccesses"] ?? "false"),
+                    EnableFileLog = bool.Parse(ConfigurationManager.AppSettings["Logging:EnableFileLog"] ?? "false"),
+                    FileLogPath = ConfigurationManager.AppSettings["Logging:FileLogPath"] ?? @"C:\inetpub\ftpauth\auth.log"
+                },
+                Metrics = new MetricsConfig
+                {
+                    Enabled = bool.Parse(ConfigurationManager.AppSettings["Metrics:Enabled"] ?? "true"),
+                    MetricsFilePath = ConfigurationManager.AppSettings["Metrics:MetricsFilePath"] ?? @"C:\inetpub\ftpmetrics\ftp_metrics.prom",
+                    ExportIntervalSeconds = int.Parse(ConfigurationManager.AppSettings["Metrics:ExportIntervalSeconds"] ?? "60")
                 }
             };
 
@@ -77,42 +115,73 @@ namespace IIS.FTP.ManagementWeb
 
         private static void RegisterUserStore(IUnityContainer container, AuthProviderConfig config)
         {
+            // Debug logging for UserStore registration
+            try
+            {
+                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                    $"{DateTime.Now}: RegisterUserStore - Type: {config.UserStore.Type}, Path: {config.UserStore.Path}, EncryptionKeyEnv: '{config.UserStore.EncryptionKeyEnv}'\n");
+            }
+            catch { }
+
+            // Use factory registration to provide constructor parameters
             switch (config.UserStore.Type.ToLowerInvariant())
             {
                 case "json":
                     if (!string.IsNullOrWhiteSpace(config.UserStore.EncryptionKeyEnv))
                     {
-                        container.RegisterType<IUserStore, EncryptedJsonUserStore>("InnerUserStore",
-                            new Unity.Injection.InjectionConstructor(
-                                config.UserStore.Path,
-                                config.UserStore.EnableHotReload,
+                        try
+                        {
+                            System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                                $"{DateTime.Now}: Registering EncryptedJsonUserStore with path: {config.UserStore.Path}\n");
+                        }
+                        catch { }
+                        
+                        container.RegisterFactory<IUserStore>(c => 
+                            new EncryptedJsonUserStore(
+                                config.UserStore.Path, 
+                                config.UserStore.EnableHotReload, 
                                 config.UserStore.EncryptionKeyEnv,
-                                new Unity.Injection.ResolvedParameter<IAuditLogger>()));
+                                c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
+                            )
+                        );
                     }
                     else
                     {
-                        container.RegisterType<IUserStore, JsonUserStore>("InnerUserStore",
-                            new Unity.Injection.InjectionConstructor(config.UserStore.Path, config.UserStore.EnableHotReload, new Unity.Injection.ResolvedParameter<IAuditLogger>()));
+                        try
+                        {
+                            System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
+                                $"{DateTime.Now}: Registering JsonUserStore with path: {config.UserStore.Path}\n");
+                        }
+                        catch { }
+                        
+                        container.RegisterFactory<IUserStore>(c => 
+                            new JsonUserStore(
+                                config.UserStore.Path, 
+                                config.UserStore.EnableHotReload,
+                                c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
+                            )
+                        );
                     }
                     break;
                 case "sqlite":
-                    container.RegisterType<IUserStore, SqliteUserStore>("InnerUserStore",
-                        new Unity.Injection.InjectionConstructor(config.UserStore.Path, new Unity.Injection.ResolvedParameter<IAuditLogger>()));
+                    container.RegisterFactory<IUserStore>(c => 
+                        new SqliteUserStore(
+                            config.UserStore.Path,
+                            c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
+                        )
+                    );
                     break;
                 case "sqlserver":
-                    container.RegisterType<IUserStore, SqlServerUserStore>("InnerUserStore",
-                        new Unity.Injection.InjectionConstructor(config.UserStore.ConnectionString ?? string.Empty, new Unity.Injection.ResolvedParameter<IAuditLogger>()));
+                    container.RegisterFactory<IUserStore>(c => 
+                        new SqlServerUserStore(
+                            config.UserStore.ConnectionString ?? throw new InvalidOperationException("SQL Server connection string is required"),
+                            c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
+                        )
+                    );
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown user store type: {config.UserStore.Type}");
             }
-
-            // Wrap with instrumentation: default mapping resolves to decorator over named inner
-            container.RegisterType<IUserStore, InstrumentedUserStore>(
-                new Unity.Injection.InjectionConstructor(
-                    new Unity.Injection.ResolvedParameter<IUserStore>("InnerUserStore"),
-                    new Unity.Injection.ResolvedParameter<IMetricsCollector>()
-                ));
         }
     }
 } 
