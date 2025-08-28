@@ -8,6 +8,7 @@ using System;
 using System.Configuration;
 using System.Web.Mvc;
 using Unity;
+using Unity.Lifetime;
 using Unity.Mvc5;
 
 namespace IIS.FTP.ManagementWeb
@@ -29,44 +30,44 @@ namespace IIS.FTP.ManagementWeb
                 var config = LoadConfiguration();
                 container.RegisterInstance<AuthProviderConfig>(config);
                 
-                // Debug logging to file
+                // Register Core services with proper lifecycle management
+                container.RegisterType<IPasswordHasher, PasswordHasherService>(new ContainerControlledLifetimeManager());
                 
-                try
-                {
-                    System.IO.Directory.CreateDirectory(@"C:\temp");
-                    System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
-                        $"{DateTime.Now}: Unity Configuration - UserStore.Type: {config.UserStore.Type}, Path: {config.UserStore.Path}, EncryptionKey: {config.UserStore.EncryptionKeyEnv}\n");
-                }
-                catch { }
-
-                // Register Core services with simplified approach
-                container.RegisterType<IPasswordHasher, PasswordHasherService>();
-                container.RegisterType<IAuditLogger, IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger>();
+                // Register AuditLogger as singleton to avoid circular dependencies
+                container.RegisterFactory<IAuditLogger>(c => 
+                    new IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger(config.Logging), 
+                    new ContainerControlledLifetimeManager());
                 
-                // Simplified metrics registration
+                // Register metrics collector
                 if (config.Metrics.Enabled)
                 {
-                    container.RegisterFactory<IMetricsCollector>(_ => new IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector(
-                        config.Metrics.MetricsFilePath ?? @"C:\inetpub\ftpmetrics\ftp_metrics.prom", 
-                        TimeSpan.FromSeconds(config.Metrics.ExportIntervalSeconds > 0 ? config.Metrics.ExportIntervalSeconds : 60)
-                    ));
+                    container.RegisterFactory<IMetricsCollector>(c => 
+                        new IIS.Ftp.SimpleAuth.Core.Monitoring.MetricsCollector(
+                            config.Metrics.MetricsFilePath ?? @"C:\inetpub\ftpmetrics\ftp_metrics.prom", 
+                            TimeSpan.FromSeconds(config.Metrics.ExportIntervalSeconds > 0 ? config.Metrics.ExportIntervalSeconds : 60)
+                        ), new ContainerControlledLifetimeManager());
                 }
                 else
                 {
-                    container.RegisterType<IMetricsCollector, IIS.Ftp.SimpleAuth.Core.Monitoring.NoOpMetricsCollector>();
+                    container.RegisterType<IMetricsCollector, IIS.Ftp.SimpleAuth.Core.Monitoring.NoOpMetricsCollector>(new ContainerControlledLifetimeManager());
                 }
 
-                // Simplified user store registration
+                // Register user store with proper dependency resolution
                 RegisterUserStore(container, config);
 
                 // Register application services
                 container.RegisterType<IApplicationServices, ApplicationServices>();
+                
+                // Validate container configuration
+                ValidateContainerConfiguration(container);
             }
             catch (Exception ex)
             {
-                // Log the error but don't throw - this allows the application to start
-                System.Diagnostics.Debug.WriteLine($"Unity configuration error: {ex.Message}");
-                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                // Log the error with more detail and throw to prevent broken DI
+                System.Diagnostics.EventLog.WriteEntry("IIS-FTP-SimpleAuth", 
+                    $"Unity configuration failed: {ex.Message}\n{ex.StackTrace}", 
+                    System.Diagnostics.EventLogEntryType.Error);
+                throw new InvalidOperationException($"Dependency injection configuration failed: {ex.Message}", ex);
             }
         }
 
@@ -115,72 +116,76 @@ namespace IIS.FTP.ManagementWeb
 
         private static void RegisterUserStore(IUnityContainer container, AuthProviderConfig config)
         {
-            // Debug logging for UserStore registration
-            try
-            {
-                System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
-                    $"{DateTime.Now}: RegisterUserStore - Type: {config.UserStore.Type}, Path: {config.UserStore.Path}, EncryptionKeyEnv: '{config.UserStore.EncryptionKeyEnv}'\n");
-            }
-            catch { }
-
-            // Use factory registration to provide constructor parameters
+            // Use factory registration with proper dependency resolution
             switch (config.UserStore.Type.ToLowerInvariant())
             {
                 case "json":
                     if (!string.IsNullOrWhiteSpace(config.UserStore.EncryptionKeyEnv))
                     {
-                        try
-                        {
-                            System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
-                                $"{DateTime.Now}: Registering EncryptedJsonUserStore with path: {config.UserStore.Path}\n");
-                        }
-                        catch { }
-                        
                         container.RegisterFactory<IUserStore>(c => 
-                            new EncryptedJsonUserStore(
+                        {
+                            var auditLogger = c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger;
+                            return new EncryptedJsonUserStore(
                                 config.UserStore.Path, 
                                 config.UserStore.EnableHotReload, 
                                 config.UserStore.EncryptionKeyEnv,
-                                c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
-                            )
-                        );
+                                auditLogger
+                            );
+                        }, new ContainerControlledLifetimeManager());
                     }
                     else
                     {
-                        try
-                        {
-                            System.IO.File.AppendAllText(@"C:\temp\login-debug.log", 
-                                $"{DateTime.Now}: Registering JsonUserStore with path: {config.UserStore.Path}\n");
-                        }
-                        catch { }
-                        
                         container.RegisterFactory<IUserStore>(c => 
-                            new JsonUserStore(
+                        {
+                            var auditLogger = c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger;
+                            return new JsonUserStore(
                                 config.UserStore.Path, 
                                 config.UserStore.EnableHotReload,
-                                c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
-                            )
-                        );
+                                auditLogger
+                            );
+                        }, new ContainerControlledLifetimeManager());
                     }
                     break;
                 case "sqlite":
                     container.RegisterFactory<IUserStore>(c => 
-                        new SqliteUserStore(
+                    {
+                        var auditLogger = c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger;
+                        return new SqliteUserStore(
                             config.UserStore.Path,
-                            c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
-                        )
-                    );
+                            auditLogger
+                        );
+                    }, new ContainerControlledLifetimeManager());
                     break;
                 case "sqlserver":
                     container.RegisterFactory<IUserStore>(c => 
-                        new SqlServerUserStore(
+                    {
+                        var auditLogger = c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger;
+                        return new SqlServerUserStore(
                             config.UserStore.ConnectionString ?? throw new InvalidOperationException("SQL Server connection string is required"),
-                            c.Resolve<IAuditLogger>() as IIS.Ftp.SimpleAuth.Core.Logging.AuditLogger
-                        )
-                    );
+                            auditLogger
+                        );
+                    }, new ContainerControlledLifetimeManager());
                     break;
                 default:
                     throw new InvalidOperationException($"Unknown user store type: {config.UserStore.Type}");
+            }
+        }
+
+        private static void ValidateContainerConfiguration(IUnityContainer container)
+        {
+            // Validate that all required services can be resolved
+            try
+            {
+                container.Resolve<AuthProviderConfig>();
+                container.Resolve<IPasswordHasher>();
+                container.Resolve<IAuditLogger>();
+                container.Resolve<IMetricsCollector>();
+                container.Resolve<IUserStore>();
+                container.Resolve<IApplicationServices>();
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Container validation failed. One or more services cannot be resolved: {ex.Message}", ex);
             }
         }
     }
