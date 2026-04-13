@@ -57,20 +57,12 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: 0
-          submodules: 'false'
-
-      - name: Checkout WelsonJS (submodules)
-        uses: actions/checkout@v5
-        with:
-          repository: gnh1201/welsonjs
-          path: WelsonJS
-          fetch-depth: 0
-          fetch-tags: 0
+          submodules: 'true'
 
       - name: install dotnet
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 9
+          dotnet-version: 10
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v1.1
